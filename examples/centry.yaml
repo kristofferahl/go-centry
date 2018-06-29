@@ -1,0 +1,37 @@
+scripts:
+  - scripts/init.sh
+  - scripts/session.sh
+
+commands:
+  - name: up
+    path: commands/updown.sh
+    synopsis: Creating stuff
+    help: 'Help: up'
+  - name: down
+    path: commands/updown.sh
+    synopsis: Destroying stuff
+    help: 'Help: down'
+  - name: rotate
+    path: commands/rotate.sh
+    synopsis: Rotating stuff
+    help: 'Help: rotate'
+
+options:
+  - name: foo
+    env_name: BAR
+    default: baz
+  - name: context
+    default: ops
+  - name: ops
+    env_name: CONTEXT
+  - name: dev
+    env_name: CONTEXT
+  - name: qa
+    env_name: CONTEXT
+  - name: prod
+    env_name: CONTEXT
+
+config:
+  log:
+    level: info
+    prefix: '[centry] '
