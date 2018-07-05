@@ -29,7 +29,7 @@ func (bc *BashCommand) Run(args []string) int {
 	callArgs := []string{}
 	callArgs = append(callArgs, "-c", fmt.Sprintf("source %s; %s %s", bc.GetCommandPath(), bc.Name, strings.Join(args, " ")))
 
-	bc.Log.Info(fmt.Sprintf("Executing command %v... %v", bc.Name, callArgs))
+	bc.Log.Infof("Executing command %v", bc.Name)
 
 	out, err := exec.Command("/bin/bash", callArgs...).CombinedOutput()
 
@@ -44,11 +44,11 @@ func (bc *BashCommand) Run(args []string) int {
 			}
 		}
 
-		bc.Log.Fatal(fmt.Sprintf("Command %v exited with error! %v", bc.Name, err))
+		bc.Log.Fatalf("Command %v exited with error! %v", bc.Name, err)
 		return exitCode
 	}
 
-	bc.Log.Info(fmt.Sprintf("Finished executing command %v...", bc.Name))
+	bc.Log.Infof("Finished executing command %v...", bc.Name)
 	return 0
 }
 
