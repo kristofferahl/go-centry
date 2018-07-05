@@ -20,16 +20,17 @@ type manifest struct {
 }
 
 type command struct {
-	Name     string `yaml:"name,omitempty"`
-	Path     string `yaml:"path,omitempty"`
-	Help     string `yaml:"help,omitempty"`
-	Synopsis string `yaml:"synopsis,omitempty"`
+	Name        string `yaml:"name,omitempty"`
+	Path        string `yaml:"path,omitempty"`
+	Help        string `yaml:"help,omitempty"`
+	Description string `yaml:"description,omitempty"`
 }
 
 type option struct {
-	Name    string `yaml:"name,omitempty"`
-	EnvName string `yaml:"env_name,omitempty"`
-	Default string `yaml:"default,omitempty"`
+	Name        string `yaml:"name,omitempty"`
+	EnvName     string `yaml:"env_name,omitempty"`
+	Default     string `yaml:"default,omitempty"`
+	Description string `yaml:"description,omitempty"`
 }
 
 type config struct {

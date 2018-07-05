@@ -5,31 +5,27 @@ scripts:
 commands:
   - name: up
     path: commands/updown.sh
-    synopsis: Creating stuff
-    help: 'Help: up'
+    description: Upserts resources
   - name: down
     path: commands/updown.sh
-    synopsis: Destroying stuff
-    help: 'Help: down'
+    description: Destroys resources
   - name: rotate
     path: commands/rotate.sh
-    synopsis: Rotating stuff
-    help: 'Help: rotate'
+    description: Rotating secrets, hosts
 
 options:
-  - name: foo
-    env_name: BAR
-    default: baz
-  - name: context
-    default: ops
   - name: ops
     env_name: CONTEXT
+    description: Set the context to ops (operations)
   - name: dev
     env_name: CONTEXT
+    description: Set the context to dev (development)
   - name: qa
     env_name: CONTEXT
+    description: Set the context to qa (quality assurance)
   - name: prod
     env_name: CONTEXT
+    description: Set the context to prod (production)
 
 config:
   log:
