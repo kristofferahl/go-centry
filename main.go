@@ -16,8 +16,11 @@ func main() {
 func realMain() int {
 	log := logrus.New()
 
-	// Load manifest
+	// Args
 	file := os.Args[1]
+	args := os.Args[2:]
+
+	// Load manifest
 	if _, err := os.Stat(file); os.IsNotExist(err) {
 		log.Error("The first argument of centry must be a path to a valid manfest file")
 		return 1
@@ -46,8 +49,22 @@ func realMain() int {
 		}
 	}
 
-	// Re-parse global flags
-	globalFlags.Parse(os.Args[2:])
+	// Parse global flags
+	parseGlobalFlags := true
+	for _, arg := range args {
+		if arg == "-v" || arg == "--v" || arg == "-version" || arg == "--version" {
+			parseGlobalFlags = false
+			break
+		}
+		if arg == "-h" || arg == "--h" || arg == "-help" || arg == "--help" {
+			parseGlobalFlags = false
+			break
+		}
+	}
+	if parseGlobalFlags {
+		globalFlags.Parse(args)
+		args = globalFlags.Args()
+	}
 
 	// Initialize cli
 	c := &cli.CLI{
@@ -55,7 +72,7 @@ func realMain() int {
 		Version: manifest.Config.Version,
 
 		Commands: map[string]cli.CommandFactory{},
-		Args:     globalFlags.Args(),
+		Args:     args,
 
 		Autocomplete:          true,
 		AutocompleteInstall:   "install-autocomplete",
