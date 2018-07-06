@@ -20,7 +20,7 @@ type BashCommand struct {
 }
 
 func (bc *BashCommand) Run(args []string) int {
-	bc.Log.Debugf("Executing command %v", bc.Name)
+	bc.Log.Debugf("Executing command \"%v\"", bc.Name)
 
 	source := []string{}
 

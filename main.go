@@ -44,6 +44,10 @@ func realMain() int {
 
 	// Add global option flags
 	globalFlags := flag.NewFlagSet("global", flag.ExitOnError)
+
+	// TODO: Allow anything under config to be overridden using flags
+	logLevel := globalFlags.String("config.log.level", "", "Overrides the manifest log level")
+
 	for _, opt := range manifest.Options {
 		opt := opt
 		log.Debugf("Adding global option %s (default value: %s)", opt.Name, opt.Default)
@@ -60,6 +64,13 @@ func realMain() int {
 
 	// Set args for cli
 	c.Args = globalFlags.Args()
+
+	// Override the manifest log level
+	if *logLevel != "" {
+		log.Debugf("Overriding manifest loglevel %s", *logLevel, l)
+		l, _ := logrus.ParseLevel(*logLevel)
+		log.SetLevel(l)
+	}
 
 	// Build commands
 	for _, cmd := range manifest.Commands {
