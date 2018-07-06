@@ -9,20 +9,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// DynamicCommand is a Command implementation that applies stuff
 type DynamicCommand struct {
 	Manifest *manifest
 	Log      *logrus.Entry
 	Command  command
 }
 
-func (dc *DynamicCommand) GetCommandPath() string {
+func (dc *DynamicCommand) GetFullPath() string {
 	absPath := path.Join(dc.Manifest.BasePath, dc.Command.Path)
 	return absPath
 }
 
 func (dc *DynamicCommand) GeBashFunctions() []string {
-	callArgs := []string{"-c", fmt.Sprintf("source %s; declare -F", dc.GetCommandPath())}
+	callArgs := []string{"-c", fmt.Sprintf("source %s; declare -F", dc.GetFullPath())}
 	out, err := exec.Command("/bin/bash", callArgs...).CombinedOutput()
 	if err != nil {
 		dc.Log.Fatal(err, string(out))
