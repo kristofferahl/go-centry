@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os/exec"
 	"strings"
@@ -13,6 +14,7 @@ import (
 type BashCommand struct {
 	Manifest     *manifest
 	Log          *logrus.Entry
+	GlobalFlags  *flag.FlagSet
 	Name         string
 	Path         string
 	HelpText     string
@@ -26,6 +28,37 @@ func (bc *BashCommand) Run(args []string) int {
 
 	source = append(source, "# Set working directory")
 	source = append(source, fmt.Sprintf("cd %s || exit 1", bc.Manifest.BasePath))
+
+	source = append(source, "")
+	source = append(source, "# Set exports from flags")
+	exports := map[string]string{}
+	for _, o := range bc.Manifest.Options {
+		envName := o.EnvName
+		envValue := o.Default
+		valueFlag := bc.GlobalFlags.Lookup(o.Name)
+
+		if envName == "" {
+			envName = strings.ToUpper(o.Name)
+		}
+
+		if valueFlag != nil {
+			switch valueFlag.Value.String() {
+			case "true":
+				envValue = o.Name
+			case "false":
+				envValue = ""
+			default:
+				envValue = valueFlag.Value.String()
+			}
+		}
+
+		if envValue != "" {
+			exports[envName] = envValue
+		}
+	}
+	for envName, envValue := range exports {
+		source = append(source, fmt.Sprintf("export %s='%s'", envName, envValue))
+	}
 
 	source = append(source, "")
 	source = append(source, "# Sourcing scripts")

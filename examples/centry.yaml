@@ -14,6 +14,9 @@ commands:
     description: Rotating secrets, hosts
 
 options:
+  - name: context
+    description: Set the context
+    default: ops
   - name: ops
     env_name: CONTEXT
     description: Set the context to ops (operations)

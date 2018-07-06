@@ -21,7 +21,7 @@ func (dc *DynamicCommand) GetCommandPath() string {
 	return absPath
 }
 
-func (dc *DynamicCommand) GeBashCommands() []string {
+func (dc *DynamicCommand) GeBashFunctions() []string {
 	callArgs := []string{"-c", fmt.Sprintf("source %s; declare -F", dc.GetCommandPath())}
 	out, err := exec.Command("/bin/bash", callArgs...).CombinedOutput()
 	if err != nil {

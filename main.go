@@ -83,10 +83,8 @@ func realMain() int {
 			Manifest: manifest,
 		}
 
-		bashCommands := command.GeBashCommands()
-
-		for _, bc := range bashCommands {
-			cmdName := bc
+		for _, bf := range command.GeBashFunctions() {
+			cmdName := bf
 			cmdKey := strings.Replace(cmdName, ":", " ", -1)
 			log.Debugf("Adding command %s", cmdKey)
 
@@ -112,6 +110,7 @@ func realMain() int {
 					Log: log.WithFields(logrus.Fields{
 						"command": cmdKey,
 					}),
+					GlobalFlags:  globalFlags,
 					Name:         cmdName,
 					Path:         cmd.Path,
 					HelpText:     cmd.Help,
