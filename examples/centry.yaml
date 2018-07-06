@@ -12,6 +12,9 @@ commands:
   - name: rotate
     path: commands/rotate.sh
     description: Rotating secrets, hosts
+  - name: interactive
+    path: commands/interactive.sh
+    description: Reading from stdin
 
 options:
   - name: context

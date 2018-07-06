@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"syscall"
@@ -25,7 +26,9 @@ func (bc *BashCommand) Run(args []string) int {
 	bc.Log.Debugf("Executing command \"%v\"", bc.Name)
 
 	source := []string{}
+	source = append(source, "#!/usr/bin/env bash")
 
+	source = append(source, "")
 	source = append(source, "# Set working directory")
 	source = append(source, fmt.Sprintf("cd %s || exit 1", bc.Manifest.BasePath))
 
@@ -79,10 +82,7 @@ func (bc *BashCommand) Run(args []string) int {
 	callArgs := []string{}
 	callArgs = append(callArgs, "-c", strings.Join(source, "\n"))
 
-	out, err := exec.Command("/bin/bash", callArgs...).CombinedOutput()
-
-	fmt.Printf(string(out))
-
+	err := bc.ExecBash(strings.Join(source, "\n"))
 	if err != nil {
 		exitCode := 1
 
@@ -98,6 +98,15 @@ func (bc *BashCommand) Run(args []string) int {
 
 	bc.Log.Debugf("Finished executing command %v...", bc.Name)
 	return 0
+}
+
+func (bc *BashCommand) ExecBash(source string) error {
+	cmd := exec.Command("/bin/bash", "-c", source)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
+	err := cmd.Run()
+	return err
 }
 
 func (bc *BashCommand) Help() string {
