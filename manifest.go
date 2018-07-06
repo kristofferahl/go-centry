@@ -34,7 +34,9 @@ type option struct {
 }
 
 type config struct {
-	Log logConfig `yaml:"log,omitempty"`
+	Name    string    `yaml:"name,omitempty"`
+	Version string    `yaml:"version,omitempty"`
+	Log     logConfig `yaml:"log,omitempty"`
 }
 
 type logConfig struct {

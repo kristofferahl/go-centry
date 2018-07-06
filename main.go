@@ -16,24 +16,13 @@ func main() {
 func realMain() int {
 	log := logrus.New()
 
-	c := &cli.CLI{
-		Name:     "go-centry",
-		Version:  "1.0.0",
-		Commands: map[string]cli.CommandFactory{},
-
-		Autocomplete:          true,
-		AutocompleteInstall:   "install-autocomplete",
-		AutocompleteUninstall: "uninstall-autocomplete",
-	}
-
-	// Parse global flags
-	centryFlags := flag.NewFlagSet(c.Name, flag.ContinueOnError)
-	file := centryFlags.String("file", "./centry.yaml", "The path to the manifest file")
-	centryFlags.StringVar(file, "f", "./centry.yaml", "The path to the manifest file")
-	centryFlags.Parse(os.Args[1:2])
-
 	// Load manifest
-	manifest := loadManifest(*file)
+	file := os.Args[1]
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		log.Error("The first argument of centry must be a path to a valid manfest file")
+		return 1
+	}
+	manifest := loadManifest(file)
 
 	// Configure logger
 	l, _ := logrus.ParseLevel(manifest.Config.Log.Level)
@@ -43,11 +32,9 @@ func realMain() int {
 	}
 
 	// Add global option flags
-	globalFlags := flag.NewFlagSet("global", flag.ExitOnError)
-
 	// TODO: Allow anything under config to be overridden using flags
+	globalFlags := flag.NewFlagSet("global", flag.ExitOnError)
 	logLevel := globalFlags.String("config.log.level", "", "Overrides the manifest log level")
-
 	for _, opt := range manifest.Options {
 		opt := opt
 		log.Debugf("Adding global option %s (default value: %s)", opt.Name, opt.Default)
@@ -62,8 +49,18 @@ func realMain() int {
 	// Re-parse global flags
 	globalFlags.Parse(os.Args[2:])
 
-	// Set args for cli
-	c.Args = globalFlags.Args()
+	// Initialize cli
+	c := &cli.CLI{
+		Name:    manifest.Config.Name,
+		Version: manifest.Config.Version,
+
+		Commands: map[string]cli.CommandFactory{},
+		Args:     globalFlags.Args(),
+
+		Autocomplete:          true,
+		AutocompleteInstall:   "install-autocomplete",
+		AutocompleteUninstall: "uninstall-autocomplete",
+	}
 
 	// Override the manifest log level
 	if *logLevel != "" {
@@ -87,22 +84,6 @@ func realMain() int {
 			cmdName := bf
 			cmdKey := strings.Replace(cmdName, ":", " ", -1)
 			log.Debugf("Adding command %s", cmdKey)
-
-			// TODO: Keep this for a while
-			// if i == 1 && cmdName != cmd.Name {
-			// 	c.Commands[cmd.Name] = func() (cli.Command, error) {
-			// 		return &BashCommand{
-			// 			Manifest: manifest,
-			// 			Log: log.WithFields(logrus.Fields{
-			// 				"command": cmd.Name,
-			// 			}),
-			// 			Name:         cmd.Name,
-			// 			Path:         cmd.Path,
-			// 			HelpText:     cmd.Help,
-			// 			SynopsisText: cmd.Synopsis,
-			// 		}, nil
-			// 	}
-			// }
 
 			c.Commands[cmdKey] = func() (cli.Command, error) {
 				return &BashCommand{

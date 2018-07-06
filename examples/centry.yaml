@@ -34,6 +34,8 @@ options:
     description: Set the context to prod (production)
 
 config:
+  name: centry
+  version: 1.0.0
   log:
     level: info
     prefix: '[centry] '
