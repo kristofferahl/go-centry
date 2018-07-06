@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os/exec"
-	"path"
 	"strings"
 	"syscall"
 
@@ -20,16 +19,32 @@ type BashCommand struct {
 	SynopsisText string
 }
 
-func (bc *BashCommand) GetCommandPath() string {
-	absPath := path.Join(bc.Manifest.BasePath, bc.Path)
-	return absPath
-}
-
 func (bc *BashCommand) Run(args []string) int {
-	callArgs := []string{}
-	callArgs = append(callArgs, "-c", fmt.Sprintf("source %s; %s %s", bc.GetCommandPath(), bc.Name, strings.Join(args, " ")))
+	bc.Log.Debugf("Executing command %v", bc.Name)
 
-	bc.Log.Infof("Executing command %v", bc.Name)
+	source := []string{}
+
+	source = append(source, "# Set working directory")
+	source = append(source, fmt.Sprintf("cd %s || exit 1", bc.Manifest.BasePath))
+
+	source = append(source, "")
+	source = append(source, "# Sourcing scripts")
+	for _, s := range bc.Manifest.Scripts {
+		source = append(source, fmt.Sprintf("source %s", s))
+	}
+
+	source = append(source, "")
+	source = append(source, "# Sourcing command")
+	source = append(source, fmt.Sprintf("source %s", bc.Path))
+
+	source = append(source, "")
+	source = append(source, "# Executing command")
+	source = append(source, fmt.Sprintf("%s %s", bc.Name, strings.Join(args, " ")))
+
+	bc.Log.Debugf("Command source code:\n%s\n", strings.Join(source, "\n"))
+
+	callArgs := []string{}
+	callArgs = append(callArgs, "-c", strings.Join(source, "\n"))
 
 	out, err := exec.Command("/bin/bash", callArgs...).CombinedOutput()
 
@@ -48,7 +63,7 @@ func (bc *BashCommand) Run(args []string) int {
 		return exitCode
 	}
 
-	bc.Log.Infof("Finished executing command %v...", bc.Name)
+	bc.Log.Debugf("Finished executing command %v...", bc.Name)
 	return 0
 }
 
