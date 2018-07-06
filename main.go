@@ -38,6 +38,8 @@ func realMain() int {
 	// TODO: Allow anything under config to be overridden using flags
 	globalFlags := flag.NewFlagSet("global", flag.ExitOnError)
 	logLevel := globalFlags.String("config.log.level", "", "Overrides the manifest log level")
+	loggingOff := globalFlags.Bool("quiet", false, "Disables logging")
+	globalFlags.BoolVar(loggingOff, "q", false, "Disables logging")
 	for _, opt := range manifest.Options {
 		opt := opt
 		log.Debugf("Adding global option %s (default value: %s)", opt.Name, opt.Default)
@@ -80,6 +82,9 @@ func realMain() int {
 	}
 
 	// Override the manifest log level
+	if *loggingOff == true {
+		*logLevel = "panic"
+	}
 	if *logLevel != "" {
 		log.Debugf("Overriding manifest loglevel %s", *logLevel, l)
 		l, _ := logrus.ParseLevel(*logLevel)
