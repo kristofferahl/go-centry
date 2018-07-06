@@ -17,8 +17,12 @@ func realMain() int {
 	log := logrus.New()
 
 	// Args
-	file := os.Args[1]
-	args := os.Args[2:]
+	file := ""
+	args := []string{}
+	if len(os.Args) >= 2 {
+		file = os.Args[1]
+		args = os.Args[2:]
+	}
 
 	// Load manifest
 	if _, err := os.Stat(file); os.IsNotExist(err) {
@@ -76,9 +80,9 @@ func realMain() int {
 		Commands: map[string]cli.CommandFactory{},
 		Args:     args,
 
-		Autocomplete:          true,
-		AutocompleteInstall:   "install-autocomplete",
-		AutocompleteUninstall: "uninstall-autocomplete",
+		// Autocomplete:          true,
+		// AutocompleteInstall:   "install-autocomplete",
+		// AutocompleteUninstall: "uninstall-autocomplete",
 	}
 
 	// Override the manifest log level

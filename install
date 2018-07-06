@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+go install
+mv /Users/kristofferahl/Develop/go/bin/go-centry /Users/kristofferahl/Develop/go/bin/centry
