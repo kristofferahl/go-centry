@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+go build -o ./centry
+
+./centry ./examples/centry.yaml "$@"
