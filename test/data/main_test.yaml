@@ -1,0 +1,24 @@
+scripts:
+  - scripts/init.sh
+  - scripts/helpers.sh
+
+commands:
+  - name: get
+    path: commands/get.sh
+    description: Gets stuff
+  - name: put
+    path: commands/put.sh
+    description: Creates stuff
+  - name: delete
+    path: commands/delete.sh
+    description: Deletes stuff
+
+options:
+
+
+config:
+  name: centry
+  version: 1.0.0
+  log:
+    level: info
+    prefix: '[centry] '
