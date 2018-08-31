@@ -11,15 +11,12 @@ commands:
     description: Destroys resources
   - name: rotate
     path: commands/rotate.sh
-    description: Rotating secrets, hosts
+    description: Rotating secrets, hosts etc.
   - name: interactive
     path: commands/interactive.sh
     description: Reading from stdin
 
 options:
-  - name: context
-    description: Set the context
-    default: ops
   - name: ops
     env_name: CONTEXT
     description: Set the context to ops (operations)
