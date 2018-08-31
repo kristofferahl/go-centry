@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"os"
-	"os/exec"
 	"strings"
 	"testing"
 
@@ -17,7 +15,7 @@ func TestMain(t *testing.T) {
 	g.Describe("scripts", func() {
 		g.It("loads script in the expected order", func() {
 			os.Setenv("OUTPUT_DEBUG", "true")
-			g.Assert(strings.HasPrefix(ExecCentry("get").StdOut, "Loading init.sh\nLoading helpers.sh\n")).IsTrue()
+			g.Assert(strings.HasPrefix(execCentry("get").StdOut, "Loading init.sh\nLoading helpers.sh\n")).IsTrue()
 			os.Unsetenv("OUTPUT_DEBUG")
 		})
 	})
@@ -25,20 +23,20 @@ func TestMain(t *testing.T) {
 	g.Describe("commands", func() {
 		g.Describe("call without argument", func() {
 			g.It("should have no arguments passed", func() {
-				g.Assert(ExecCentry("get").StdOut).Equal("get ()\n")
+				g.Assert(execCentry("get").StdOut).Equal("get ()\n")
 			})
 		})
 
 		g.Describe("call with argument", func() {
 			g.It("should have arguments passed", func() {
-				g.Assert(ExecCentry("get foobar").StdOut).Equal("get (foobar)\n")
+				g.Assert(execCentry("get foobar").StdOut).Equal("get (foobar)\n")
 			})
 		})
 	})
 
 	g.Describe("help", func() {
 		g.Describe("call with --help", func() {
-			result := ExecCentry("")
+			result := execCentry("")
 
 			g.It("should display available commands", func() {
 				expected := `Available commands are:
@@ -62,8 +60,8 @@ func TestMain(t *testing.T) {
 			})
 		})
 
-		g.Describe("call without command", func() {
-			result := ExecCentry("")
+		g.Describe("call without arguments", func() {
+			result := execCentry("")
 
 			g.It("should display help text", func() {
 				g.Assert(strings.HasPrefix(result.StdErr, "Usage: centry")).IsTrue()
@@ -72,34 +70,20 @@ func TestMain(t *testing.T) {
 	})
 }
 
-type ExecResult struct {
+type execResult struct {
 	Source string
 	StdOut string
 	StdErr string
-	StdIn  string
-	Error  error
 }
 
-func ExecCentry(source string) *ExecResult {
-	return RunBash(fmt.Sprintf("./centry ./test/data/main_test.yaml %s", source))
-}
+func execCentry(source string) *execResult {
+	out := CaptureOutput(func() {
+		centry(strings.Split(fmt.Sprintf("./centry ./test/data/main_test.yaml %s", source), " "))
+	})
 
-func RunBash(source string) *ExecResult {
-	var stdout bytes.Buffer
-	var stderr bytes.Buffer
-	var stdin bytes.Buffer
-
-	cmd := exec.Command("/bin/bash", "-c", source)
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	cmd.Stdin = &stdin
-	err := cmd.Run()
-
-	return &ExecResult{
+	return &execResult{
 		Source: source,
-		StdOut: stdout.String(),
-		StdErr: stderr.String(),
-		StdIn:  stdin.String(),
-		Error:  err,
+		StdOut: out.Stdout,
+		StdErr: out.Stderr,
 	}
 }
