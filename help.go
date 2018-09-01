@@ -11,19 +11,19 @@ import (
 	"github.com/kristofferahl/cli"
 )
 
-func centryHelpFunc(app string, globalFlags *flag.FlagSet) cli.HelpFunc {
+func centryHelpFunc(manifest *manifest, globalFlags *flag.FlagSet) cli.HelpFunc {
 	return func(commands map[string]cli.CommandFactory) string {
 		var buf bytes.Buffer
-		buf.WriteString(fmt.Sprintf("Usage: %s [--version] [--help] <command> [<args>]\n\n", app))
+		buf.WriteString(fmt.Sprintf("Usage: %s [--version] [--help] <command> [<args>]\n\n", manifest.Config.Name))
 
-		writeCommands(&buf, commands)
+		writeCommands(&buf, commands, manifest)
 		writeOptions(&buf, globalFlags)
 
 		return buf.String()
 	}
 }
 
-func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory) {
+func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, manifest *manifest) {
 	buf.WriteString("Available commands are:\n")
 
 	// Get the list of keys so we can sort them, and also get the maximum
@@ -53,8 +53,16 @@ func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory) {
 			continue
 		}
 
+		synopsis := command.Synopsis()
+		if synopsis == "" {
+			for _, mc := range manifest.Commands {
+				if mc.Name == key {
+					synopsis = mc.Description
+				}
+			}
+		}
 		key = fmt.Sprintf("%s%s", key, strings.Repeat(" ", maxKeyLen-len(key)))
-		buf.WriteString(fmt.Sprintf("    %s    %s\n", key, command.Synopsis()))
+		buf.WriteString(fmt.Sprintf("    %s    %s\n", key, synopsis))
 	}
 }
 

@@ -75,7 +75,7 @@ func centry(osArgs []string) int {
 
 		Commands: map[string]cli.CommandFactory{},
 		Args:     args,
-		HelpFunc: centryHelpFunc(manifest.Config.Name, globalFlags), // TODO: Pass manifest instead of globalFlags to get correct flags order and short flags grouped with long option
+		HelpFunc: centryHelpFunc(manifest, globalFlags),
 
 		// Autocomplete:          true,
 		// AutocompleteInstall:   "install-autocomplete",

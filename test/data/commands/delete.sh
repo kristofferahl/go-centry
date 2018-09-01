@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
-delete () {
-  echo "delete ($*)"
+delete:db () {
+  echo "delete:db ($*)"
+}
+
+delete:files () {
+  echo "delete:files ($*)"
 }
