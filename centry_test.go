@@ -49,14 +49,11 @@ func TestMain(t *testing.T) {
 
 			g.It("should display global options", func() {
 				expected := `Global options are:
-    --config.log.level
-        Overrides the manifest log level
-    -q
-        Disables logging
-    --quiet
-        Disables logging`
+    --config.log.level    Overrides the manifest log level
+    --quiet               Disables logging
+    -q                    Disables logging`
 
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.StdErr)
+				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.StdErr, "\n\nDEBUG:\n\n", result.StdOut)
 			})
 		})
 
