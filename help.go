@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"log"
 	"sort"
@@ -11,13 +10,13 @@ import (
 	"github.com/kristofferahl/cli"
 )
 
-func centryHelpFunc(manifest *manifest, globalFlags *flag.FlagSet) cli.HelpFunc {
+func centryHelpFunc(manifest *manifest, globalOptions *OptionsSet) cli.HelpFunc {
 	return func(commands map[string]cli.CommandFactory) string {
 		var buf bytes.Buffer
 		buf.WriteString(fmt.Sprintf("Usage: %s [--version] [--help] <command> [<args>]\n\n", manifest.Config.Name))
 
 		writeCommands(&buf, commands, manifest)
-		writeOptions(&buf, "Global", globalFlags)
+		writeOptionsSet(&buf, globalOptions)
 
 		return buf.String()
 	}
@@ -66,36 +65,32 @@ func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, ma
 	}
 }
 
-func writeOptions(buf *bytes.Buffer, group string, flags *flag.FlagSet) {
-	buf.WriteString(fmt.Sprintf("\n%s options are:\n", group))
+func writeOptionsSet(buf *bytes.Buffer, set *OptionsSet) {
+	buf.WriteString(fmt.Sprintf("\n%s options are:\n", set.Name))
 
-	options := make(map[string]string, 0)
+	options := make(map[string]*Option, 0)
 	keys := make([]string, 0)
 	maxKeyLen := 0
 
-	flags.VisitAll(func(f *flag.Flag) {
-		key := fmt.Sprintf("--%s", f.Name)
-		if len(f.Name) == 1 {
-			key = fmt.Sprintf("-%s", f.Name)
-		}
-
+	for _, o := range set.Items {
+		key := fmt.Sprintf("--%s", o.Name)
 		if len(key) > maxKeyLen {
 			maxKeyLen = len(key)
 		}
 
-		options[key] = f.Usage
+		options[key] = o
 		keys = append(keys, key)
-	})
+	}
 	sort.Strings(keys)
 
 	for _, key := range keys {
-		o := fmt.Sprintf("%s%s", key, strings.Repeat(" ", maxKeyLen-len(key)))
-		d := options[key]
-		buf.WriteString(fmt.Sprintf("    %s    %s\n", o, d))
+		o := options[key]
+		s := "   | "
+		if o.Short != "" {
+			s = fmt.Sprintf("-%s | ", o.Short)
+		}
+		n := fmt.Sprintf("%s%s%s", s, key, strings.Repeat(" ", maxKeyLen-len(key)))
+		d := o.Description
+		buf.WriteString(fmt.Sprintf("    %s    %s\n", n, d))
 	}
-}
-
-type helpOption struct {
-	Name        string
-	Description string
 }

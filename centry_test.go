@@ -35,7 +35,34 @@ func TestMain(t *testing.T) {
 	})
 
 	g.Describe("help", func() {
+		g.Describe("call with no arguments", func() {
+			result := execCentry("")
+
+			g.It("should display help", func() {
+				expected := `Usage: centry`
+				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+			})
+		})
+
+		g.Describe("call with -h", func() {
+			result := execCentry("-h")
+
+			g.It("should display help", func() {
+				expected := `Usage: centry`
+				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+			})
+		})
+
 		g.Describe("call with --help", func() {
+			result := execCentry("--help")
+
+			g.It("should display help", func() {
+				expected := `Usage: centry`
+				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+			})
+		})
+
+		g.Describe("output", func() {
 			result := execCentry("")
 
 			g.It("should display available commands", func() {
@@ -49,11 +76,12 @@ func TestMain(t *testing.T) {
 
 			g.It("should display global options", func() {
 				expected := `Global options are:
-    --config.log.level    Overrides the manifest log level
-    --quiet               Disables logging
-    -q                    Disables logging`
+       | --config.log.level    Overrides the log level
+    -h | --help                Displays help
+    -q | --quiet               Disables logging
+    -v | --version             Displays the version fo the cli`
 
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.StdErr, "\n\nDEBUG:\n\n", result.StdOut)
+				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.StdErr)
 			})
 		})
 
@@ -62,6 +90,26 @@ func TestMain(t *testing.T) {
 
 			g.It("should display help text", func() {
 				g.Assert(strings.HasPrefix(result.StdErr, "Usage: centry")).IsTrue()
+			})
+		})
+	})
+
+	g.Describe("version", func() {
+		g.Describe("--version", func() {
+			result := execCentry("--version")
+
+			g.It("should display version", func() {
+				expected := `1.0.0`
+				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+			})
+		})
+
+		g.Describe("-v", func() {
+			result := execCentry("-v")
+
+			g.It("should display version", func() {
+				expected := `1.0.0`
+				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
 			})
 		})
 	})

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,15 +12,16 @@ import (
 
 // BashCommand is a Command implementation that applies stuff
 type BashCommand struct {
-	Manifest     *manifest
-	Log          *logrus.Entry
-	GlobalFlags  *flag.FlagSet
-	Name         string
-	Path         string
-	HelpText     string
-	SynopsisText string
+	Manifest      *manifest
+	Log           *logrus.Entry
+	GlobalOptions *OptionsSet
+	Name          string
+	Path          string
+	HelpText      string
+	SynopsisText  string
 }
 
+// Run builds the source and executes it
 func (bc *BashCommand) Run(args []string) int {
 	bc.Log.Debugf("Executing command \"%v\"", bc.Name)
 
@@ -35,24 +35,22 @@ func (bc *BashCommand) Run(args []string) int {
 	source = append(source, "")
 	source = append(source, "# Set exports from flags")
 	exports := map[string]string{}
-	for _, o := range bc.Manifest.Options {
+	for _, o := range bc.GlobalOptions.Items {
 		envName := o.EnvName
-		envValue := o.Default
-		valueFlag := bc.GlobalFlags.Lookup(o.Name)
+		var envValue string
+		value := bc.GlobalOptions.GetValueOf(o.Name)
 
 		if envName == "" {
 			envName = strings.ToUpper(o.Name)
 		}
 
-		if valueFlag != nil {
-			switch valueFlag.Value.String() {
-			case "true":
-				envValue = o.Name
-			case "false":
-				envValue = ""
-			default:
-				envValue = valueFlag.Value.String()
-			}
+		switch value {
+		case "true":
+			envValue = o.Name
+		case "false":
+			envValue = ""
+		default:
+			envValue = value
 		}
 
 		if envValue != "" {
@@ -100,6 +98,7 @@ func (bc *BashCommand) Run(args []string) int {
 	return 0
 }
 
+// ExecBash executes source code using /bin/bash
 func (bc *BashCommand) ExecBash(source string) error {
 	cmd := exec.Command("/bin/bash", "-c", source)
 	cmd.Stdout = os.Stdout
@@ -109,10 +108,12 @@ func (bc *BashCommand) ExecBash(source string) error {
 	return err
 }
 
+// Help returns the help text of the BashCommand
 func (bc *BashCommand) Help() string {
 	return bc.HelpText
 }
 
+// Synopsis returns the synopsis of the BashCommand
 func (bc *BashCommand) Synopsis() string {
 	return bc.SynopsisText
 }

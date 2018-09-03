@@ -1,8 +1,8 @@
 package main
 
 import (
-	"flag"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/kristofferahl/cli"
@@ -36,37 +36,29 @@ func centry(osArgs []string) int {
 
 	// Add global option flags
 	// TODO: Allow anything under config to be overridden using flags
-	globalFlags := flag.NewFlagSet("global", flag.ExitOnError)
-	logLevel := globalFlags.String("config.log.level", "", "Overrides the manifest log level")
-	loggingOff := globalFlags.Bool("quiet", false, "Disables logging")
-	globalFlags.BoolVar(loggingOff, "q", false, "Disables logging")
-	for _, opt := range manifest.Options {
-		opt := opt
-		log.Debugf("Adding global option %s (default value: %s)", opt.Name, opt.Default)
-		switch opt.Default {
-		case "":
-			globalFlags.Bool(opt.Name, false, opt.Description)
-		default:
-			globalFlags.String(opt.Name, opt.Default, opt.Description)
-		}
-	}
+	options := NewOptionsSet(optionSetGlobal)
+	options.Add(&Option{
+		Name:        "config.log.level",
+		Description: "Overrides the log level",
+		Default:     log.Level.String(),
+	})
+	options.Add(&Option{
+		Name:        "quiet",
+		Short:       "q",
+		Description: "Disables logging",
+	})
+	options.Add(&Option{
+		Name:        "help",
+		Short:       "h",
+		Description: "Displays help",
+	})
+	options.Add(&Option{
+		Name:        "version",
+		Short:       "v",
+		Description: "Displays the version fo the cli",
+	})
 
-	// Parse global flags
-	parseGlobalFlags := true
-	for _, arg := range args {
-		if arg == "-v" || arg == "--v" || arg == "-version" || arg == "--version" {
-			parseGlobalFlags = false
-			break
-		}
-		if arg == "-h" || arg == "--h" || arg == "-help" || arg == "--help" {
-			parseGlobalFlags = false
-			break
-		}
-	}
-	if parseGlobalFlags {
-		globalFlags.Parse(args)
-		args = globalFlags.Args()
-	}
+	args = options.Parse(args)
 
 	// Initialize cli
 	c := &cli.CLI{
@@ -75,7 +67,7 @@ func centry(osArgs []string) int {
 
 		Commands: map[string]cli.CommandFactory{},
 		Args:     args,
-		HelpFunc: centryHelpFunc(manifest, globalFlags),
+		HelpFunc: centryHelpFunc(manifest, options),
 
 		// Autocomplete:          true,
 		// AutocompleteInstall:   "install-autocomplete",
@@ -83,13 +75,18 @@ func centry(osArgs []string) int {
 	}
 
 	// Override the manifest log level
-	if *loggingOff == true {
-		*logLevel = "panic"
+	loggingOff := options.GetValueOf("quiet")
+	logLevel := options.GetValueOf("config.log.level")
+
+	log.Debugf("Current loglevel is (%s)..", l)
+	if loggingOff == strconv.FormatBool(true) {
+		logLevel = "panic"
 	}
-	if *logLevel != "" {
-		log.Debugf("Overriding manifest loglevel %s", *logLevel, l)
-		l, _ := logrus.ParseLevel(*logLevel)
+	if logLevel != "" {
+		log.Debugf("Changing loglevel to value from option (%s)..", logLevel)
+		l, _ := logrus.ParseLevel(logLevel)
 		log.SetLevel(l)
+		log.Debugf("Changed loglevel to (%s)..", l)
 	}
 
 	// Build commands
@@ -114,11 +111,11 @@ func centry(osArgs []string) int {
 					Log: log.WithFields(logrus.Fields{
 						"command": cmdKey,
 					}),
-					GlobalFlags:  globalFlags,
-					Name:         cmdName,
-					Path:         cmd.Path,
-					HelpText:     cmd.Help,
-					SynopsisText: cmd.Description,
+					GlobalOptions: options,
+					Name:          cmdName,
+					Path:          cmd.Path,
+					HelpText:      cmd.Help,
+					SynopsisText:  cmd.Description,
 				}, nil
 			}
 		}
