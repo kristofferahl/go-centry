@@ -34,7 +34,6 @@ func centry(osArgs []string) int {
 	}
 
 	// Add global option flags
-	// TODO: Allow anything under config to be overridden using flags
 	options := NewOptionsSet(optionSetGlobal)
 	options.Add(&Option{
 		Name:        "config.log.level",
@@ -56,6 +55,15 @@ func centry(osArgs []string) int {
 		Short:       "v",
 		Description: "Displays the version fo the cli",
 	})
+	for _, o := range manifest.Options {
+		o := o
+		options.Add(&Option{
+			Name:        o.Name,
+			Description: o.Description,
+			EnvName:     o.EnvName,
+			Default:     o.Default,
+		})
+	}
 
 	args = options.Parse(args)
 

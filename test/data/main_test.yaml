@@ -14,7 +14,9 @@ commands:
     description: Deletes stuff
 
 options:
-
+  - name: custom
+    description: A custom option with default value
+    default: foobar
 
 config:
   name: centry

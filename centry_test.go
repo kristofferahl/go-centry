@@ -77,6 +77,7 @@ func TestMain(t *testing.T) {
 			g.It("should display global options", func() {
 				expected := `Global options are:
        | --config.log.level    Overrides the log level
+       | --custom              A custom option with default value
     -h | --help                Displays help
     -q | --quiet               Disables logging
     -v | --version             Displays the version fo the cli`
