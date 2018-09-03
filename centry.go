@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/kristofferahl/cli"
@@ -74,14 +73,15 @@ func centry(osArgs []string) int {
 		// AutocompleteUninstall: "uninstall-autocomplete",
 	}
 
-	// Override the manifest log level
-	loggingOff := options.GetValueOf("quiet")
-	logLevel := options.GetValueOf("config.log.level")
-
+	// Override the current log level
+	logLevel := options.GeString("config.log.level")
 	log.Debugf("Current loglevel is (%s)..", l)
-	if loggingOff == strconv.FormatBool(true) {
+
+	loggingOff := options.GetBool("quiet")
+	if loggingOff == true {
 		logLevel = "panic"
 	}
+
 	if logLevel != "" {
 		log.Debugf("Changing loglevel to value from option (%s)..", logLevel)
 		l, _ := logrus.ParseLevel(logLevel)

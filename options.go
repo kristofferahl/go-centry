@@ -98,8 +98,8 @@ func (s *OptionsSet) Parse(args []string) []string {
 	return args
 }
 
-// GetValueOf returns the parsed value of a given option
-func (s *OptionsSet) GetValueOf(key string) string {
+// GetValue returns the parsed value of a given option
+func (s *OptionsSet) GetValue(key string) string {
 	option := s.Items[key]
 	result := ""
 
@@ -109,6 +109,36 @@ func (s *OptionsSet) GetValueOf(key string) string {
 			result = (*v).string()
 		case *stringValue:
 			result = (*v).string()
+		}
+	}
+
+	return result
+}
+
+// GetBool returns the parsed value of a given option
+func (s *OptionsSet) GetBool(key string) bool {
+	option := s.Items[key]
+	result := false
+
+	if option.Value != nil {
+		switch v := s.Items[key].Value.(type) {
+		case *boolValue:
+			result = bool(*v)
+		}
+	}
+
+	return result
+}
+
+// GeString returns the parsed value of a given option
+func (s *OptionsSet) GeString(key string) string {
+	option := s.Items[key]
+	result := ""
+
+	if option.Value != nil {
+		switch v := s.Items[key].Value.(type) {
+		case *stringValue:
+			result = string(*v)
 		}
 	}
 

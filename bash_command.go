@@ -38,10 +38,10 @@ func (bc *BashCommand) Run(args []string) int {
 	for _, o := range bc.GlobalOptions.Items {
 		envName := o.EnvName
 		var envValue string
-		value := bc.GlobalOptions.GetValueOf(o.Name)
+		value := bc.GlobalOptions.GetValue(o.Name)
 
 		if envName == "" {
-			envName = strings.ToUpper(o.Name)
+			envName = strings.Replace(strings.ToUpper(o.Name), ".", "_", -1)
 		}
 
 		switch value {

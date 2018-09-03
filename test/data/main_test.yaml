@@ -20,5 +20,5 @@ config:
   name: centry
   version: 1.0.0
   log:
-    level: info
+    level: debug
     prefix: '[centry] '

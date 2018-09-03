@@ -15,7 +15,7 @@ func TestMain(t *testing.T) {
 	g.Describe("scripts", func() {
 		g.It("loads script in the expected order", func() {
 			os.Setenv("OUTPUT_DEBUG", "true")
-			g.Assert(strings.HasPrefix(execCentry("get").StdOut, "Loading init.sh\nLoading helpers.sh\n")).IsTrue()
+			g.Assert(strings.HasPrefix(execQuiet("get").StdOut, "Loading init.sh\nLoading helpers.sh\n")).IsTrue()
 			os.Unsetenv("OUTPUT_DEBUG")
 		})
 	})
@@ -23,20 +23,20 @@ func TestMain(t *testing.T) {
 	g.Describe("commands", func() {
 		g.Describe("call without argument", func() {
 			g.It("should have no arguments passed", func() {
-				g.Assert(execCentry("get").StdOut).Equal("get ()\n")
+				g.Assert(execQuiet("get").StdOut).Equal("get ()\n")
 			})
 		})
 
 		g.Describe("call with argument", func() {
 			g.It("should have arguments passed", func() {
-				g.Assert(execCentry("get foobar").StdOut).Equal("get (foobar)\n")
+				g.Assert(execQuiet("get foobar").StdOut).Equal("get (foobar)\n")
 			})
 		})
 	})
 
 	g.Describe("help", func() {
 		g.Describe("call with no arguments", func() {
-			result := execCentry("")
+			result := execQuiet("")
 
 			g.It("should display help", func() {
 				expected := `Usage: centry`
@@ -45,7 +45,7 @@ func TestMain(t *testing.T) {
 		})
 
 		g.Describe("call with -h", func() {
-			result := execCentry("-h")
+			result := execQuiet("-h")
 
 			g.It("should display help", func() {
 				expected := `Usage: centry`
@@ -54,7 +54,7 @@ func TestMain(t *testing.T) {
 		})
 
 		g.Describe("call with --help", func() {
-			result := execCentry("--help")
+			result := execQuiet("--help")
 
 			g.It("should display help", func() {
 				expected := `Usage: centry`
@@ -63,7 +63,7 @@ func TestMain(t *testing.T) {
 		})
 
 		g.Describe("output", func() {
-			result := execCentry("")
+			result := execQuiet("")
 
 			g.It("should display available commands", func() {
 				expected := `Available commands are:
@@ -86,17 +86,17 @@ func TestMain(t *testing.T) {
 		})
 
 		g.Describe("call without arguments", func() {
-			result := execCentry("")
+			result := execQuiet("")
 
 			g.It("should display help text", func() {
-				g.Assert(strings.HasPrefix(result.StdErr, "Usage: centry")).IsTrue()
+				g.Assert(strings.Contains(result.StdErr, "Usage: centry")).IsTrue(result.StdErr)
 			})
 		})
 	})
 
 	g.Describe("version", func() {
 		g.Describe("--version", func() {
-			result := execCentry("--version")
+			result := execQuiet("--version")
 
 			g.It("should display version", func() {
 				expected := `1.0.0`
@@ -105,11 +105,51 @@ func TestMain(t *testing.T) {
 		})
 
 		g.Describe("-v", func() {
-			result := execCentry("-v")
+			result := execQuiet("-v")
 
 			g.It("should display version", func() {
 				expected := `1.0.0`
 				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+			})
+		})
+	})
+
+	g.Describe("global options", func() {
+		g.Describe("quiet", func() {
+			g.Describe("--quiet", func() {
+				result := execWithLogging("--quiet")
+
+				g.It("should disable logging", func() {
+					expected := `Changing loglevel to value from option (panic)..`
+					g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
+				})
+			})
+
+			g.Describe("-q", func() {
+				result := execWithLogging("-q")
+
+				g.It("should disable logging", func() {
+					expected := `Changing loglevel to value from option (panic)..`
+					g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
+				})
+			})
+		})
+
+		g.Describe("--config.log.level=info", func() {
+			result := execWithLogging("--config.log.level=info")
+
+			g.It("should change log level to info", func() {
+				expected := `Changing loglevel to value from option (info)..`
+				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
+			})
+		})
+
+		g.Describe("--config.log.level=error", func() {
+			result := execWithLogging("--config.log.level=error")
+
+			g.It("should change log level to error", func() {
+				expected := `Changing loglevel to value from option (error)..`
+				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
 			})
 		})
 	})
@@ -121,8 +161,19 @@ type execResult struct {
 	StdErr string
 }
 
-func execCentry(source string) *execResult {
+func execQuiet(source string) *execResult {
+	return execCentry(source, true)
+}
+
+func execWithLogging(source string) *execResult {
+	return execCentry(source, false)
+}
+
+func execCentry(source string, quiet bool) *execResult {
 	out := CaptureOutput(func() {
+		if quiet {
+			source = fmt.Sprintf("--quiet %s", source)
+		}
 		centry(strings.Split(fmt.Sprintf("./centry ./test/data/main_test.yaml %s", source), " "))
 	})
 
