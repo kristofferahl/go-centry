@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/kristofferahl/cli"
+	"github.com/kristofferahl/go-centry/pkg/config"
 	"github.com/kristofferahl/go-centry/pkg/logger"
 	"github.com/sirupsen/logrus"
 )
@@ -19,7 +20,7 @@ func RunOnce(inputArgs []string) int {
 	}
 
 	// Load manifest
-	manifest := loadManifest(file)
+	manifest := config.LoadManifest(file)
 
 	// Configure and create logger
 	lf := logger.CreateFactory(manifest.Config.Log.Level, manifest.Config.Log.Prefix)

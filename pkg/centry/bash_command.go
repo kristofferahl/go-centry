@@ -7,12 +7,13 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/kristofferahl/go-centry/pkg/config"
 	"github.com/sirupsen/logrus"
 )
 
 // BashCommand is a Command implementation that applies stuff
 type BashCommand struct {
-	Manifest      *manifest
+	Manifest      *config.Manifest
 	Log           *logrus.Entry
 	GlobalOptions *OptionsSet
 	Name          string

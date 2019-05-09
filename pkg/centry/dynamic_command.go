@@ -6,13 +6,14 @@ import (
 	"path"
 	"strings"
 
+	"github.com/kristofferahl/go-centry/pkg/config"
 	"github.com/sirupsen/logrus"
 )
 
 type DynamicCommand struct {
-	Manifest *manifest
+	Manifest *config.Manifest
 	Log      *logrus.Entry
-	Command  command
+	Command  config.Command
 }
 
 func (dc *DynamicCommand) GetFullPath() string {

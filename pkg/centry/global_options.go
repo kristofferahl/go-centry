@@ -1,6 +1,8 @@
 package centry
 
-func createGlobalOptions(manifest *manifest) *OptionsSet {
+import "github.com/kristofferahl/go-centry/pkg/config"
+
+func createGlobalOptions(manifest *config.Manifest) *OptionsSet {
 	// Add global options
 	options := NewOptionsSet(optionSetGlobal)
 	options.Add(&Option{

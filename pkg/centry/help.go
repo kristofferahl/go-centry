@@ -8,9 +8,10 @@ import (
 	"strings"
 
 	"github.com/kristofferahl/cli"
+	"github.com/kristofferahl/go-centry/pkg/config"
 )
 
-func centryHelpFunc(manifest *manifest, globalOptions *OptionsSet) cli.HelpFunc {
+func centryHelpFunc(manifest *config.Manifest, globalOptions *OptionsSet) cli.HelpFunc {
 	return func(commands map[string]cli.CommandFactory) string {
 		var buf bytes.Buffer
 		buf.WriteString(fmt.Sprintf("Usage: %s [--version] [--help] <command> [<args>]\n\n", manifest.Config.Name))
@@ -22,7 +23,7 @@ func centryHelpFunc(manifest *manifest, globalOptions *OptionsSet) cli.HelpFunc 
 	}
 }
 
-func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, manifest *manifest) {
+func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, manifest *config.Manifest) {
 	buf.WriteString("Available commands are:\n")
 
 	// Get the list of keys so we can sort them, and also get the maximum
