@@ -44,12 +44,14 @@ type logConfig struct {
 	Prefix string `yaml:"prefix,omitempty"`
 }
 
-func loadManifest(filename string) *manifest {
-	mp, err := filepath.Abs(filename)
-	if err != nil {
-		fmt.Println("Failed to make manifest file path absolute.", "Error:", err)
+func loadManifest(path string) *manifest {
+	mp, _ := filepath.Abs(path)
+
+	if _, err := os.Stat(mp); os.IsNotExist(err) {
+		fmt.Println("The first argument of centry must be a path to a valid manfest file")
 		os.Exit(1)
 	}
+
 	bs := readManifest(mp)
 	m := parseManifest(bs)
 
