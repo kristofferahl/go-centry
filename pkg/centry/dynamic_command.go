@@ -10,18 +10,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// DynamicCommand encapsulates operations on the script file containing commands
 type DynamicCommand struct {
 	Manifest *config.Manifest
 	Log      *logrus.Entry
 	Command  config.Command
 }
 
+// GetFullPath returns the absolute path of the script file
 func (dc *DynamicCommand) GetFullPath() string {
 	absPath := path.Join(dc.Manifest.BasePath, dc.Command.Path)
 	return absPath
 }
 
-func (dc *DynamicCommand) GeBashFunctions() []string {
+// GetFunctions returns the command functions matching the command name
+func (dc *DynamicCommand) GetFunctions() []string {
 	callArgs := []string{"-c", fmt.Sprintf("source %s; declare -F", dc.GetFullPath())}
 	out, err := exec.Command("/bin/bash", callArgs...).CombinedOutput()
 	if err != nil {
@@ -32,7 +35,9 @@ func (dc *DynamicCommand) GeBashFunctions() []string {
 	for _, fun := range strings.Split(string(out), "\n") {
 		if fun != "" {
 			name := strings.Replace(fun, "declare -f ", "", -1)
-			if strings.HasPrefix(name, dc.Command.Name) {
+			prefixName := fmt.Sprintf("%s:", dc.Command.Name)
+
+			if name == dc.Command.Name || strings.HasPrefix(name, prefixName) {
 				commands = append(commands, name)
 			}
 		}

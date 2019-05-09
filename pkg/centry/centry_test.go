@@ -70,7 +70,8 @@ func TestMain(t *testing.T) {
 				expected := `Available commands are:
     delete    Deletes stuff
     get       Gets stuff
-    put       Creates stuff`
+    post      Creates stuff
+    put       Creates/Updates stuff`
 
 				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)
 			})

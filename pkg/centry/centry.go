@@ -64,7 +64,7 @@ func RunOnce(inputArgs []string) int {
 			Manifest: manifest,
 		}
 
-		for _, bf := range command.GeBashFunctions() {
+		for _, bf := range command.GetFunctions() {
 			cmdName := bf
 			cmdKey := strings.Replace(cmdName, ":", " ", -1)
 			log.Debugf("Adding command %s", cmdKey)
