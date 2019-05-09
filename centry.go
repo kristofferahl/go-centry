@@ -1,7 +1,6 @@
 package main
 
 import (
-	"os"
 	"strings"
 
 	"github.com/kristofferahl/cli"
@@ -9,8 +8,6 @@ import (
 )
 
 func centry(osArgs []string) int {
-	log := logrus.New()
-
 	// Args
 	file := ""
 	args := []string{}
@@ -20,51 +17,21 @@ func centry(osArgs []string) int {
 	}
 
 	// Load manifest
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		log.Error("The first argument of centry must be a path to a valid manfest file")
-		return 1
-	}
 	manifest := loadManifest(file)
 
-	// Configure logger
-	l, _ := logrus.ParseLevel(manifest.Config.Log.Level)
-	log.SetLevel(l)
-	log.Formatter = &PrefixedTextFormatter{
-		Prefix: manifest.Config.Log.Prefix,
+	// Configure and create logger
+	lf := &loggerFactory{
+		config: &loggerConfig{
+			level:  manifest.Config.Log.Level,
+			prefix: manifest.Config.Log.Prefix,
+		},
 	}
+	log := lf.createLogger()
 
-	// Add global option flags
-	options := NewOptionsSet(optionSetGlobal)
-	options.Add(&Option{
-		Name:        "config.log.level",
-		Description: "Overrides the log level",
-		Default:     log.Level.String(),
-	})
-	options.Add(&Option{
-		Name:        "quiet",
-		Short:       "q",
-		Description: "Disables logging",
-	})
-	options.Add(&Option{
-		Name:        "help",
-		Short:       "h",
-		Description: "Displays help",
-	})
-	options.Add(&Option{
-		Name:        "version",
-		Short:       "v",
-		Description: "Displays the version fo the cli",
-	})
-	for _, o := range manifest.Options {
-		o := o
-		options.Add(&Option{
-			Name:        o.Name,
-			Description: o.Description,
-			EnvName:     o.EnvName,
-			Default:     o.Default,
-		})
-	}
+	// Create global options
+	options := createGlobalOptions(manifest)
 
+	// Parse global options to get cli args
 	args = options.Parse(args)
 
 	// Initialize cli
@@ -81,21 +48,12 @@ func centry(osArgs []string) int {
 		// AutocompleteUninstall: "uninstall-autocomplete",
 	}
 
-	// Override the current log level
+	// Override the current log level from options
 	logLevel := options.GeString("config.log.level")
-	log.Debugf("Current loglevel is (%s)..", l)
-
-	loggingOff := options.GetBool("quiet")
-	if loggingOff == true {
+	if options.GetBool("quiet") {
 		logLevel = "panic"
 	}
-
-	if logLevel != "" {
-		log.Debugf("Changing loglevel to value from option (%s)..", logLevel)
-		l, _ := logrus.ParseLevel(logLevel)
-		log.SetLevel(l)
-		log.Debugf("Changed loglevel to (%s)..", l)
-	}
+	lf.trySetLogLevel(logLevel)
 
 	// Build commands
 	for _, cmd := range manifest.Commands {

@@ -121,7 +121,7 @@ func TestMain(t *testing.T) {
 				result := execWithLogging("--quiet")
 
 				g.It("should disable logging", func() {
-					expected := `Changing loglevel to value from option (panic)..`
+					expected := `Changing loglevel to panic (from debug)`
 					g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
 				})
 			})
@@ -130,7 +130,7 @@ func TestMain(t *testing.T) {
 				result := execWithLogging("-q")
 
 				g.It("should disable logging", func() {
-					expected := `Changing loglevel to value from option (panic)..`
+					expected := `Changing loglevel to panic (from debug)`
 					g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
 				})
 			})
@@ -140,7 +140,7 @@ func TestMain(t *testing.T) {
 			result := execWithLogging("--config.log.level=info")
 
 			g.It("should change log level to info", func() {
-				expected := `Changing loglevel to value from option (info)..`
+				expected := `Changing loglevel to info (from debug)`
 				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
 			})
 		})
@@ -149,7 +149,7 @@ func TestMain(t *testing.T) {
 			result := execWithLogging("--config.log.level=error")
 
 			g.It("should change log level to error", func() {
-				expected := `Changing loglevel to value from option (error)..`
+				expected := `Changing loglevel to error (from debug)`
 				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
 			})
 		})
@@ -157,9 +157,10 @@ func TestMain(t *testing.T) {
 }
 
 type execResult struct {
-	Source string
-	StdOut string
-	StdErr string
+	Source         string
+	StdOut         string
+	StdErr         string
+	CombinedOutput string
 }
 
 func execQuiet(source string) *execResult {
@@ -179,8 +180,9 @@ func execCentry(source string, quiet bool) *execResult {
 	})
 
 	return &execResult{
-		Source: source,
-		StdOut: out.Stdout,
-		StdErr: out.Stderr,
+		Source:         source,
+		StdOut:         out.Stdout,
+		StdErr:         out.Stderr,
+		CombinedOutput: fmt.Sprintf("\nStdOut:\n%s\nStdErr:\n%s", out.Stderr, out.Stdout),
 	}
 }

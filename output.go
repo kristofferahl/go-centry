@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-// Output.
+// Output represents config for capturing stdout and or stderr.
 type Output struct {
 	captureStdout bool
 	captureStderr bool
