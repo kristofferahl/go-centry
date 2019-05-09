@@ -1,4 +1,4 @@
-package main
+package centry
 
 func createGlobalOptions(manifest *manifest) *OptionsSet {
 	// Add global options

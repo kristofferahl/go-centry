@@ -1,4 +1,4 @@
-package main
+package centry
 
 import (
 	"strings"
@@ -8,13 +8,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func centry(osArgs []string) int {
+// RunOnce executes centry with the given arguments and exits with a code
+func RunOnce(inputArgs []string) int {
 	// Args
 	file := ""
 	args := []string{}
-	if len(osArgs) >= 2 {
-		file = osArgs[1]
-		args = osArgs[2:]
+	if len(inputArgs) >= 2 {
+		file = inputArgs[1]
+		args = inputArgs[2:]
 	}
 
 	// Load manifest

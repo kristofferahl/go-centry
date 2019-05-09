@@ -1,4 +1,4 @@
-package main
+package centry
 
 import (
 	"fmt"
@@ -177,7 +177,7 @@ func execCentry(source string, quiet bool) *execResult {
 		if quiet {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
-		centry(strings.Split(fmt.Sprintf("./centry ./test/data/main_test.yaml %s", source), " "))
+		RunOnce(strings.Split(fmt.Sprintf("./centry ../../test/data/main_test.yaml %s", source), " "))
 	})
 
 	return &execResult{
