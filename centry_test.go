@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	. "github.com/franela/goblin"
+	th "github.com/kristofferahl/go-centry/pkg/testing"
 )
 
 func TestMain(t *testing.T) {
@@ -15,7 +16,7 @@ func TestMain(t *testing.T) {
 	g.Describe("scripts", func() {
 		g.It("loads script in the expected order", func() {
 			os.Setenv("OUTPUT_DEBUG", "true")
-			g.Assert(strings.HasPrefix(execQuiet("get").StdOut, "Loading init.sh\nLoading helpers.sh\n")).IsTrue()
+			g.Assert(strings.HasPrefix(execQuiet("get").Stdout, "Loading init.sh\nLoading helpers.sh\n")).IsTrue()
 			os.Unsetenv("OUTPUT_DEBUG")
 		})
 	})
@@ -23,13 +24,13 @@ func TestMain(t *testing.T) {
 	g.Describe("commands", func() {
 		g.Describe("call without argument", func() {
 			g.It("should have no arguments passed", func() {
-				g.Assert(execQuiet("get").StdOut).Equal("get ()\n")
+				g.Assert(execQuiet("get").Stdout).Equal("get ()\n")
 			})
 		})
 
 		g.Describe("call with argument", func() {
 			g.It("should have arguments passed", func() {
-				g.Assert(execQuiet("get foobar").StdOut).Equal("get (foobar)\n")
+				g.Assert(execQuiet("get foobar").Stdout).Equal("get (foobar)\n")
 			})
 		})
 	})
@@ -40,7 +41,7 @@ func TestMain(t *testing.T) {
 
 			g.It("should display help", func() {
 				expected := `Usage: centry`
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
 			})
 		})
 
@@ -49,7 +50,7 @@ func TestMain(t *testing.T) {
 
 			g.It("should display help", func() {
 				expected := `Usage: centry`
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
 			})
 		})
 
@@ -58,7 +59,7 @@ func TestMain(t *testing.T) {
 
 			g.It("should display help", func() {
 				expected := `Usage: centry`
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
 			})
 		})
 
@@ -71,7 +72,7 @@ func TestMain(t *testing.T) {
     get       Gets stuff
     put       Creates stuff`
 
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.StdErr)
+				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)
 			})
 
 			g.It("should display global options", func() {
@@ -82,7 +83,7 @@ func TestMain(t *testing.T) {
     -q | --quiet               Disables logging
     -v | --version             Displays the version fo the cli`
 
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.StdErr)
+				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)
 			})
 		})
 
@@ -90,7 +91,7 @@ func TestMain(t *testing.T) {
 			result := execQuiet("")
 
 			g.It("should display help text", func() {
-				g.Assert(strings.Contains(result.StdErr, "Usage: centry")).IsTrue(result.StdErr)
+				g.Assert(strings.Contains(result.Stderr, "Usage: centry")).IsTrue(result.Stderr)
 			})
 		})
 	})
@@ -101,7 +102,7 @@ func TestMain(t *testing.T) {
 
 			g.It("should display version", func() {
 				expected := `1.0.0`
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
 			})
 		})
 
@@ -110,7 +111,7 @@ func TestMain(t *testing.T) {
 
 			g.It("should display version", func() {
 				expected := `1.0.0`
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue()
+				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
 			})
 		})
 	})
@@ -122,7 +123,7 @@ func TestMain(t *testing.T) {
 
 				g.It("should disable logging", func() {
 					expected := `Changing loglevel to panic (from debug)`
-					g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
+					g.Assert(strings.Contains(result.Stderr, expected)).IsTrue(result.Stderr)
 				})
 			})
 
@@ -131,7 +132,7 @@ func TestMain(t *testing.T) {
 
 				g.It("should disable logging", func() {
 					expected := `Changing loglevel to panic (from debug)`
-					g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
+					g.Assert(strings.Contains(result.Stderr, expected)).IsTrue(result.Stderr)
 				})
 			})
 		})
@@ -141,7 +142,7 @@ func TestMain(t *testing.T) {
 
 			g.It("should change log level to info", func() {
 				expected := `Changing loglevel to info (from debug)`
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
+				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue(result.Stderr)
 			})
 		})
 
@@ -150,7 +151,7 @@ func TestMain(t *testing.T) {
 
 			g.It("should change log level to error", func() {
 				expected := `Changing loglevel to error (from debug)`
-				g.Assert(strings.Contains(result.StdErr, expected)).IsTrue(result.StdErr)
+				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue(result.Stderr)
 			})
 		})
 	})
@@ -158,8 +159,8 @@ func TestMain(t *testing.T) {
 
 type execResult struct {
 	Source         string
-	StdOut         string
-	StdErr         string
+	Stdout         string
+	Stderr         string
 	CombinedOutput string
 }
 
@@ -172,7 +173,7 @@ func execWithLogging(source string) *execResult {
 }
 
 func execCentry(source string, quiet bool) *execResult {
-	out := CaptureOutput(func() {
+	out := th.CaptureOutput(func() {
 		if quiet {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
@@ -181,8 +182,8 @@ func execCentry(source string, quiet bool) *execResult {
 
 	return &execResult{
 		Source:         source,
-		StdOut:         out.Stdout,
-		StdErr:         out.Stderr,
-		CombinedOutput: fmt.Sprintf("\nStdOut:\n%s\nStdErr:\n%s", out.Stderr, out.Stdout),
+		Stdout:         out.Stdout,
+		Stderr:         out.Stderr,
+		CombinedOutput: fmt.Sprintf("\nStdout:\n%s\nStderr:\n%s", out.Stderr, out.Stdout),
 	}
 }
