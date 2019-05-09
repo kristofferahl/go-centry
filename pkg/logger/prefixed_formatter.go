@@ -1,13 +1,15 @@
-package main
+package logger
 
 import (
 	"github.com/sirupsen/logrus"
 )
 
+// PrefixedTextFormatter defines a text formatter for logging
 type PrefixedTextFormatter struct {
 	Prefix string
 }
 
+// Format formats the log entry
 func (f *PrefixedTextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	formatter := &logrus.TextFormatter{}
 	b, err := formatter.Format(entry)

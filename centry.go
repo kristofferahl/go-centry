@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/kristofferahl/cli"
+	"github.com/kristofferahl/go-centry/pkg/logger"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,13 +21,8 @@ func centry(osArgs []string) int {
 	manifest := loadManifest(file)
 
 	// Configure and create logger
-	lf := &loggerFactory{
-		config: &loggerConfig{
-			level:  manifest.Config.Log.Level,
-			prefix: manifest.Config.Log.Prefix,
-		},
-	}
-	log := lf.createLogger()
+	lf := logger.CreateFactory(manifest.Config.Log.Level, manifest.Config.Log.Prefix)
+	log := lf.CreateLogger()
 
 	// Create global options
 	options := createGlobalOptions(manifest)
@@ -53,7 +49,7 @@ func centry(osArgs []string) int {
 	if options.GetBool("quiet") {
 		logLevel = "panic"
 	}
-	lf.trySetLogLevel(logLevel)
+	lf.TrySetLogLevel(logLevel)
 
 	// Build commands
 	for _, cmd := range manifest.Commands {
