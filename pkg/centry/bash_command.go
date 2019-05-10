@@ -78,9 +78,6 @@ func (bc *BashCommand) Run(args []string) int {
 
 	bc.Log.Debugf("Command source code:\n%s\n", strings.Join(source, "\n"))
 
-	callArgs := []string{}
-	callArgs = append(callArgs, "-c", strings.Join(source, "\n"))
-
 	err := bc.ExecBash(strings.Join(source, "\n"))
 	if err != nil {
 		exitCode := 1
