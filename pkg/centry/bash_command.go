@@ -2,12 +2,12 @@ package centry
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 	"syscall"
 
 	"github.com/kristofferahl/go-centry/pkg/config"
+	"github.com/kristofferahl/go-centry/pkg/io"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,6 +20,7 @@ type BashCommand struct {
 	Path          string
 	HelpText      string
 	SynopsisText  string
+	IO            io.InputOutput
 }
 
 // Run builds the source and executes it
@@ -99,9 +100,9 @@ func (bc *BashCommand) Run(args []string) int {
 // ExecBash executes source code using /bin/bash
 func (bc *BashCommand) ExecBash(source string) error {
 	cmd := exec.Command("/bin/bash", "-c", source)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
+	cmd.Stdout = bc.IO.Stdout
+	cmd.Stderr = bc.IO.Stderr
+	cmd.Stdin = bc.IO.Stdin
 	err := cmd.Run()
 	return err
 }

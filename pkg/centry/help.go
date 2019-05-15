@@ -11,7 +11,7 @@ import (
 	"github.com/kristofferahl/go-centry/pkg/config"
 )
 
-func centryHelpFunc(manifest *config.Manifest, globalOptions *OptionsSet) cli.HelpFunc {
+func cliHelpFunc(manifest *config.Manifest, globalOptions *OptionsSet) cli.HelpFunc {
 	return func(commands map[string]cli.CommandFactory) string {
 		var buf bytes.Buffer
 		buf.WriteString(fmt.Sprintf("Usage: %s [--version] [--help] <command> [<args>]\n\n", manifest.Config.Name))

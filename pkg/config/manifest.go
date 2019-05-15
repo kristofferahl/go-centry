@@ -54,7 +54,7 @@ func LoadManifest(path string) *Manifest {
 	mp, _ := filepath.Abs(path)
 
 	if _, err := os.Stat(mp); os.IsNotExist(err) {
-		fmt.Println("The first argument of centry must be a path to a valid manfest file")
+		fmt.Println("The first argument must be a path to a valid manfest file")
 		os.Exit(1)
 	}
 

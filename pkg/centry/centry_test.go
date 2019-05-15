@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	. "github.com/franela/goblin"
+	"github.com/kristofferahl/go-centry/pkg/io"
 	th "github.com/kristofferahl/go-centry/pkg/testing"
 )
 
@@ -159,10 +160,10 @@ func TestMain(t *testing.T) {
 }
 
 type execResult struct {
-	Source         string
-	Stdout         string
-	Stderr         string
-	CombinedOutput string
+	Source   string
+	ExitCode int
+	Stdout   string
+	Stderr   string
 }
 
 func execQuiet(source string) *execResult {
@@ -174,17 +175,25 @@ func execWithLogging(source string) *execResult {
 }
 
 func execCentry(source string, quiet bool) *execResult {
+	var exitCode int
+
 	out := th.CaptureOutput(func() {
 		if quiet {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
-		RunOnce(strings.Split(fmt.Sprintf("./centry ../../test/data/main_test.yaml %s", source), " "))
+		context := NewContext(io.InputOutput{
+			Stdin:  nil,
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+		})
+		runtime := Create(strings.Split(fmt.Sprintf("../../test/data/main_test.yaml %s", source), " "), context)
+		exitCode = runtime.Execute()
 	})
 
 	return &execResult{
-		Source:         source,
-		Stdout:         out.Stdout,
-		Stderr:         out.Stderr,
-		CombinedOutput: fmt.Sprintf("\nStdout:\n%s\nStderr:\n%s", out.Stderr, out.Stdout),
+		Source:   source,
+		ExitCode: exitCode,
+		Stdout:   out.Stdout,
+		Stderr:   out.Stderr,
 	}
 }

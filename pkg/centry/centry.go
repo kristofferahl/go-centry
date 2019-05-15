@@ -5,41 +5,65 @@ import (
 
 	"github.com/kristofferahl/cli"
 	"github.com/kristofferahl/go-centry/pkg/config"
-	"github.com/kristofferahl/go-centry/pkg/logger"
+	"github.com/kristofferahl/go-centry/pkg/io"
+	"github.com/kristofferahl/go-centry/pkg/logging"
 	"github.com/sirupsen/logrus"
 )
 
-// RunOnce executes centry with the given arguments and exits with a code
-func RunOnce(inputArgs []string) int {
+// Runtime defines the runtime
+type Runtime struct {
+	context *Context
+	cli     *cli.CLI
+}
+
+// Context defines the current context
+type Context struct {
+	io       io.InputOutput
+	log      *logging.LogManager
+	manifest *config.Manifest
+}
+
+// NewContext creates a new context
+func NewContext(io io.InputOutput) *Context {
+	return &Context{
+		io: io,
+	}
+}
+
+// Create builds a runtime based on the given arguments
+func Create(inputArgs []string, context *Context) *Runtime {
+	// Create the runtime
+	runtime := &Runtime{}
+
 	// Args
 	file := ""
 	args := []string{}
-	if len(inputArgs) >= 2 {
-		file = inputArgs[1]
-		args = inputArgs[2:]
+	if len(inputArgs) >= 1 {
+		file = inputArgs[0]
+		args = inputArgs[1:]
 	}
 
 	// Load manifest
-	manifest := config.LoadManifest(file)
+	context.manifest = config.LoadManifest(file)
 
-	// Configure and create logger
-	lf := logger.CreateFactory(manifest.Config.Log.Level, manifest.Config.Log.Prefix)
-	log := lf.CreateLogger()
+	// Create the log manager
+	context.log = logging.CreateManager(context.manifest.Config.Log.Level, context.manifest.Config.Log.Prefix, context.io)
 
 	// Create global options
-	options := createGlobalOptions(manifest)
+	options := createGlobalOptions(context.manifest)
 
 	// Parse global options to get cli args
 	args = options.Parse(args)
 
 	// Initialize cli
 	c := &cli.CLI{
-		Name:    manifest.Config.Name,
-		Version: manifest.Config.Version,
+		Name:    context.manifest.Config.Name,
+		Version: context.manifest.Config.Version,
 
-		Commands: map[string]cli.CommandFactory{},
-		Args:     args,
-		HelpFunc: centryHelpFunc(manifest, options),
+		Commands:   map[string]cli.CommandFactory{},
+		Args:       args,
+		HelpFunc:   cliHelpFunc(context.manifest, options),
+		HelpWriter: context.io.Stderr,
 
 		// Autocomplete:          true,
 		// AutocompleteInstall:   "install-autocomplete",
@@ -51,28 +75,30 @@ func RunOnce(inputArgs []string) int {
 	if options.GetBool("quiet") {
 		logLevel = "panic"
 	}
-	lf.TrySetLogLevel(logLevel)
+	context.log.TrySetLogLevel(logLevel)
+
+	logger := context.log.GetLogger()
 
 	// Build commands
-	for _, cmd := range manifest.Commands {
+	for _, cmd := range context.manifest.Commands {
 		cmd := cmd
 		command := &DynamicCommand{
-			Log: log.WithFields(logrus.Fields{
+			Log: logger.WithFields(logrus.Fields{
 				"command": cmd.Name,
 			}),
 			Command:  cmd,
-			Manifest: manifest,
+			Manifest: context.manifest,
 		}
 
 		for _, bf := range command.GetFunctions() {
 			cmdName := bf
 			cmdKey := strings.Replace(cmdName, ":", " ", -1)
-			log.Debugf("Adding command %s", cmdKey)
+			logger.Debugf("Adding command %s", cmdKey)
 
 			c.Commands[cmdKey] = func() (cli.Command, error) {
 				return &BashCommand{
-					Manifest: manifest,
-					Log: log.WithFields(logrus.Fields{
+					Manifest: context.manifest,
+					Log: logger.WithFields(logrus.Fields{
 						"command": cmdKey,
 					}),
 					GlobalOptions: options,
@@ -80,16 +106,26 @@ func RunOnce(inputArgs []string) int {
 					Path:          cmd.Path,
 					HelpText:      cmd.Help,
 					SynopsisText:  cmd.Description,
+					IO:            context.io,
 				}, nil
 			}
 		}
 	}
 
+	runtime.context = context
+	runtime.cli = c
+
+	return runtime
+}
+
+// Execute runs the CLI and exits with a code
+func (runtime *Runtime) Execute() int {
 	// Run cli
-	exitStatus, err := c.Run()
+	exitCode, err := runtime.cli.Run()
 	if err != nil {
-		log.Error(err)
+		logger := runtime.context.log.GetLogger()
+		logger.Error(err)
 	}
 
-	return exitStatus
+	return exitCode
 }
