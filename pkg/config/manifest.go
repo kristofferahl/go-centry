@@ -22,10 +22,11 @@ type Manifest struct {
 
 // Command defines the structure of commands
 type Command struct {
-	Name        string `yaml:"name,omitempty"`
-	Path        string `yaml:"path,omitempty"`
-	Help        string `yaml:"help,omitempty"`
-	Description string `yaml:"description,omitempty"`
+	Name        string            `yaml:"name,omitempty"`
+	Path        string            `yaml:"path,omitempty"`
+	Help        string            `yaml:"help,omitempty"`
+	Description string            `yaml:"description,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
 // Option defines the structure of options
