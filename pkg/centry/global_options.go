@@ -1,10 +1,12 @@
 package centry
 
-import "github.com/kristofferahl/go-centry/pkg/config"
+import (
+	"github.com/kristofferahl/go-centry/pkg/config"
+)
 
 func createGlobalOptions(manifest *config.Manifest) *OptionsSet {
 	// Add global options
-	options := NewOptionsSet(optionSetGlobal)
+	options := NewOptionsSet(OptionSetGlobal)
 	options.Add(&Option{
 		Name:        "config.log.level",
 		Description: "Overrides the log level",

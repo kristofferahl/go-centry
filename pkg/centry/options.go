@@ -6,7 +6,8 @@ import (
 	"strings"
 )
 
-const optionSetGlobal = "Global"
+// OptionSetGlobal is the name of the global OptionsSet
+const OptionSetGlobal = "Global"
 
 // OptionsSet represents a set of flags that can be passed to the cli
 type OptionsSet struct {
@@ -76,7 +77,7 @@ func (s *OptionsSet) CreateFlagSet() {
 // Parse pareses the args using a flagset and returns the remaining arguments
 func (s *OptionsSet) Parse(args []string) []string {
 	parse := true
-	if s.Name == optionSetGlobal {
+	if s.Name == OptionSetGlobal {
 		for _, arg := range args {
 			if arg == "-v" || arg == "--v" || arg == "-version" || arg == "--version" {
 				parse = false

@@ -5,7 +5,6 @@ import (
 
 	"github.com/kristofferahl/cli"
 	"github.com/kristofferahl/go-centry/pkg/config"
-	"github.com/kristofferahl/go-centry/pkg/io"
 	"github.com/kristofferahl/go-centry/pkg/logging"
 	"github.com/kristofferahl/go-centry/pkg/shell"
 	"github.com/sirupsen/logrus"
@@ -15,27 +14,6 @@ import (
 type Runtime struct {
 	context *Context
 	cli     *cli.CLI
-}
-
-// Executor is the name of the executor
-type Executor string
-
-// CLI executor
-var CLI Executor = "CLI"
-// Context defines the current context
-type Context struct {
-	executor Executor
-	io       io.InputOutput
-	log      *logging.LogManager
-	manifest *config.Manifest
-}
-
-// NewContext creates a new context
-func NewContext(executor Executor, io io.InputOutput) *Context {
-	return &Context{
-		executor: executor,
-		io:       io,
-	}
 }
 
 // Create builds a runtime based on the given arguments
@@ -90,6 +68,10 @@ func Create(inputArgs []string, context *Context) *Runtime {
 	// Build commands
 	for _, cmd := range context.manifest.Commands {
 		cmd := cmd
+
+		if context.commandEnabled != nil && context.commandEnabled(cmd) == false {
+			continue
+		}
 
 		script := createScript(cmd, context)
 
