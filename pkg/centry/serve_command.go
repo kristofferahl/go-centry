@@ -1,7 +1,6 @@
 package centry
 
 import (
-	"bytes"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -68,7 +67,6 @@ func executeHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *ht
 		response := api.ExecuteResponse{}
 
 		var body api.ExecuteRequest
-		var buf bytes.Buffer
 
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&body)
@@ -81,11 +79,8 @@ func executeHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *ht
 		args = append(args, strings.Fields(body.Args)...)
 
 		// Build
-		context := NewContext(API, io.InputOutput{
-			Stdin:  nil,
-			Stdout: &buf,
-			Stderr: &buf,
-		})
+		io, buf := io.BufferedCombined()
+		context := NewContext(API, io)
 
 		context.commandEnabled = func(cmd config.Command) bool {
 			if cmd.Annotations == nil || cmd.Annotations[config.APIServeAnnotation] != "true" {

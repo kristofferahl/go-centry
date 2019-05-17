@@ -11,11 +11,7 @@ func main() {
 	args := os.Args[1:]
 
 	// Create the context
-	context := centry.NewContext(centry.CLI, io.InputOutput{
-		Stdin:  os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	})
+	context := centry.NewContext(centry.CLI, io.Standard())
 
 	// Create the runtime
 	runtime := centry.Create(args, context)

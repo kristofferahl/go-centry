@@ -1,7 +1,6 @@
 package shell
 
 import (
-	"bytes"
 	"fmt"
 	"os/exec"
 	"path"
@@ -63,12 +62,7 @@ func (s *BashScript) FullPath() string {
 func (s *BashScript) Functions() ([]string, error) {
 	callArgs := []string{"-c", fmt.Sprintf("source %s; declare -F", s.FullPath())}
 
-	var buf bytes.Buffer
-	io := io.InputOutput{
-		Stdin:  nil,
-		Stdout: &buf,
-		Stderr: &buf,
-	}
+	io, buf := io.BufferedCombined()
 
 	err := NewBash().Run(io, callArgs)
 	if err != nil {

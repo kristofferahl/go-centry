@@ -181,11 +181,7 @@ func execCentry(source string, quiet bool) *execResult {
 		if quiet {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
-		context := NewContext(CLI, io.InputOutput{
-			Stdin:  nil,
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-		})
+		context := NewContext(CLI, io.Headless())
 		runtime := Create(strings.Split(fmt.Sprintf("../../test/data/main_test.yaml %s", source), " "), context)
 		exitCode = runtime.Execute()
 	})
