@@ -181,7 +181,7 @@ func execCentry(source string, quiet bool) *execResult {
 		if quiet {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
-		context := NewContext(io.InputOutput{
+		context := NewContext(CLI, io.InputOutput{
 			Stdin:  nil,
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,

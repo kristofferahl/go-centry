@@ -16,17 +16,24 @@ type Runtime struct {
 	cli     *cli.CLI
 }
 
+// Executor is the name of the executor
+type Executor string
+
+// CLI executor
+var CLI Executor = "CLI"
 // Context defines the current context
 type Context struct {
+	executor Executor
 	io       io.InputOutput
 	log      *logging.LogManager
 	manifest *config.Manifest
 }
 
 // NewContext creates a new context
-func NewContext(io io.InputOutput) *Context {
+func NewContext(executor Executor, io io.InputOutput) *Context {
 	return &Context{
-		io: io,
+		executor: executor,
+		io:       io,
 	}
 }
 

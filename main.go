@@ -11,7 +11,7 @@ func main() {
 	args := os.Args[1:]
 
 	// Create the context
-	context := centry.NewContext(io.InputOutput{
+	context := centry.NewContext(centry.CLI, io.InputOutput{
 		Stdin:  os.Stdin,
 		Stdout: os.Stdout,
 		Stderr: os.Stderr,
