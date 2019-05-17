@@ -5,7 +5,7 @@ import (
 
 	"github.com/kristofferahl/cli"
 	"github.com/kristofferahl/go-centry/pkg/config"
-	"github.com/kristofferahl/go-centry/pkg/logging"
+	"github.com/kristofferahl/go-centry/pkg/log"
 	"github.com/kristofferahl/go-centry/pkg/shell"
 	"github.com/sirupsen/logrus"
 )
@@ -33,7 +33,7 @@ func Create(inputArgs []string, context *Context) *Runtime {
 	context.manifest = config.LoadManifest(file)
 
 	// Create the log manager
-	context.log = logging.CreateManager(context.manifest.Config.Log.Level, context.manifest.Config.Log.Prefix, context.io)
+	context.log = log.CreateManager(context.manifest.Config.Log.Level, context.manifest.Config.Log.Prefix, context.io)
 
 	// Create global options
 	options := createGlobalOptions(context.manifest)

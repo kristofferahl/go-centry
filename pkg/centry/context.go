@@ -3,7 +3,7 @@ package centry
 import (
 	"github.com/kristofferahl/go-centry/pkg/config"
 	"github.com/kristofferahl/go-centry/pkg/io"
-	"github.com/kristofferahl/go-centry/pkg/logging"
+	"github.com/kristofferahl/go-centry/pkg/log"
 )
 
 // Executor is the name of the executor
@@ -16,7 +16,7 @@ var CLI Executor = "CLI"
 type Context struct {
 	executor       Executor
 	io             io.InputOutput
-	log            *logging.LogManager
+	log            *log.LogManager
 	manifest       *config.Manifest
 	commandEnabled func(config.Command) bool
 }
