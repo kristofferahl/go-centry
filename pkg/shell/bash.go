@@ -1,13 +1,36 @@
 package shell
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 	"path"
 	"strings"
 
+	"github.com/kristofferahl/go-centry/pkg/io"
 	"github.com/sirupsen/logrus"
 )
+
+// Bash is thin wrapper around the bash executable
+type Bash struct {
+	Path string
+}
+
+// NewBash creates a new bash instance
+func NewBash() *Bash {
+	return &Bash{
+		Path: "/bin/bash",
+	}
+}
+
+// Run executes the bash with the given arguments
+func (bash *Bash) Run(io io.InputOutput, args []string) error {
+	cmd := exec.Command(bash.Path, args...)
+	cmd.Stdin = io.Stdin
+	cmd.Stdout = io.Stdout
+	cmd.Stderr = io.Stderr
+	return cmd.Run()
+}
 
 // BashScript encapsulates operations on the script file containing commands
 type BashScript struct {
@@ -21,6 +44,16 @@ func (s *BashScript) Language() string {
 	return "bash"
 }
 
+// Executable returns an executable
+func (s *BashScript) Executable() Executable {
+	return NewBash()
+}
+
+// RelativePath returns the relative path of the script file
+func (s *BashScript) RelativePath() string {
+	return s.Path
+}
+
 // FullPath returns the absolute path of the script file
 func (s *BashScript) FullPath() string {
 	return path.Join(s.BasePath, s.Path)
@@ -29,13 +62,22 @@ func (s *BashScript) FullPath() string {
 // Functions returns the command functions matching the command name
 func (s *BashScript) Functions() ([]string, error) {
 	callArgs := []string{"-c", fmt.Sprintf("source %s; declare -F", s.FullPath())}
-	out, err := exec.Command("/bin/bash", callArgs...).CombinedOutput()
+
+	var buf bytes.Buffer
+	io := io.InputOutput{
+		Stdin:  nil,
+		Stdout: &buf,
+		Stderr: &buf,
+	}
+
+	err := NewBash().Run(io, callArgs)
 	if err != nil {
-		return nil, fmt.Errorf(string(out), err)
+		return nil, err
 	}
 
 	functions := []string{}
 
+	out := buf.String()
 	for _, fun := range strings.Split(string(out), "\n") {
 		if fun != "" {
 			name := strings.Replace(fun, "declare -f ", "", -1)

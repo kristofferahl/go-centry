@@ -91,7 +91,7 @@ func Create(inputArgs []string, context *Context) *Runtime {
 	for _, cmd := range context.manifest.Commands {
 		cmd := cmd
 
-		script := scriptFile(cmd, context)
+		script := createScript(cmd, context)
 
 		funcs, err := script.Functions()
 		if err != nil {
@@ -108,22 +108,18 @@ func Create(inputArgs []string, context *Context) *Runtime {
 			}
 
 			cmdKey := strings.Replace(fn, script.FunctionNameSplitChar(), " ", -1)
-			logger.Debugf("Adding command %s", cmdKey)
-
 			c.Commands[cmdKey] = func() (cli.Command, error) {
-				return &BashCommand{
-					Manifest: context.manifest,
-					Log: logger.WithFields(logrus.Fields{
-						"command": cmdKey,
-					}),
+				return &ScriptCommand{
+					Context:       context,
+					Log:           logger.WithFields(logrus.Fields{}),
 					GlobalOptions: options,
-					Name:          fn,
-					Path:          cmd.Path,
-					HelpText:      cmd.Help,
-					SynopsisText:  cmd.Description,
-					IO:            context.io,
+					Command:       cmd,
+					Script:        script,
+					Function:      fn,
 				}, nil
 			}
+
+			logger.Debugf("Registered command \"%s\"", cmdKey)
 		}
 	}
 
@@ -145,7 +141,7 @@ func (runtime *Runtime) Execute() int {
 	return exitCode
 }
 
-func scriptFile(cmd config.Command, context *Context) shell.ScriptFile {
+func createScript(cmd config.Command, context *Context) shell.Script {
 	return &shell.BashScript{
 		BasePath: context.manifest.BasePath,
 		Path:     cmd.Path,
