@@ -19,7 +19,7 @@ var API Executor = "API"
 type Context struct {
 	executor       Executor
 	io             io.InputOutput
-	log            *log.LogManager
+	log            *log.Manager
 	manifest       *config.Manifest
 	commandEnabled func(config.Command) bool
 }

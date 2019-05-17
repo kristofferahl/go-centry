@@ -14,15 +14,15 @@ type Config struct {
 	IO     io.InputOutput
 }
 
-// LogManager handles creations of loggers
-type LogManager struct {
+// Manager handles creations of loggers
+type Manager struct {
 	config *Config
 	logger *logrus.Logger
 }
 
 // CreateManager creates a new logger factory
-func CreateManager(level string, prefix string, io io.InputOutput) *LogManager {
-	return &LogManager{
+func CreateManager(level string, prefix string, io io.InputOutput) *Manager {
+	return &Manager{
 		config: &Config{
 			Level:  level,
 			Prefix: prefix,
@@ -33,7 +33,7 @@ func CreateManager(level string, prefix string, io io.InputOutput) *LogManager {
 }
 
 // GetLogger creates a new logger
-func (m *LogManager) GetLogger() *logrus.Logger {
+func (m *Manager) GetLogger() *logrus.Logger {
 	if m.logger == nil {
 		m.logger = logrus.New()
 		m.logger.Out = m.config.IO.Stderr // TODO: Change to using Stdout
@@ -50,7 +50,7 @@ func (m *LogManager) GetLogger() *logrus.Logger {
 }
 
 // TrySetLogLevel tries to change the log level for new loggers
-func (m *LogManager) TrySetLogLevel(level string) {
+func (m *Manager) TrySetLogLevel(level string) {
 	if !strings.EqualFold(level, m.config.Level) {
 		logger := m.GetLogger()
 		logger.Debugf("Changing loglevel to %s (from %s)", level, m.config.Level)
