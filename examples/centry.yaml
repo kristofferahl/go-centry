@@ -6,9 +6,13 @@ commands:
   - name: up
     path: commands/updown.sh
     description: Upserts resources
+    annotations:
+      centry.api/serve: "true"
   - name: down
     path: commands/updown.sh
     description: Destroys resources
+    annotations:
+      centry.api/serve: "false"
   - name: rotate
     path: commands/rotate.sh
     description: Rotating secrets, hosts etc.

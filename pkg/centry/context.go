@@ -12,6 +12,9 @@ type Executor string
 // CLI executor
 var CLI Executor = "CLI"
 
+// API Executor
+var API Executor = "API"
+
 // Context defines the current context
 type Context struct {
 	executor       Executor

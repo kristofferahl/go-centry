@@ -65,6 +65,18 @@ func Create(inputArgs []string, context *Context) *Runtime {
 
 	logger := context.log.GetLogger()
 
+	// Register builtin commands
+	if context.executor == CLI {
+		c.Commands["serve"] = func() (cli.Command, error) {
+			return &ServeCommand{
+				Manifest: context.manifest,
+				Log: logger.WithFields(logrus.Fields{
+					"command": "serve",
+				}),
+			}, nil
+		}
+	}
+
 	// Build commands
 	for _, cmd := range context.manifest.Commands {
 		cmd := cmd
