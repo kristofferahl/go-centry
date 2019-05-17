@@ -7,6 +7,7 @@ import (
 	"github.com/kristofferahl/go-centry/pkg/config"
 	"github.com/kristofferahl/go-centry/pkg/io"
 	"github.com/kristofferahl/go-centry/pkg/logging"
+	"github.com/kristofferahl/go-centry/pkg/shell"
 	"github.com/sirupsen/logrus"
 )
 
@@ -89,17 +90,24 @@ func Create(inputArgs []string, context *Context) *Runtime {
 	// Build commands
 	for _, cmd := range context.manifest.Commands {
 		cmd := cmd
-		command := &DynamicCommand{
-			Log: logger.WithFields(logrus.Fields{
+
+		script := scriptFile(cmd, context)
+
+		funcs, err := script.Functions()
+		if err != nil {
+			logger.WithFields(logrus.Fields{
 				"command": cmd.Name,
-			}),
-			Command:  cmd,
-			Manifest: context.manifest,
+			}).Fatal(err)
 		}
 
-		for _, bf := range command.GetFunctions() {
-			cmdName := bf
-			cmdKey := strings.Replace(cmdName, ":", " ", -1)
+		for _, fn := range funcs {
+			namespace := script.CreateFunctionNamespace(cmd.Name)
+
+			if fn != cmd.Name && strings.HasPrefix(fn, namespace) == false {
+				continue
+			}
+
+			cmdKey := strings.Replace(fn, script.FunctionNameSplitChar(), " ", -1)
 			logger.Debugf("Adding command %s", cmdKey)
 
 			c.Commands[cmdKey] = func() (cli.Command, error) {
@@ -109,7 +117,7 @@ func Create(inputArgs []string, context *Context) *Runtime {
 						"command": cmdKey,
 					}),
 					GlobalOptions: options,
-					Name:          cmdName,
+					Name:          fn,
 					Path:          cmd.Path,
 					HelpText:      cmd.Help,
 					SynopsisText:  cmd.Description,
@@ -135,4 +143,11 @@ func (runtime *Runtime) Execute() int {
 	}
 
 	return exitCode
+}
+
+func scriptFile(cmd config.Command, context *Context) shell.ScriptFile {
+	return &shell.BashScript{
+		BasePath: context.manifest.BasePath,
+		Path:     cmd.Path,
+	}
 }
