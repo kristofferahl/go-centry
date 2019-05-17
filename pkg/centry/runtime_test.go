@@ -8,7 +8,7 @@ import (
 
 	. "github.com/franela/goblin"
 	"github.com/kristofferahl/go-centry/pkg/io"
-	th "github.com/kristofferahl/go-centry/pkg/testing"
+	test "github.com/kristofferahl/go-centry/pkg/test"
 )
 
 func TestMain(t *testing.T) {
@@ -177,7 +177,7 @@ func execWithLogging(source string) *execResult {
 func execCentry(source string, quiet bool) *execResult {
 	var exitCode int
 
-	out := th.CaptureOutput(func() {
+	out := test.CaptureOutput(func() {
 		if quiet {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
