@@ -9,7 +9,7 @@ A library for bash command-line programs, written [go](https://golang.org).
 ## Usage
 
 ```bash
-./go-centry examples/centry.yaml "$@"
+./go-centry examples/centry/centry.yaml "$@"
 ```
 
 ## Documentation
@@ -21,11 +21,11 @@ Docs can be found at [godoc.org](https://godoc.org/github.com/kristofferahl/go-c
 ### Running tests
 
 ```bash
-./test
+scripts/test
 ```
 
-### Building from source
+### Running centry
 
 ```bash
-./build
+scripts/run-centry
 ```

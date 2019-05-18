@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+main() {
+  rm -f ./centry &>/dev/null || true
+  go build -o ./centry ./cmd/centry/
+  ./centry ./examples/centry/centry.yaml "$@"
+}
+
+main "$@"

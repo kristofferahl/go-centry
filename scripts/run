@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-rm -f ./centry &>/dev/null || true
-
-go build -o ./centry ./cmd/centry/
-
-./centry ./examples/centry.yaml "$@"
