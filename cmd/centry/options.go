@@ -1,28 +1,29 @@
-package centry
+package main
 
 import (
+	"github.com/kristofferahl/go-centry/pkg/cmd"
 	"github.com/kristofferahl/go-centry/pkg/config"
 )
 
-func createGlobalOptions(manifest *config.Manifest) *OptionsSet {
+func createGlobalOptions(manifest *config.Manifest) *cmd.OptionsSet {
 	// Add global options
-	options := NewOptionsSet(OptionSetGlobal)
-	options.Add(&Option{
+	options := cmd.NewOptionsSet(cmd.OptionSetGlobal)
+	options.Add(&cmd.Option{
 		Name:        "config.log.level",
 		Description: "Overrides the log level",
 		Default:     manifest.Config.Log.Level,
 	})
-	options.Add(&Option{
+	options.Add(&cmd.Option{
 		Name:        "quiet",
 		Short:       "q",
 		Description: "Disables logging",
 	})
-	options.Add(&Option{
+	options.Add(&cmd.Option{
 		Name:        "help",
 		Short:       "h",
 		Description: "Displays help",
 	})
-	options.Add(&Option{
+	options.Add(&cmd.Option{
 		Name:        "version",
 		Short:       "v",
 		Description: "Displays the version fo the cli",
@@ -31,7 +32,7 @@ func createGlobalOptions(manifest *config.Manifest) *OptionsSet {
 	// Adding global options specified by the manifest
 	for _, o := range manifest.Options {
 		o := o
-		options.Add(&Option{
+		options.Add(&cmd.Option{
 			Name:        o.Name,
 			Description: o.Description,
 			EnvName:     o.EnvName,

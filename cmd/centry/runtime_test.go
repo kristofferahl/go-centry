@@ -1,4 +1,4 @@
-package centry
+package main
 
 import (
 	"fmt"
@@ -182,7 +182,7 @@ func execCentry(source string, quiet bool) *execResult {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
 		context := NewContext(CLI, io.Headless())
-		runtime := Create(strings.Split(fmt.Sprintf("../../test/data/main_test.yaml %s", source), " "), context)
+		runtime := NewRuntime(strings.Split(fmt.Sprintf("../../test/data/main_test.yaml %s", source), " "), context)
 		exitCode = runtime.Execute()
 	})
 

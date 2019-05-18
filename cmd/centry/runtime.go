@@ -1,4 +1,4 @@
-package centry
+package main
 
 import (
 	"strings"
@@ -16,8 +16,8 @@ type Runtime struct {
 	cli     *cli.CLI
 }
 
-// Create builds a runtime based on the given arguments
-func Create(inputArgs []string, context *Context) *Runtime {
+// NewRuntime builds a runtime based on the given arguments
+func NewRuntime(inputArgs []string, context *Context) *Runtime {
 	// Create the runtime
 	runtime := &Runtime{}
 

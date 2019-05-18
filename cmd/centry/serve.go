@@ -1,4 +1,4 @@
-package centry
+package main
 
 import (
 	"encoding/json"
@@ -90,7 +90,7 @@ func executeHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *ht
 			return true
 		}
 
-		runtime := Create(args, context)
+		runtime := NewRuntime(args, context)
 
 		// Run
 		exitCode := runtime.Execute()

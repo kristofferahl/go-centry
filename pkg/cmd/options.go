@@ -1,4 +1,4 @@
-package centry
+package cmd
 
 import (
 	"flag"

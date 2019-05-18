@@ -1,4 +1,4 @@
-package centry
+package main
 
 import (
 	"github.com/kristofferahl/go-centry/pkg/config"

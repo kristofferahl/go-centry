@@ -1,4 +1,4 @@
-package centry
+package main
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/kristofferahl/go-centry/pkg/cmd"
 	"github.com/kristofferahl/go-centry/pkg/config"
 	"github.com/kristofferahl/go-centry/pkg/shell"
 	"github.com/sirupsen/logrus"
@@ -16,7 +17,7 @@ type ScriptCommand struct {
 	Context       *Context
 	Log           *logrus.Entry
 	Command       config.Command
-	GlobalOptions *OptionsSet
+	GlobalOptions *cmd.OptionsSet
 	Script        shell.Script
 	Function      string
 }

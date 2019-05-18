@@ -1,4 +1,4 @@
-package centry
+package main
 
 import (
 	"bytes"
@@ -8,10 +8,11 @@ import (
 	"strings"
 
 	"github.com/kristofferahl/cli"
+	"github.com/kristofferahl/go-centry/pkg/cmd"
 	"github.com/kristofferahl/go-centry/pkg/config"
 )
 
-func cliHelpFunc(manifest *config.Manifest, globalOptions *OptionsSet) cli.HelpFunc {
+func cliHelpFunc(manifest *config.Manifest, globalOptions *cmd.OptionsSet) cli.HelpFunc {
 	return func(commands map[string]cli.CommandFactory) string {
 		var buf bytes.Buffer
 		buf.WriteString(fmt.Sprintf("Usage: %s [--version] [--help] <command> [<args>]\n\n", manifest.Config.Name))
@@ -66,10 +67,10 @@ func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, ma
 	}
 }
 
-func writeOptionsSet(buf *bytes.Buffer, set *OptionsSet) {
+func writeOptionsSet(buf *bytes.Buffer, set *cmd.OptionsSet) {
 	buf.WriteString(fmt.Sprintf("\n%s options are:\n", set.Name))
 
-	options := make(map[string]*Option, 0)
+	options := make(map[string]*cmd.Option, 0)
 	keys := make([]string, 0)
 	maxKeyLen := 0
 
