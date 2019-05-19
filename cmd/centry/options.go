@@ -26,7 +26,7 @@ func createGlobalOptions(manifest *config.Manifest) *cmd.OptionsSet {
 	options.Add(&cmd.Option{
 		Name:        "version",
 		Short:       "v",
-		Description: "Displays the version fo the cli",
+		Description: "Displays the version of the cli",
 	})
 
 	// Adding global options specified by the manifest
