@@ -11,6 +11,7 @@ type ExecuteRequest struct {
 
 // ExecuteResponse defines an HTTP response object
 type ExecuteResponse struct {
+	Centry   string `json:"centry"`
 	Result   string `json:"result"`
 	ExitCode int    `json:"exitCode"`
 }

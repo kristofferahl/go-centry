@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -95,6 +96,7 @@ func executeHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *ht
 		// Run
 		exitCode := runtime.Execute()
 
+		response.Centry = fmt.Sprintf("%s %s", context.manifest.Config.Name, context.manifest.Config.Version)
 		response.Result = buf.String()
 		response.ExitCode = exitCode
 
