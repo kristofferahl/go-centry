@@ -2,10 +2,11 @@ package main
 
 import (
 	"github.com/kristofferahl/go-centry/pkg/cmd"
-	"github.com/kristofferahl/go-centry/pkg/config"
 )
 
-func createGlobalOptions(manifest *config.Manifest) *cmd.OptionsSet {
+func createGlobalOptions(context *Context) *cmd.OptionsSet {
+	manifest := context.manifest
+
 	// Add global options
 	options := cmd.NewOptionsSet(cmd.OptionSetGlobal)
 	options.Add(&cmd.Option{
@@ -32,6 +33,11 @@ func createGlobalOptions(manifest *config.Manifest) *cmd.OptionsSet {
 	// Adding global options specified by the manifest
 	for _, o := range manifest.Options {
 		o := o
+
+		if context.optionEnabledFunc != nil && context.optionEnabledFunc(o) == false {
+			continue
+		}
+
 		options.Add(&cmd.Option{
 			Name:        o.Name,
 			Description: o.Description,

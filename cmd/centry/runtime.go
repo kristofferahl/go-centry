@@ -36,7 +36,7 @@ func NewRuntime(inputArgs []string, context *Context) *Runtime {
 	context.log = log.CreateManager(context.manifest.Config.Log.Level, context.manifest.Config.Log.Prefix, context.io)
 
 	// Create global options
-	options := createGlobalOptions(context.manifest)
+	options := createGlobalOptions(context)
 
 	// Parse global options to get cli args
 	args = options.Parse(args)

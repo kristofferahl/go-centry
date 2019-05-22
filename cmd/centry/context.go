@@ -22,6 +22,7 @@ type Context struct {
 	log                *log.Manager
 	manifest           *config.Manifest
 	commandEnabledFunc func(config.Command) bool
+	optionEnabledFunc  func(config.Option) bool
 }
 
 // NewContext creates a new context

@@ -24,9 +24,13 @@ options:
   - name: ops
     env_name: CONTEXT
     description: Set the context to ops (operations)
+    annotations:
+      centry.api/serve: "true"
   - name: dev
     env_name: CONTEXT
     description: Set the context to dev (development)
+    annotations:
+      centry.api/serve: "false"
   - name: qa
     env_name: CONTEXT
     description: Set the context to qa (quality assurance)

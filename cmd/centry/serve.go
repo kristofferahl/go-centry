@@ -84,7 +84,15 @@ func executeHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *ht
 		context := NewContext(API, io)
 
 		context.commandEnabledFunc = func(cmd config.Command) bool {
-			if cmd.Annotations == nil || cmd.Annotations[config.APIServeAnnotation] != "true" {
+			if cmd.Annotations == nil || cmd.Annotations[config.APIServeAnnotation] != config.TrueString {
+				return false
+			}
+
+			return true
+		}
+
+		context.optionEnabledFunc = func(opt config.Option) bool {
+			if opt.Annotations == nil || opt.Annotations[config.APIServeAnnotation] != config.TrueString {
 				return false
 			}
 
