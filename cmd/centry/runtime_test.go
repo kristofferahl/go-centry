@@ -83,7 +83,7 @@ func TestMain(t *testing.T) {
        | --custom              A custom option with default value
     -h | --help                Displays help
     -q | --quiet               Disables logging
-    -v | --version             Displays the version fo the cli`
+    -v | --version             Displays the version of the cli`
 
 				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)
 			})
