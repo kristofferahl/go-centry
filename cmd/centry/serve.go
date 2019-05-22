@@ -83,7 +83,7 @@ func executeHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *ht
 		io, buf := io.BufferedCombined()
 		context := NewContext(API, io)
 
-		context.commandEnabled = func(cmd config.Command) bool {
+		context.commandEnabledFunc = func(cmd config.Command) bool {
 			if cmd.Annotations == nil || cmd.Annotations[config.APIServeAnnotation] != "true" {
 				return false
 			}

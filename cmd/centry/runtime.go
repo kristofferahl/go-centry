@@ -81,7 +81,7 @@ func NewRuntime(inputArgs []string, context *Context) *Runtime {
 	for _, cmd := range context.manifest.Commands {
 		cmd := cmd
 
-		if context.commandEnabled != nil && context.commandEnabled(cmd) == false {
+		if context.commandEnabledFunc != nil && context.commandEnabledFunc(cmd) == false {
 			continue
 		}
 

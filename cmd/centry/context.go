@@ -17,11 +17,11 @@ var API Executor = "API"
 
 // Context defines the current context
 type Context struct {
-	executor       Executor
-	io             io.InputOutput
-	log            *log.Manager
-	manifest       *config.Manifest
-	commandEnabled func(config.Command) bool
+	executor           Executor
+	io                 io.InputOutput
+	log                *log.Manager
+	manifest           *config.Manifest
+	commandEnabledFunc func(config.Command) bool
 }
 
 // NewContext creates a new context
