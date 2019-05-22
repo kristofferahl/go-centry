@@ -31,10 +31,11 @@ type Command struct {
 
 // Option defines the structure of options
 type Option struct {
-	Name        string `yaml:"name,omitempty"`
-	EnvName     string `yaml:"env_name,omitempty"`
-	Default     string `yaml:"default,omitempty"`
-	Description string `yaml:"description,omitempty"`
+	Name        string            `yaml:"name,omitempty"`
+	EnvName     string            `yaml:"env_name,omitempty"`
+	Default     string            `yaml:"default,omitempty"`
+	Description string            `yaml:"description,omitempty"`
+	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
 // Config defines the structure for the configuration section
