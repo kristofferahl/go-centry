@@ -31,12 +31,14 @@ func (c *ScriptCommand) Run(args []string) int {
 	case "bash":
 		source = generateBashSource(c, args)
 	default:
-		c.Log.Fatalf("Unsupported script language %s", c.Script.Language())
+		c.Log.Errorf("Unsupported script language %s", c.Script.Language())
+		return 1
 	}
 
 	c.Log.Debugf("Generated source code:\n%s\n", source)
 
 	err := c.Script.Executable().Run(c.Context.io, []string{"-c", source})
+
 	if err != nil {
 		exitCode := 1
 
@@ -46,7 +48,7 @@ func (c *ScriptCommand) Run(args []string) int {
 			}
 		}
 
-		c.Log.Fatalf("Command %v exited with error! %v", c.Function, err)
+		c.Log.Errorf("Command %v exited with error! %v", c.Function, err)
 		return exitCode
 	}
 

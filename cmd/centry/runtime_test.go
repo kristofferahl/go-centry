@@ -14,6 +14,16 @@ import (
 func TestMain(t *testing.T) {
 	g := Goblin(t)
 
+	g.Describe("runtime", func() {
+		g.It("returns error when manifest fails to load", func() {
+			context := NewContext(CLI, io.Headless())
+			runtime, err := NewRuntime([]string{}, context)
+			g.Assert(runtime == nil).IsTrue("expected runtime to be nil")
+			g.Assert(err != nil).IsTrue("expected error")
+			g.Assert(strings.HasPrefix(err.Error(), "Failed to read manifest file.")).IsTrue("expected error message")
+		})
+	})
+
 	g.Describe("scripts", func() {
 		g.It("loads script in the expected order", func() {
 			os.Setenv("OUTPUT_DEBUG", "true")
@@ -182,7 +192,10 @@ func execCentry(source string, quiet bool) *execResult {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
 		context := NewContext(CLI, io.Headless())
-		runtime := NewRuntime(strings.Split(fmt.Sprintf("../../test/data/main_test.yaml %s", source), " "), context)
+		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("../../test/data/main_test.yaml %s", source), " "), context)
+		if err != nil {
+			exitCode = 1
+		}
 		exitCode = runtime.Execute()
 	})
 

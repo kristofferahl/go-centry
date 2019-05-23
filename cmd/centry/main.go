@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/kristofferahl/go-centry/pkg/io"
@@ -13,7 +14,10 @@ func main() {
 	context := NewContext(CLI, io.Standard())
 
 	// Create the runtime
-	runtime := NewRuntime(args, context)
+	runtime, err := NewRuntime(args, context)
+	if err != nil {
+		log.Fatalf("Unhandled error: %v", err)
+	}
 
 	// Run and exit
 	os.Exit(runtime.Execute())

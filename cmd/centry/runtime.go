@@ -17,7 +17,7 @@ type Runtime struct {
 }
 
 // NewRuntime builds a runtime based on the given arguments
-func NewRuntime(inputArgs []string, context *Context) *Runtime {
+func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	// Create the runtime
 	runtime := &Runtime{}
 
@@ -30,7 +30,12 @@ func NewRuntime(inputArgs []string, context *Context) *Runtime {
 	}
 
 	// Load manifest
-	context.manifest = config.LoadManifest(file)
+	manifest, err := config.LoadManifest(file)
+	if err != nil {
+		return nil, err
+	}
+
+	context.manifest = manifest
 
 	// Create the log manager
 	context.log = log.CreateManager(context.manifest.Config.Log.Level, context.manifest.Config.Log.Prefix, context.io)
@@ -91,36 +96,37 @@ func NewRuntime(inputArgs []string, context *Context) *Runtime {
 		if err != nil {
 			logger.WithFields(logrus.Fields{
 				"command": cmd.Name,
-			}).Fatal(err)
-		}
+			}).Errorf("Failed to parse script functions. %v", err)
 
-		for _, fn := range funcs {
-			namespace := script.CreateFunctionNamespace(cmd.Name)
+		} else {
+			for _, fn := range funcs {
+				namespace := script.CreateFunctionNamespace(cmd.Name)
 
-			if fn != cmd.Name && strings.HasPrefix(fn, namespace) == false {
-				continue
+				if fn != cmd.Name && strings.HasPrefix(fn, namespace) == false {
+					continue
+				}
+
+				cmdKey := strings.Replace(fn, script.FunctionNameSplitChar(), " ", -1)
+				c.Commands[cmdKey] = func() (cli.Command, error) {
+					return &ScriptCommand{
+						Context:       context,
+						Log:           logger.WithFields(logrus.Fields{}),
+						GlobalOptions: options,
+						Command:       cmd,
+						Script:        script,
+						Function:      fn,
+					}, nil
+				}
+
+				logger.Debugf("Registered command \"%s\"", cmdKey)
 			}
-
-			cmdKey := strings.Replace(fn, script.FunctionNameSplitChar(), " ", -1)
-			c.Commands[cmdKey] = func() (cli.Command, error) {
-				return &ScriptCommand{
-					Context:       context,
-					Log:           logger.WithFields(logrus.Fields{}),
-					GlobalOptions: options,
-					Command:       cmd,
-					Script:        script,
-					Function:      fn,
-				}, nil
-			}
-
-			logger.Debugf("Registered command \"%s\"", cmdKey)
 		}
 	}
 
 	runtime.context = context
 	runtime.cli = c
 
-	return runtime
+	return runtime, nil
 }
 
 // Execute runs the CLI and exits with a code

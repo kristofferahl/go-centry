@@ -26,8 +26,8 @@ func (sc *ServeCommand) Run(args []string) int {
 		Log: sc.Log,
 	})
 
-	s.Router.HandleFunc("/", indexHandler(sc.Manifest)).Methods("GET")
-	s.Router.HandleFunc("/commands/", executeHandler(sc.Manifest)).Methods("POST")
+	s.Router.HandleFunc("/", sc.indexHandler()).Methods("GET")
+	s.Router.HandleFunc("/commands/", sc.executeHandler()).Methods("POST")
 
 	err := s.RunAndBlock()
 	if err != nil {
@@ -47,7 +47,7 @@ func (sc *ServeCommand) Synopsis() string {
 	return "Exposes commands over HTTP"
 }
 
-func indexHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *http.Request) {
+func (sc *ServeCommand) indexHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		statusCode := http.StatusOK
 		response := api.IndexResponse{}
@@ -62,7 +62,7 @@ func indexHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *http
 	}
 }
 
-func executeHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *http.Request) {
+func (sc *ServeCommand) executeHandler() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		statusCode := http.StatusOK
 		response := api.ExecuteResponse{}
@@ -76,7 +76,7 @@ func executeHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *ht
 		}
 
 		args := []string{}
-		args = append(args, manifest.Path)
+		args = append(args, sc.Manifest.Path)
 		args = append(args, strings.Fields(body.Args)...)
 
 		// Build
@@ -99,14 +99,20 @@ func executeHandler(manifest *config.Manifest) func(w http.ResponseWriter, r *ht
 			return true
 		}
 
-		runtime := NewRuntime(args, context)
+		runtime, err := NewRuntime(args, context)
+		if err != nil {
+			response.Centry = fmt.Sprintf("%s %s", context.manifest.Config.Name, context.manifest.Config.Version)
+			response.Result = fmt.Sprintf("Unable to create runtime %v", err)
+			response.ExitCode = 1
+			sc.Log.Error(response.Result)
+		} else {
+			// Run
+			exitCode := runtime.Execute()
 
-		// Run
-		exitCode := runtime.Execute()
-
-		response.Centry = fmt.Sprintf("%s %s", context.manifest.Config.Name, context.manifest.Config.Version)
-		response.Result = buf.String()
-		response.ExitCode = exitCode
+			response.Centry = fmt.Sprintf("%s %s", context.manifest.Config.Name, context.manifest.Config.Version)
+			response.Result = buf.String()
+			response.ExitCode = exitCode
+		}
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(statusCode)
