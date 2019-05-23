@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -52,36 +51,42 @@ type LogConfig struct {
 }
 
 // LoadManifest reads, parses and returns a manifest root object
-func LoadManifest(path string) *Manifest {
+func LoadManifest(path string) (*Manifest, error) {
 	mp, _ := filepath.Abs(path)
 
 	if _, err := os.Stat(mp); os.IsNotExist(err) {
-		fmt.Println("The first argument must be a path to a valid manfest file")
-		os.Exit(1)
+		return nil, fmt.Errorf("The first argument must be a path to a valid manfest file (%s)", path)
 	}
 
-	bs := readManifestFile(mp)
-	m := parseYaml(bs)
+	bs, err := readManifestFile(mp)
+	if err != nil {
+		return nil, err
+	}
+
+	m, err := parseManifestYaml(bs)
+	if err != nil {
+		return nil, err
+	}
 
 	m.Path = mp
 	m.BasePath = filepath.Dir(mp)
-	return m
+
+	return m, nil
 }
 
-func readManifestFile(filename string) []byte {
+func readManifestFile(filename string) ([]byte, error) {
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
-		fmt.Println("Failed to load manifest file.", "Error:", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("Failed to read manifest file. %v", err)
 	}
-	return bs
+	return bs, nil
 }
 
-func parseYaml(bs []byte) *Manifest {
+func parseManifestYaml(bs []byte) (*Manifest, error) {
 	m := Manifest{}
 	err := yaml.Unmarshal(bs, &m)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		return nil, fmt.Errorf("Failed to parse manifest yaml. %v", err)
 	}
-	return &m
+	return &m, nil
 }
