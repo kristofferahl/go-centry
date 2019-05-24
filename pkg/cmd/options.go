@@ -53,7 +53,7 @@ func (s *OptionsSet) Add(option *Option) {
 
 // CreateFlagSet returns the set of options as a FlagSet
 func (s *OptionsSet) CreateFlagSet() {
-	s.Flags = flag.NewFlagSet(s.Name, flag.ExitOnError)
+	s.Flags = flag.NewFlagSet(s.Name, flag.ContinueOnError)
 
 	for _, o := range s.Items {
 		d := strings.ToLower(o.Default)
@@ -75,7 +75,7 @@ func (s *OptionsSet) CreateFlagSet() {
 }
 
 // Parse pareses the args using a flagset and returns the remaining arguments
-func (s *OptionsSet) Parse(args []string) []string {
+func (s *OptionsSet) Parse(args []string) ([]string, error) {
 	parse := true
 	if s.Name == OptionSetGlobal {
 		for _, arg := range args {
@@ -92,11 +92,14 @@ func (s *OptionsSet) Parse(args []string) []string {
 
 	if parse {
 		s.CreateFlagSet()
-		s.Flags.Parse(args)
+		err := s.Flags.Parse(args)
+		if err != nil {
+			return nil, err
+		}
 		args = s.Flags.Args()
 	}
 
-	return args
+	return args, nil
 }
 
 // GetValue returns the parsed value of a given option

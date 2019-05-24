@@ -15,11 +15,20 @@ commands:
   - name: delete
     path: commands/delete.sh
     description: Deletes stuff
+  - name: test
+    path: commands/test.sh
+    description: Test stuff
 
 options:
   - name: custom
     description: A custom option with default value
     default: foobar
+  - name: staging
+    env_name: CONTEXT
+    description: Sets the context to staging
+  - name: production
+    env_name: CONTEXT
+    description: Sets the context to production
 
 config:
   name: centry

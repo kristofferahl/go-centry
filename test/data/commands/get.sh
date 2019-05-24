@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
-get () {
+get() {
   echo "get ($*)"
+}
+
+get:sub() {
+  echo "get:sub ($*)"
 }

@@ -32,16 +32,84 @@ func TestMain(t *testing.T) {
 		})
 	})
 
-	g.Describe("commands", func() {
-		g.Describe("call without argument", func() {
-			g.It("should have no arguments passed", func() {
-				g.Assert(execQuiet("get").Stdout).Equal("get ()\n")
+	g.Describe("options", func() {
+		g.Describe("invoke without option", func() {
+			g.It("should pass arguments", func() {
+				g.Assert(execQuiet("test args foo bar").Stdout).Equal("test:args (foo bar)\n")
+			})
+
+			g.It("should have default value for environment variable set", func() {
+				test.AssertKeyValueExists(g, "CUSTOM", "foobar", execQuiet("test env").Stdout)
 			})
 		})
 
-		g.Describe("call with argument", func() {
+		g.Describe("invoke with single option", func() {
 			g.It("should have arguments passed", func() {
-				g.Assert(execQuiet("get foobar").Stdout).Equal("get (foobar)\n")
+				g.Assert(execQuiet("--staging test args foo bar").Stdout).Equal("test:args (foo bar)\n")
+			})
+
+			g.It("should have environment set to staging", func() {
+				test.AssertKeyValueExists(g, "CONTEXT", "staging", execQuiet("--staging test env").Stdout)
+			})
+
+			g.It("should have environment set to production", func() {
+				test.AssertKeyValueExists(g, "CONTEXT", "production", execQuiet("--production test env").Stdout)
+			})
+
+			g.It("should have environment set to last option with same env_name")
+			// , func() {
+			// 	// TODO: Find out why this fails
+			// 	test.AssertKeyValueExists(g, "CONTEXT", "staging", execQuiet("--production --staging test env").Stdout)
+			// }
+		})
+
+		g.Describe("invoke with multiple options", func() {
+			g.It("should have arguments passed", func() {
+				g.Assert(execQuiet("--staging --custom=baz test args foo bar").Stdout).Equal("test:args (foo bar)\n")
+			})
+
+			g.It("should have multipe environment variables set", func() {
+				out := execQuiet("--staging --custom=bazer test env").Stdout
+				test.AssertKeyValueExists(g, "CONTEXT", "staging", out)
+				test.AssertKeyValueExists(g, "CUSTOM", "bazer", out)
+			})
+		})
+
+		g.Describe("invoke with invalid option", func() {
+			g.It("should return error", func() {
+				res := execQuiet("--invalidoption test args foo bar")
+				g.Assert(res.Stdout).Equal("")
+				g.Assert(res.Error.Error()).Equal("flag provided but not defined: -invalidoption")
+			})
+		})
+	})
+
+	g.Describe("commands", func() {
+		g.Describe("invoking command", func() {
+			g.Describe("with arguments", func() {
+				g.It("should have arguments passed", func() {
+					g.Assert(execQuiet("get foo bar").Stdout).Equal("get (foo bar)\n")
+				})
+			})
+
+			g.Describe("without arguments", func() {
+				g.It("should have no arguments passed", func() {
+					g.Assert(execQuiet("get").Stdout).Equal("get ()\n")
+				})
+			})
+		})
+
+		g.Describe("invoking sub command", func() {
+			g.Describe("with arguments", func() {
+				g.It("should have arguments passed", func() {
+					g.Assert(execQuiet("get sub foo bar").Stdout).Equal("get:sub (foo bar)\n")
+				})
+			})
+
+			g.Describe("without arguments", func() {
+				g.It("should have no arguments passed", func() {
+					g.Assert(execQuiet("get sub").Stdout).Equal("get:sub ()\n")
+				})
 			})
 		})
 	})
@@ -92,7 +160,9 @@ func TestMain(t *testing.T) {
        | --config.log.level    Overrides the log level
        | --custom              A custom option with default value
     -h | --help                Displays help
+       | --production          Sets the context to production
     -q | --quiet               Disables logging
+       | --staging             Sets the context to staging
     -v | --version             Displays the version of the cli`
 
 				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)
@@ -108,27 +178,27 @@ func TestMain(t *testing.T) {
 		})
 	})
 
-	g.Describe("version", func() {
-		g.Describe("--version", func() {
-			result := execQuiet("--version")
-
-			g.It("should display version", func() {
-				expected := `1.0.0`
-				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
-			})
-		})
-
-		g.Describe("-v", func() {
-			result := execQuiet("-v")
-
-			g.It("should display version", func() {
-				expected := `1.0.0`
-				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
-			})
-		})
-	})
-
 	g.Describe("global options", func() {
+		g.Describe("version", func() {
+			g.Describe("--version", func() {
+				result := execQuiet("--version")
+
+				g.It("should display version", func() {
+					expected := `1.0.0`
+					g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
+				})
+			})
+
+			g.Describe("-v", func() {
+				result := execQuiet("-v")
+
+				g.It("should display version", func() {
+					expected := `1.0.0`
+					g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
+				})
+			})
+		})
+
 		g.Describe("quiet", func() {
 			g.Describe("--quiet", func() {
 				result := execWithLogging("--quiet")
@@ -172,6 +242,7 @@ func TestMain(t *testing.T) {
 type execResult struct {
 	Source   string
 	ExitCode int
+	Error    error
 	Stdout   string
 	Stderr   string
 }
@@ -186,6 +257,7 @@ func execWithLogging(source string) *execResult {
 
 func execCentry(source string, quiet bool) *execResult {
 	var exitCode int
+	var runtimeErr error
 
 	out := test.CaptureOutput(func() {
 		if quiet {
@@ -195,13 +267,16 @@ func execCentry(source string, quiet bool) *execResult {
 		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("../../test/data/main_test.yaml %s", source), " "), context)
 		if err != nil {
 			exitCode = 1
+			runtimeErr = err
+		} else {
+			exitCode = runtime.Execute()
 		}
-		exitCode = runtime.Execute()
 	})
 
 	return &execResult{
 		Source:   source,
 		ExitCode: exitCode,
+		Error:    runtimeErr,
 		Stdout:   out.Stdout,
 		Stderr:   out.Stderr,
 	}

@@ -16,7 +16,7 @@ func main() {
 	// Create the runtime
 	runtime, err := NewRuntime(args, context)
 	if err != nil {
-		log.Fatalf("Unhandled error: %v", err)
+		log.Fatalf("Error: %v", err)
 	}
 
 	// Run and exit

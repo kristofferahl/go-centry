@@ -44,7 +44,10 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	options := createGlobalOptions(context)
 
 	// Parse global options to get cli args
-	args = options.Parse(args)
+	args, err = options.Parse(args)
+	if err != nil {
+		return nil, err
+	}
 
 	// Initialize cli
 	c := &cli.CLI{
@@ -100,6 +103,7 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 
 		} else {
 			for _, fn := range funcs {
+				fn := fn
 				namespace := script.CreateFunctionNamespace(cmd.Name)
 
 				if fn != cmd.Name && strings.HasPrefix(fn, namespace) == false {
