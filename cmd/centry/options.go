@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/kristofferahl/go-centry/pkg/cmd"
+	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
 )
 
 // OptionSetGlobal is the name of the global OptionsSet

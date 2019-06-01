@@ -15,7 +15,7 @@ func TestMain(t *testing.T) {
 
 	g.Describe("LoadManifest", func() {
 		g.It("returns manifest when file is found", func() {
-			path := "../../test/data/main_test.yaml"
+			path := "../../../test/data/main_test.yaml"
 			absPath, _ := filepath.Abs(path)
 			basePath := filepath.Dir(absPath)
 

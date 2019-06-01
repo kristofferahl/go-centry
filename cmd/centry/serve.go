@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	api "github.com/kristofferahl/go-centry/pkg/api"
-	"github.com/kristofferahl/go-centry/pkg/config"
-	"github.com/kristofferahl/go-centry/pkg/io"
+	api "github.com/kristofferahl/go-centry/internal/pkg/api"
+	"github.com/kristofferahl/go-centry/internal/pkg/config"
+	"github.com/kristofferahl/go-centry/internal/pkg/io"
 	"github.com/sirupsen/logrus"
 )
 

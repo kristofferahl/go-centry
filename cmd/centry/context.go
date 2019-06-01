@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/kristofferahl/go-centry/pkg/config"
-	"github.com/kristofferahl/go-centry/pkg/io"
-	"github.com/kristofferahl/go-centry/pkg/log"
+	"github.com/kristofferahl/go-centry/internal/pkg/config"
+	"github.com/kristofferahl/go-centry/internal/pkg/io"
+	"github.com/kristofferahl/go-centry/internal/pkg/log"
 )
 
 // Executor is the name of the executor

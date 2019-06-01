@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/kristofferahl/go-centry/pkg/cmd"
-	"github.com/kristofferahl/go-centry/pkg/config"
+	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
+	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/mitchellh/cli"
 )
 

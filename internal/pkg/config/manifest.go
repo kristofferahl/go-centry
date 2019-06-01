@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/kristofferahl/go-centry/pkg/cmd"
+	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
 	yaml "gopkg.in/yaml.v2"
 )
 

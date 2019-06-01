@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	. "github.com/franela/goblin"
-	"github.com/kristofferahl/go-centry/pkg/io"
-	test "github.com/kristofferahl/go-centry/pkg/test"
+	"github.com/kristofferahl/go-centry/internal/pkg/io"
+	test "github.com/kristofferahl/go-centry/internal/pkg/test"
 )
 
 func TestMain(t *testing.T) {

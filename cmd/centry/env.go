@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/kristofferahl/go-centry/pkg/cmd"
+	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
 )
 
 type envType string

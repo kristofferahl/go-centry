@@ -6,9 +6,9 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/kristofferahl/go-centry/pkg/cmd"
-	"github.com/kristofferahl/go-centry/pkg/config"
-	"github.com/kristofferahl/go-centry/pkg/shell"
+	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
+	"github.com/kristofferahl/go-centry/internal/pkg/config"
+	"github.com/kristofferahl/go-centry/internal/pkg/shell"
 	"github.com/sirupsen/logrus"
 )
 

@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/kristofferahl/go-centry/pkg/io"
+	"github.com/kristofferahl/go-centry/internal/pkg/io"
 )
 
 // OptionsSet represents a set of flags that can be passed to the cli

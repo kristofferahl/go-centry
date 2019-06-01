@@ -1,6 +1,6 @@
 package shell
 
-import "github.com/kristofferahl/go-centry/pkg/io"
+import "github.com/kristofferahl/go-centry/internal/pkg/io"
 
 // Executable defines the interface of an executable program
 type Executable interface {

@@ -3,9 +3,9 @@ package main
 import (
 	"strings"
 
-	"github.com/kristofferahl/go-centry/pkg/config"
-	"github.com/kristofferahl/go-centry/pkg/log"
-	"github.com/kristofferahl/go-centry/pkg/shell"
+	"github.com/kristofferahl/go-centry/internal/pkg/config"
+	"github.com/kristofferahl/go-centry/internal/pkg/log"
+	"github.com/kristofferahl/go-centry/internal/pkg/shell"
 	"github.com/mitchellh/cli"
 	"github.com/sirupsen/logrus"
 )

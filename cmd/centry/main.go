@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/kristofferahl/go-centry/pkg/io"
+	"github.com/kristofferahl/go-centry/internal/pkg/io"
 )
 
 func main() {
