@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/kristofferahl/go-centry/pkg/cmd"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -30,6 +31,7 @@ type Command struct {
 
 // Option defines the structure of options
 type Option struct {
+	Type        cmd.OptionType    `yaml:"type,omitempty"`
 	Name        string            `yaml:"name,omitempty"`
 	EnvName     string            `yaml:"env_name,omitempty"`
 	Default     string            `yaml:"default,omitempty"`

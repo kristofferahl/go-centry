@@ -6,27 +6,41 @@ commands:
   - name: get
     path: commands/get.sh
     description: Gets stuff
+
   - name: post
     path: commands/postput.sh
     description: Creates stuff
+
   - name: put
     path: commands/postput.sh
     description: Creates/Updates stuff
+
   - name: delete
     path: commands/delete.sh
     description: Deletes stuff
+
   - name: test
     path: commands/test.sh
     description: Test stuff
 
 options:
-  - name: custom
-    description: A custom option with default value
+  - name: stringopt
+    type: string
+    description: A custom option
     default: foobar
+
+  - name: boolopt
+    type: bool
+    description: A custom option
+    default: "false"
+
   - name: staging
+    type: select
     env_name: CONTEXT
     description: Sets the context to staging
+
   - name: production
+    type: select
     env_name: CONTEXT
     description: Sets the context to production
 

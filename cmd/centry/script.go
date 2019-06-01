@@ -30,15 +30,13 @@ func (c *ScriptCommand) Run(args []string) int {
 	switch c.Script.Language() {
 	case "bash":
 		source = generateBashSource(c, args)
+		c.Log.Debugf("Generated bash source:\n%s\n", source)
 	default:
 		c.Log.Errorf("Unsupported script language %s", c.Script.Language())
 		return 1
 	}
 
-	c.Log.Debugf("Generated source code:\n%s\n", source)
-
 	err := c.Script.Executable().Run(c.Context.io, []string{"-c", source})
-
 	if err != nil {
 		exitCode := 1
 
@@ -76,31 +74,15 @@ func generateBashSource(c *ScriptCommand, args []string) string {
 
 	source = append(source, "")
 	source = append(source, "# Set exports from flags")
-	exports := map[string]string{}
-	for _, o := range c.GlobalOptions.Items {
-		envName := o.EnvName
-		var envValue string
-		value := c.GlobalOptions.GetValue(o.Name)
 
-		if envName == "" {
-			envName = strings.Replace(strings.ToUpper(o.Name), ".", "_", -1)
+	for _, v := range optionsSetToEnvVars(c.GlobalOptions) {
+		if v.Value != "" {
+			value := v.Value
+			if v.IsString() {
+				value = fmt.Sprintf("'%s'", v.Value)
+			}
+			source = append(source, fmt.Sprintf("export %s=%s", v.Name, value))
 		}
-
-		switch value {
-		case "true":
-			envValue = o.Name
-		case "false":
-			envValue = ""
-		default:
-			envValue = value
-		}
-
-		if envValue != "" {
-			exports[envName] = envValue
-		}
-	}
-	for envName, envValue := range exports {
-		source = append(source, fmt.Sprintf("export %s='%s'", envName, envValue))
 	}
 
 	source = append(source, "")

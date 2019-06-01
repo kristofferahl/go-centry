@@ -39,7 +39,7 @@ func TestMain(t *testing.T) {
 			})
 
 			g.It("should have default value for environment variable set", func() {
-				test.AssertKeyValueExists(g, "CUSTOM", "foobar", execQuiet("test env").Stdout)
+				test.AssertKeyValueExists(g, "STRINGOPT", "foobar", execQuiet("test env").Stdout)
 			})
 		})
 
@@ -52,26 +52,25 @@ func TestMain(t *testing.T) {
 				test.AssertKeyValueExists(g, "CONTEXT", "staging", execQuiet("--staging test env").Stdout)
 			})
 
-			g.It("should have environment set to production", func() {
-				test.AssertKeyValueExists(g, "CONTEXT", "production", execQuiet("--production test env").Stdout)
+			g.It("should have environment set to last option with same env_name (production)", func() {
+				test.AssertKeyValueExists(g, "CONTEXT", "production", execQuiet("--staging=false --production test env").Stdout)
 			})
 
-			g.It("should have environment set to last option with same env_name")
-			// , func() {
-			// 	// TODO: Find out why this fails
-			// 	test.AssertKeyValueExists(g, "CONTEXT", "staging", execQuiet("--production --staging test env").Stdout)
-			// }
+			g.It("should have environment set to last option with same env_name (staging)", func() {
+				test.AssertKeyValueExists(g, "CONTEXT", "staging", execQuiet("--production=false --staging test env").Stdout)
+			})
 		})
 
 		g.Describe("invoke with multiple options", func() {
 			g.It("should have arguments passed", func() {
-				g.Assert(execQuiet("--staging --custom=baz test args foo bar").Stdout).Equal("test:args (foo bar)\n")
+				g.Assert(execQuiet("--staging --stringopt=baz test args foo bar").Stdout).Equal("test:args (foo bar)\n")
 			})
 
 			g.It("should have multipe environment variables set", func() {
-				out := execQuiet("--staging --custom=bazer test env").Stdout
+				out := execQuiet("--staging --stringopt=bazer --boolopt test env").Stdout
 				test.AssertKeyValueExists(g, "CONTEXT", "staging", out)
-				test.AssertKeyValueExists(g, "CUSTOM", "bazer", out)
+				test.AssertKeyValueExists(g, "STRINGOPT", "bazer", out)
+				test.AssertKeyValueExists(g, "BOOLOPT", "true", out)
 			})
 		})
 
@@ -157,12 +156,13 @@ func TestMain(t *testing.T) {
 
 			g.It("should display global options", func() {
 				expected := `Global options are:
+       | --boolopt             A custom option
        | --config.log.level    Overrides the log level
-       | --custom              A custom option with default value
     -h | --help                Displays help
        | --production          Sets the context to production
     -q | --quiet               Disables logging
        | --staging             Sets the context to staging
+       | --stringopt           A custom option
     -v | --version             Displays the version of the cli`
 
 				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)

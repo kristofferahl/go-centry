@@ -70,28 +70,25 @@ func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, ma
 func writeOptionsSet(buf *bytes.Buffer, set *cmd.OptionsSet) {
 	buf.WriteString(fmt.Sprintf("\n%s options are:\n", set.Name))
 
-	options := make(map[string]*cmd.Option, 0)
-	keys := make([]string, 0)
-	maxKeyLen := 0
+	sorted := set.Sorted()
 
-	for _, o := range set.Items {
+	maxKeyLen := 0
+	for _, o := range sorted {
 		key := fmt.Sprintf("--%s", o.Name)
 		if len(key) > maxKeyLen {
 			maxKeyLen = len(key)
 		}
-
-		options[key] = o
-		keys = append(keys, key)
 	}
-	sort.Strings(keys)
 
-	for _, key := range keys {
-		o := options[key]
+	for _, o := range sorted {
+		l := fmt.Sprintf("--%s", o.Name)
+
 		s := "   | "
 		if o.Short != "" {
 			s = fmt.Sprintf("-%s | ", o.Short)
 		}
-		n := fmt.Sprintf("%s%s%s", s, key, strings.Repeat(" ", maxKeyLen-len(key)))
+
+		n := fmt.Sprintf("%s%s%s", s, l, strings.Repeat(" ", maxKeyLen-len(l)))
 		d := o.Description
 		buf.WriteString(fmt.Sprintf("    %s    %s\n", n, d))
 	}

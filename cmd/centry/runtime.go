@@ -44,7 +44,7 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	options := createGlobalOptions(context)
 
 	// Parse global options to get cli args
-	args, err = options.Parse(args)
+	args, err = options.Parse(args, context.io)
 	if err != nil {
 		return nil, err
 	}
@@ -65,7 +65,7 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	}
 
 	// Override the current log level from options
-	logLevel := options.GeString("config.log.level")
+	logLevel := options.GetString("config.log.level")
 	if options.GetBool("quiet") {
 		logLevel = "panic"
 	}
