@@ -66,6 +66,7 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 		options.Add(&cmd.Option{
 			Type:        o.Type,
 			Name:        o.Name,
+			Short:       o.Short,
 			Description: o.Description,
 			EnvName:     o.EnvName,
 			Default:     def,

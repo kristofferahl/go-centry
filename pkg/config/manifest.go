@@ -33,6 +33,7 @@ type Command struct {
 type Option struct {
 	Type        cmd.OptionType    `yaml:"type,omitempty"`
 	Name        string            `yaml:"name,omitempty"`
+	Short       string            `yaml:"short,omitempty"`
 	EnvName     string            `yaml:"env_name,omitempty"`
 	Default     string            `yaml:"default,omitempty"`
 	Description string            `yaml:"description,omitempty"`

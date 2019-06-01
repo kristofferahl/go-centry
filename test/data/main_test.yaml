@@ -25,14 +25,15 @@ commands:
 
 options:
   - name: stringopt
+    short: S
     type: string
     description: A custom option
     default: foobar
 
   - name: boolopt
+    short: B
     type: bool
     description: A custom option
-    default: "false"
 
   - name: staging
     type: select

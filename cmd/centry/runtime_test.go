@@ -156,13 +156,13 @@ func TestMain(t *testing.T) {
 
 			g.It("should display global options", func() {
 				expected := `Global options are:
-       | --boolopt             A custom option
+    -B | --boolopt             A custom option
        | --config.log.level    Overrides the log level
     -h | --help                Displays help
        | --production          Sets the context to production
     -q | --quiet               Disables logging
        | --staging             Sets the context to staging
-       | --stringopt           A custom option
+    -S | --stringopt           A custom option
     -v | --version             Displays the version of the cli`
 
 				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)
