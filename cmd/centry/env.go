@@ -38,6 +38,7 @@ func optionsSetToEnvVars(set *cmd.OptionsSet) []envVar {
 			envName = o.Name
 		}
 		envName = strings.Replace(strings.ToUpper(envName), ".", "_", -1)
+		envName = strings.Replace(strings.ToUpper(envName), "-", "_", -1)
 
 		value := set.GetValueString(o.Name)
 

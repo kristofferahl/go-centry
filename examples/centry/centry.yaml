@@ -28,6 +28,10 @@ options:
     type: bool
     description: Run in debug mode
 
+  - name: no-logo
+    type: bool
+    description: Run commands without logo
+
   - name: ops
     type: select
     env_name: CONTEXT
