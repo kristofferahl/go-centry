@@ -3,6 +3,9 @@ scripts:
   - scripts/session.sh
 
 commands:
+  - name: get
+    path: commands/get.sh
+    description: Gets resources
   - name: up
     path: commands/updown.sh
     description: Upserts resources
@@ -21,22 +24,43 @@ commands:
     description: Reading from stdin
 
 options:
+  - name: debug
+    type: bool
+    description: Run in debug mode
+
   - name: ops
+    type: select
     env_name: CONTEXT
     description: Set the context to ops (operations)
     annotations:
       centry.api/serve: "true"
+
   - name: dev
+    type: select
     env_name: CONTEXT
     description: Set the context to dev (development)
     annotations:
       centry.api/serve: "false"
+
   - name: qa
+    type: select
     env_name: CONTEXT
     description: Set the context to qa (quality assurance)
+
   - name: prod
+    type: select
     env_name: CONTEXT
     description: Set the context to prod (production)
+
+  - name: asc
+    type: select
+    env_name: SORTED
+    description: Set's sort order to ascending
+
+  - name: desc
+    type: select
+    env_name: SORTED
+    description: Set's sort order to descending
 
 config:
   name: centry
