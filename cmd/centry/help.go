@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/kristofferahl/cli"
 	"github.com/kristofferahl/go-centry/pkg/cmd"
 	"github.com/kristofferahl/go-centry/pkg/config"
+	"github.com/mitchellh/cli"
 )
 
 func cliHelpFunc(manifest *config.Manifest, globalOptions *cmd.OptionsSet) cli.HelpFunc {
