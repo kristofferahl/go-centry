@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 
 	api "github.com/kristofferahl/go-centry/internal/pkg/api"
@@ -23,7 +24,8 @@ func (sc *ServeCommand) Run(args []string) int {
 	sc.Log.Debugf("Serving HTTP api")
 
 	s := api.NewServer(api.Config{
-		Log: sc.Log,
+		Log:       sc.Log,
+		BasicAuth: configureBasicAuth(),
 	})
 
 	s.Router.HandleFunc("/", sc.indexHandler()).Methods("GET")
@@ -45,6 +47,21 @@ func (sc *ServeCommand) Help() string {
 // Synopsis returns the synopsis of the ServeCommand
 func (sc *ServeCommand) Synopsis() string {
 	return "Exposes commands over HTTP"
+}
+
+func configureBasicAuth() *api.BasicAuth {
+	var auth *api.BasicAuth
+	baUsername := os.Getenv("CENTRY_SERVE_USERNAME")
+	baPassword := os.Getenv("CENTRY_SERVE_PASSWORD")
+
+	if baUsername != "" && baPassword != "" {
+		auth = &api.BasicAuth{
+			Username: baUsername,
+			Password: baPassword,
+		}
+	}
+
+	return auth
 }
 
 func (sc *ServeCommand) indexHandler() func(w http.ResponseWriter, r *http.Request) {

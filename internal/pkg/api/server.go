@@ -10,7 +10,14 @@ import (
 
 // Config defines server configuration
 type Config struct {
-	Log *logrus.Entry
+	Log       *logrus.Entry
+	BasicAuth *BasicAuth
+}
+
+// BasicAuth defines basic auth configuration
+type BasicAuth struct {
+	Username string
+	Password string
 }
 
 // Server holds the configuration, router and http server
@@ -29,6 +36,7 @@ func NewServer(config Config) Server {
 	}
 
 	s.Router.Use(loggingMiddleware(config))
+	s.Router.Use(basicAuthMiddleware(config))
 
 	s.Server = &http.Server{
 		Handler:      s.Router,
@@ -37,10 +45,22 @@ func NewServer(config Config) Server {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	config.Log.WithFields(logrus.Fields{
+	auth := "none"
+	if config.BasicAuth != nil {
+		auth = "basic"
+	}
+
+	l := config.Log.WithFields(logrus.Fields{
 		"service": "HTTP-Server",
 		"address": s.Server.Addr,
-	}).Infof("listening on %s", s.Server.Addr)
+		"auth":    auth,
+	})
+
+	if auth != "basic" {
+		l.Warnf("listening on %s", s.Server.Addr)
+	} else {
+		l.Infof("listening on %s", s.Server.Addr)
+	}
 
 	return s
 }
@@ -50,23 +70,56 @@ func (s Server) RunAndBlock() error {
 	return s.Server.ListenAndServe()
 }
 
+func basicAuthMiddleware(config Config) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			ba := config.BasicAuth
+			if ba == nil {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			user, pass, _ := r.BasicAuth()
+
+			if (*ba).Username != user || (*ba).Password != pass {
+				w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
+				http.Error(w, "Unauthorized.", http.StatusUnauthorized)
+				config.Log.WithFields(logrus.Fields{
+					"service":    "HTTP-Server",
+					"middleware": "basic-auth",
+				}).Debugf("Authentication failed")
+				return
+			}
+
+			config.Log.WithFields(logrus.Fields{
+				"service":    "HTTP-Server",
+				"middleware": "basic-auth",
+			}).Debugf("Successfully authenticated")
+
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
 func loggingMiddleware(config Config) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			config.Log.WithFields(logrus.Fields{
-				"service":   "HTTP-Server",
-				"method":    r.Method,
-				"path":      r.RequestURI,
-				"direction": "incoming",
+				"service":    "HTTP-Server",
+				"middleware": "logging",
+				"method":     r.Method,
+				"path":       r.RequestURI,
+				"direction":  "incoming",
 			}).Debugf("HTTP %s %s", r.Method, r.RequestURI)
 
 			scrw := &statusCodeResponseWriter{w, http.StatusOK}
 			next.ServeHTTP(scrw, r)
 
 			config.Log.WithFields(logrus.Fields{
-				"service":   "HTTP-Server",
-				"status":    scrw.statusCode,
-				"direction": "outgoing",
+				"service":    "HTTP-Server",
+				"middleware": "logging",
+				"status":     scrw.statusCode,
+				"direction":  "outgoing",
 			}).Debugf("HTTP %s %s - %d %s", r.Method, r.RequestURI, scrw.statusCode, http.StatusText(scrw.statusCode))
 		})
 	}
