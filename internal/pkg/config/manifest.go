@@ -1,13 +1,15 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 
+	"github.com/ghodss/yaml"
 	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
-	yaml "gopkg.in/yaml.v2"
+	yaml2 "gopkg.in/yaml.v2"
 )
 
 // Manifest defines the structure of a manifest
@@ -54,11 +56,11 @@ type LogConfig struct {
 }
 
 // LoadManifest reads, parses and returns a manifest root object
-func LoadManifest(path string) (*Manifest, error) {
-	mp, _ := filepath.Abs(path)
+func LoadManifest(manifest string) (*Manifest, error) {
+	mp, _ := filepath.Abs(manifest)
 
 	if _, err := os.Stat(mp); os.IsNotExist(err) {
-		return nil, fmt.Errorf("The first argument must be a path to a valid manfest file (%s)", path)
+		return nil, fmt.Errorf("The first argument must be a path to a valid manfest file (%s)", manifest)
 	}
 
 	bs, err := readManifestFile(mp)
@@ -67,6 +69,17 @@ func LoadManifest(path string) (*Manifest, error) {
 	}
 
 	m, err := parseManifestYaml(bs)
+	if err != nil {
+		return nil, err
+	}
+
+	jbs, err := yaml.YAMLToJSON(bs)
+	if err != nil {
+		return nil, err
+	}
+
+	r := bytes.NewReader(jbs)
+	err = validateManifestYaml("bindata://schemas/manifest.json", r)
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +100,7 @@ func readManifestFile(filename string) ([]byte, error) {
 
 func parseManifestYaml(bs []byte) (*Manifest, error) {
 	m := Manifest{}
-	err := yaml.Unmarshal(bs, &m)
+	err := yaml2.Unmarshal(bs, &m)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to parse manifest yaml. %v", err)
 	}

@@ -13,9 +13,17 @@ import (
 func TestMain(t *testing.T) {
 	g := Goblin(t)
 
+	// Esuring the workdir is the root of the repo
+	os.Chdir("../../../")
+
 	g.Describe("LoadManifest", func() {
+		g.It("returns error for invalid manifest file", func() {
+			_, err := LoadManifest("test/data/invalid.yaml")
+			g.Assert(err != nil).IsTrue("expected validation error")
+		})
+
 		g.It("returns manifest when file is found", func() {
-			path := "../../../test/data/main_test.yaml"
+			path := "test/data/main_test.yaml"
 			absPath, _ := filepath.Abs(path)
 			basePath := filepath.Dir(absPath)
 

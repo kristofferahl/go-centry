@@ -6,19 +6,23 @@ commands:
   - name: get
     path: commands/get.sh
     description: Gets resources
+
   - name: up
     path: commands/updown.sh
     description: Upserts resources
     annotations:
       centry.api/serve: "true"
+
   - name: down
     path: commands/updown.sh
     description: Destroys resources
     annotations:
       centry.api/serve: "false"
+
   - name: rotate
     path: commands/rotate.sh
     description: Rotating secrets, hosts etc.
+
   - name: interactive
     path: commands/interactive.sh
     description: Reading from stdin

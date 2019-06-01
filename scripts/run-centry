@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
 main() {
+  if [[ -f ./.env ]]; then
+    # shellcheck disable=SC1091
+    source ./.env
+  fi
+
+  scripts/make-schema
+
   rm -f ./centry &>/dev/null || true
   go build -o ./centry ./cmd/centry/
   ./centry ./examples/centry/centry.yaml "$@"

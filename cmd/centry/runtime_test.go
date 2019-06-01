@@ -14,6 +14,9 @@ import (
 func TestMain(t *testing.T) {
 	g := Goblin(t)
 
+	// Esuring the workdir is the root of the repo
+	os.Chdir("../../")
+
 	g.Describe("runtime", func() {
 		g.It("returns error when manifest fails to load", func() {
 			context := NewContext(CLI, io.Headless())
@@ -264,7 +267,7 @@ func execCentry(source string, quiet bool) *execResult {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
 		context := NewContext(CLI, io.Headless())
-		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("../../test/data/main_test.yaml %s", source), " "), context)
+		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("test/data/main_test.yaml %s", source), " "), context)
 		if err != nil {
 			exitCode = 1
 			runtimeErr = err

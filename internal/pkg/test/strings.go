@@ -27,6 +27,6 @@ func AssertKeyValueExists(g *goblin.G, key, value, input string) {
 	}
 
 	if !found {
-		g.Fail(fmt.Sprintf("\"%s\" key not found in input", key))
+		g.Fail(fmt.Sprintf("\"%s\" key not found in input:\n\n%s", key, input))
 	}
 }

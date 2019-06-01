@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "https://github.com/kristofferahl/go-centry/schemas/manifest.json",
+
+  "type": "object",
+  "properties": {
+    "scripts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "commands": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "help": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "annotations": { "type": "object" }
+        },
+        "required": [ "name", "path" ]
+      }
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string", "enum": ["string", "bool", "select"] },
+          "name": { "type": "string", "minLength": 1 },
+          "short": { "type": "string", "minLength": 1, "maxLength": 1 },
+          "env_name": { "type": "string", "minLength": 1 },
+          "description": { "type": "string", "minLength": 1 },
+          "default": { "type": "string", "minLength": 1 },
+          "annotations": { "type": "object" }
+        },
+        "required": [ "type", "name" ]
+      }
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "log": {
+          "type": "object",
+          "properties": {
+            "level": { "type": "string", "enum": ["debug", "info", "warn", "error", "panic"] },
+            "prefix": { "type": "string", "minLength": 1 }
+          }
+        }
+      },
+      "required": [ "name", "version" ]
+    }
+  },
+  "required": [ "commands", "config" ]
+}

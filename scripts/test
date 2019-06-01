@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
+scripts/make-schema
 go test ./...
