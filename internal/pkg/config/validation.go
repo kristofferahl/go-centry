@@ -19,7 +19,8 @@ func validateManifestYaml(schema string, r io.Reader) error {
 	}
 
 	if err = s.Validate(r); err != nil {
-		return fmt.Errorf("invalid manifest file,\n%s", err.Error())
+		m := strings.Replace(err.Error(), "bindata://schemas/manifest.json#", "schemas/manifest.json", 1)
+		return fmt.Errorf("invalid manifest file\n\n%s", m)
 	}
 
 	return nil
