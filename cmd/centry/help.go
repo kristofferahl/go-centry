@@ -15,7 +15,7 @@ import (
 func cliHelpFunc(manifest *config.Manifest, globalOptions *cmd.OptionsSet) cli.HelpFunc {
 	return func(commands map[string]cli.CommandFactory) string {
 		var buf bytes.Buffer
-		buf.WriteString(fmt.Sprintf("Usage: %s [--version] [--help] <command> [<args>]\n\n", manifest.Config.Name))
+		buf.WriteString(fmt.Sprintf("Usage: %s [<global options>] <command> [<args>]\n\n", manifest.Config.Name))
 
 		writeCommands(&buf, commands, manifest)
 		writeOptionsSet(&buf, globalOptions)
@@ -25,7 +25,7 @@ func cliHelpFunc(manifest *config.Manifest, globalOptions *cmd.OptionsSet) cli.H
 }
 
 func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, manifest *config.Manifest) {
-	buf.WriteString("Available commands are:\n")
+	buf.WriteString("Commands:\n")
 
 	// Get the list of keys so we can sort them, and also get the maximum
 	// key length so they can be aligned properly.
@@ -43,8 +43,7 @@ func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, ma
 	for _, key := range keys {
 		commandFunc, ok := commands[key]
 		if !ok {
-			// This should never happen since we JUST built the list of
-			// keys.
+			// This should never happen since we JUST built the list of keys.
 			panic("command not found: " + key)
 		}
 
@@ -68,7 +67,7 @@ func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, ma
 }
 
 func writeOptionsSet(buf *bytes.Buffer, set *cmd.OptionsSet) {
-	buf.WriteString(fmt.Sprintf("\n%s options are:\n", set.Name))
+	buf.WriteString(fmt.Sprintf("\n%s options:\n", set.Name))
 
 	sorted := set.Sorted()
 
@@ -83,12 +82,11 @@ func writeOptionsSet(buf *bytes.Buffer, set *cmd.OptionsSet) {
 	for _, o := range sorted {
 		l := fmt.Sprintf("--%s", o.Name)
 
-		s := "   | "
 		if o.Short != "" {
-			s = fmt.Sprintf("-%s | ", o.Short)
+			l = fmt.Sprintf("%s, -%s", l, o.Short)
 		}
 
-		n := fmt.Sprintf("%s%s%s", s, l, strings.Repeat(" ", maxKeyLen-len(l)))
+		n := fmt.Sprintf("%s%s", l, strings.Repeat(" ", maxKeyLen-len(l)))
 		d := o.Description
 		buf.WriteString(fmt.Sprintf("    %s    %s\n", n, d))
 	}

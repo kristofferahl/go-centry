@@ -148,7 +148,7 @@ func TestMain(t *testing.T) {
 			result := execQuiet("")
 
 			g.It("should display available commands", func() {
-				expected := `Available commands are:
+				expected := `Commands:
     delete    Deletes stuff
     get       Gets stuff
     post      Creates stuff
@@ -158,15 +158,15 @@ func TestMain(t *testing.T) {
 			})
 
 			g.It("should display global options", func() {
-				expected := `Global options are:
-    -B | --boolopt             A custom option
-       | --config.log.level    Overrides the log level
-    -h | --help                Displays help
-       | --production          Sets the context to production
-    -q | --quiet               Disables logging
-       | --staging             Sets the context to staging
-    -S | --stringopt           A custom option
-    -v | --version             Displays the version of the cli`
+				expected := `Global options:
+    --boolopt, -B         A custom option
+    --config.log.level    Overrides the log level
+    --help, -h            Displays help
+    --production          Sets the context to production
+    --quiet, -q           Disables logging
+    --staging             Sets the context to staging
+    --stringopt, -S       A custom option
+    --version, -v         Displays the version of the cli`
 
 				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)
 			})
