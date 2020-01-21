@@ -7,13 +7,15 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/santhosh-tekuri/jsonschema"
+	jsv2 "github.com/santhosh-tekuri/jsonschema/v2"
 )
 
-func validateManifestYaml(schema string, r io.Reader) error {
-	jsonschema.Loaders["bindata"] = loadFileBinData
+func init() {
+	jsv2.Loaders["bindata"] = loadFileBinData
+}
 
-	s, err := jsonschema.Compile(schema)
+func validateManifestYaml(schema string, r io.Reader) error {
+	s, err := jsv2.Compile(schema)
 	if err != nil {
 		return err
 	}
