@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+main() {
+  scripts/make-schema
+  cd cmd/centry/ || exit 1
+  goreleaser release --rm-dist "$@"
+}
+
+main "$@"
