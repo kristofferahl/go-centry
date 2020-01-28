@@ -104,13 +104,22 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 		} else {
 			for _, fn := range funcs {
 				fn := fn
+				cmd := cmd
 				namespace := script.CreateFunctionNamespace(cmd.Name)
 
-				if fn != cmd.Name && strings.HasPrefix(fn, namespace) == false {
+				if fn.Name != cmd.Name && strings.HasPrefix(fn.Name, namespace) == false {
 					continue
 				}
 
-				cmdKey := strings.Replace(fn, script.FunctionNameSplitChar(), " ", -1)
+				if fn.Description != "" {
+					cmd.Description = fn.Description
+				}
+
+				if fn.Help != "" {
+					cmd.Help = fn.Help
+				}
+
+				cmdKey := strings.Replace(fn.Name, script.FunctionNameSplitChar(), " ", -1)
 				c.Commands[cmdKey] = func() (cli.Command, error) {
 					return &ScriptCommand{
 						Context:       context,
@@ -118,7 +127,7 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 						GlobalOptions: options,
 						Command:       cmd,
 						Script:        script,
-						Function:      fn,
+						Function:      fn.Name,
 					}, nil
 				}
 
@@ -149,5 +158,8 @@ func createScript(cmd config.Command, context *Context) shell.Script {
 	return &shell.BashScript{
 		BasePath: context.manifest.BasePath,
 		Path:     cmd.Path,
+		Log: context.log.GetLogger().WithFields(logrus.Fields{
+			"script": cmd.Path,
+		}),
 	}
 }

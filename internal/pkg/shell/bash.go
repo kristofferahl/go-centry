@@ -1,11 +1,14 @@
 package shell
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"os/exec"
 	"path"
 	"strings"
 
+	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/io"
 	"github.com/sirupsen/logrus"
 )
@@ -58,8 +61,8 @@ func (s *BashScript) FullPath() string {
 	return path.Join(s.BasePath, s.Path)
 }
 
-// Functions returns the command functions matching the command name
-func (s *BashScript) Functions() ([]string, error) {
+// FunctionNames returns functions in declared in the script
+func (s *BashScript) FunctionNames() ([]string, error) {
 	callArgs := []string{"-c", fmt.Sprintf("source %s; declare -F", s.FullPath())}
 
 	io, buf := io.BufferedCombined()
@@ -80,6 +83,68 @@ func (s *BashScript) Functions() ([]string, error) {
 	}
 
 	return functions, nil
+}
+
+// FunctionAnnotations returns function annotations in declared in the script
+func (s *BashScript) FunctionAnnotations() ([]*config.Annotation, error) {
+	annotations := make([]*config.Annotation, 0)
+
+	file, err := os.Open(s.FullPath())
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		t := scanner.Text()
+		if strings.HasPrefix(t, "#") {
+			a, err := config.ParseAnnotation(strings.TrimLeft(t, "#"))
+			if err != nil {
+				s.Log.Debugf("%s", err.Error())
+			} else if a != nil {
+				annotations = append(annotations, a)
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return annotations, nil
+}
+
+// Functions returns the command functions
+func (s *BashScript) Functions() ([]*Function, error) {
+	funcs := make([]*Function, 0)
+
+	fnames, err := s.FunctionNames()
+	if err != nil {
+		return nil, err
+	}
+
+	annotations, err := s.FunctionAnnotations()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, fname := range fnames {
+		f := &Function{Name: fname}
+		for _, a := range annotations {
+			if a.Key == fname {
+				switch a.Namespace {
+				case config.CommandAnnotationDescriptionNamespace:
+					f.Description = a.Value
+				case config.CommandAnnotationHelpNamespace:
+					f.Help = a.Value
+				}
+			}
+		}
+		funcs = append(funcs, f)
+	}
+
+	return funcs, nil
 }
 
 // CreateFunctionNamespace returns a namespaced function name

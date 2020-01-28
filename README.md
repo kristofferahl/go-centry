@@ -1,6 +1,6 @@
 # go-centry
 
-A library for bash command-line programs, written [go](https://golang.org).
+A tool for building declarative CLI's over bash scripts, written in [go](https://golang.org).
 
 ## Installation
 

@@ -7,13 +7,20 @@ type Executable interface {
 	Run(io io.InputOutput, args []string) error
 }
 
+// Function defines a function
+type Function struct {
+	Name        string
+	Description string
+	Help        string
+}
+
 // Script defines the interface of a script file
 type Script interface {
 	Language() string
 	Executable() Executable
 	FullPath() string
 	RelativePath() string
-	Functions() (funcs []string, err error)
+	Functions() (funcs []*Function, err error)
 	CreateFunctionNamespace(name string) string
 	FunctionNameSplitChar() string
 }
