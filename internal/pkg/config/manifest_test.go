@@ -39,7 +39,7 @@ func TestMain(t *testing.T) {
 			m, err := LoadManifest("foo")
 			g.Assert(m == nil).IsTrue("exected manifest to be nil")
 			g.Assert(err != nil).IsTrue("expected error")
-			g.Assert(err.Error()).Equal("The first argument must be a path to a valid manfest file (foo)")
+			g.Assert(err.Error()).Equal("The first argument must be a path to a valid manifest file (foo)")
 		})
 	})
 

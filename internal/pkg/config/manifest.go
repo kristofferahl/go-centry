@@ -60,7 +60,7 @@ func LoadManifest(manifest string) (*Manifest, error) {
 	mp, _ := filepath.Abs(manifest)
 
 	if _, err := os.Stat(mp); os.IsNotExist(err) {
-		return nil, fmt.Errorf("The first argument must be a path to a valid manfest file (%s)", manifest)
+		return nil, fmt.Errorf("The first argument must be a path to a valid manifest file (%s)", manifest)
 	}
 
 	bs, err := readManifestFile(mp)
