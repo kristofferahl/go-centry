@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
+	"github.com/urfave/cli/v2"
 )
 
 // OptionSetGlobal is the name of the global OptionsSet
@@ -71,6 +72,66 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 			EnvName:     o.EnvName,
 			Default:     def,
 		})
+	}
+
+	return options
+}
+
+func createGlobalFlags(context *Context) []cli.Flag {
+	options := make([]cli.Flag, 0)
+	manifest := context.manifest
+
+	options = append(options, &cli.StringFlag{
+		Name:  "config.log.level",
+		Usage: "Overrides the log level",
+		Value: manifest.Config.Log.Level,
+	})
+
+	options = append(options, &cli.BoolFlag{
+		Name:    "quiet",
+		Aliases: []string{"q"},
+		Usage:   "Disables logging",
+		Value:   false,
+	})
+
+	// Adding global options specified by the manifest
+	for _, o := range manifest.Options {
+		o := o
+
+		if context.optionEnabledFunc != nil && context.optionEnabledFunc(o) == false {
+			continue
+		}
+
+		short := []string{o.Short}
+		if o.Short == "" {
+			short = nil
+		}
+
+		//TODO: Handle EnvName??
+		switch o.Type {
+		case cmd.SelectOption:
+
+			options = append(options, &cli.BoolFlag{
+				Name:    o.Name,
+				Aliases: short,
+				Usage:   o.Description,
+				Value:   false,
+			})
+		case cmd.BoolOption:
+			options = append(options, &cli.BoolFlag{
+				Name:    o.Name,
+				Aliases: short,
+				Usage:   o.Description,
+				Value:   false,
+			})
+		case cmd.StringOption:
+			options = append(options, &cli.StringFlag{
+				Name:    o.Name,
+				Aliases: short,
+				Usage:   o.Description,
+				Value:   o.Default,
+			})
+		}
 	}
 
 	return options

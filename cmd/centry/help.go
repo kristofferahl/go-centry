@@ -12,6 +12,7 @@ import (
 	"github.com/mitchellh/cli"
 )
 
+// TODO: Remove if unused???
 func cliHelpFunc(manifest *config.Manifest, globalOptions *cmd.OptionsSet) cli.HelpFunc {
 	return func(commands map[string]cli.CommandFactory) string {
 		var buf bytes.Buffer

@@ -11,12 +11,28 @@ import (
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/io"
 	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
 // ServeCommand is a Command implementation that applies stuff
 type ServeCommand struct {
 	Manifest *config.Manifest
 	Log      *logrus.Entry
+}
+
+// ToCLICommand returns a CLI command
+func (sc *ServeCommand) ToCLICommand() *cli.Command {
+	return &cli.Command{
+		Name:  "serve",
+		Usage: sc.Synopsis(),
+		Action: func(c *cli.Context) error {
+			ec := sc.Run(c.Args().Slice())
+			if ec > 0 {
+				return cli.Exit("failed to start the server", ec)
+			}
+			return nil
+		},
+	}
 }
 
 // Run starts an HTTP server and blocks

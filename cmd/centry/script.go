@@ -10,6 +10,7 @@ import (
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/shell"
 	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
 // ScriptCommand is a Command implementation that applies stuff
@@ -22,21 +23,39 @@ type ScriptCommand struct {
 	Function      string
 }
 
+// ToCLICommand returns a CLI command
+func (sc *ScriptCommand) ToCLICommand() *cli.Command {
+	cmdKeys := strings.Split(strings.Replace(sc.Function, sc.Script.FunctionNameSplitChar(), " ", -1), " ")
+	return &cli.Command{
+		Name:            cmdKeys[len(cmdKeys)-1],
+		Usage:           sc.Synopsis(),
+		UsageText:       sc.Help(),
+		HideHelpCommand: true,
+		Action: func(c *cli.Context) error {
+			ec := sc.Run(c.Args().Slice())
+			if ec > 0 {
+				return cli.Exit("command exited with non zero exit code", ec)
+			}
+			return nil
+		},
+	}
+}
+
 // Run builds the source and executes it
-func (c *ScriptCommand) Run(args []string) int {
-	c.Log.Debugf("Executing command \"%v\"", c.Function)
+func (sc *ScriptCommand) Run(args []string) int {
+	sc.Log.Debugf("Executing command \"%v\"", sc.Function)
 
 	var source string
-	switch c.Script.Language() {
+	switch sc.Script.Language() {
 	case "bash":
-		source = generateBashSource(c, args)
-		c.Log.Debugf("Generated bash source:\n%s\n", source)
+		source = generateBashSource(sc, args)
+		sc.Log.Debugf("Generated bash source:\n%s\n", source)
 	default:
-		c.Log.Errorf("Unsupported script language %s", c.Script.Language())
+		sc.Log.Errorf("Unsupported script language %s", sc.Script.Language())
 		return 1
 	}
 
-	err := c.Script.Executable().Run(c.Context.io, []string{"-c", source})
+	err := sc.Script.Executable().Run(sc.Context.io, []string{"-c", source})
 	if err != nil {
 		exitCode := 1
 
@@ -46,36 +65,36 @@ func (c *ScriptCommand) Run(args []string) int {
 			}
 		}
 
-		c.Log.Errorf("Command %v exited with error! %v", c.Function, err)
+		sc.Log.Errorf("Command %v exited with error! %v", sc.Function, err)
 		return exitCode
 	}
 
-	c.Log.Debugf("Finished executing command %v...", c.Function)
+	sc.Log.Debugf("Finished executing command %v...", sc.Function)
 	return 0
 }
 
 // Help returns the help text of the ScriptCommand
-func (c *ScriptCommand) Help() string {
-	return c.Command.Help
+func (sc *ScriptCommand) Help() string {
+	return sc.Command.Help
 }
 
 // Synopsis returns the synopsis of the ScriptCommand
-func (c *ScriptCommand) Synopsis() string {
-	return c.Command.Description
+func (sc *ScriptCommand) Synopsis() string {
+	return sc.Command.Description
 }
 
-func generateBashSource(c *ScriptCommand, args []string) string {
+func generateBashSource(sc *ScriptCommand, args []string) string {
 	source := []string{}
 	source = append(source, "#!/usr/bin/env bash")
 
 	source = append(source, "")
 	source = append(source, "# Set working directory")
-	source = append(source, fmt.Sprintf("cd %s || exit 1", c.Context.manifest.BasePath))
+	source = append(source, fmt.Sprintf("cd %s || exit 1", sc.Context.manifest.BasePath))
 
 	source = append(source, "")
 	source = append(source, "# Set exports from flags")
 
-	for _, v := range optionsSetToEnvVars(c.GlobalOptions) {
+	for _, v := range optionsSetToEnvVars(sc.GlobalOptions) {
 		if v.Value != "" {
 			value := v.Value
 			if v.IsString() {
@@ -87,17 +106,17 @@ func generateBashSource(c *ScriptCommand, args []string) string {
 
 	source = append(source, "")
 	source = append(source, "# Sourcing scripts")
-	for _, s := range c.Context.manifest.Scripts {
+	for _, s := range sc.Context.manifest.Scripts {
 		source = append(source, fmt.Sprintf("source %s", s))
 	}
 
 	source = append(source, "")
 	source = append(source, "# Sourcing command")
-	source = append(source, fmt.Sprintf("source %s", c.Script.FullPath()))
+	source = append(source, fmt.Sprintf("source %s", sc.Script.FullPath()))
 
 	source = append(source, "")
 	source = append(source, "# Executing command")
-	source = append(source, fmt.Sprintf("%s %s", c.Function, strings.Join(args, " ")))
+	source = append(source, fmt.Sprintf("%s %s", sc.Function, strings.Join(args, " ")))
 
 	return strings.Join(source, "\n")
 }
