@@ -23,8 +23,9 @@ type ServeCommand struct {
 // ToCLICommand returns a CLI command
 func (sc *ServeCommand) ToCLICommand() *cli.Command {
 	return &cli.Command{
-		Name:  "serve",
-		Usage: sc.Synopsis(),
+		Name:      "serve",
+		Usage:     "Exposes commands over HTTP",
+		UsageText: "",
 		Action: func(c *cli.Context) error {
 			ec := sc.Run(c.Args().Slice())
 			if ec > 0 {
@@ -53,16 +54,6 @@ func (sc *ServeCommand) Run(args []string) int {
 	}
 
 	return 0
-}
-
-// Help returns the help text of the ServeCommand
-func (sc *ServeCommand) Help() string {
-	return "No help here..."
-}
-
-// Synopsis returns the synopsis of the ServeCommand
-func (sc *ServeCommand) Synopsis() string {
-	return "Exposes commands over HTTP"
 }
 
 func configureBasicAuth() *api.BasicAuth {

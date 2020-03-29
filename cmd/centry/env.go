@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
+	"github.com/urfave/cli/v2"
 )
 
 type envType string
@@ -28,7 +29,7 @@ func (v envVar) IsBool() bool {
 	return v.Type == envTypeBool
 }
 
-func optionsSetToEnvVars(set *cmd.OptionsSet) []envVar {
+func optionsSetToEnvVars(c *cli.Context, set *cmd.OptionsSet) []envVar {
 	envVars := make([]envVar, 0)
 	for _, o := range set.Sorted() {
 		o := o
@@ -40,7 +41,7 @@ func optionsSetToEnvVars(set *cmd.OptionsSet) []envVar {
 		envName = strings.Replace(strings.ToUpper(envName), ".", "_", -1)
 		envName = strings.Replace(strings.ToUpper(envName), "-", "_", -1)
 
-		value := set.GetValueString(o.Name)
+		value := c.String(o.Name)
 
 		switch o.Type {
 		case cmd.BoolOption:

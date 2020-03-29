@@ -26,8 +26,8 @@ type Manifest struct {
 type Command struct {
 	Name        string            `yaml:"name,omitempty"`
 	Path        string            `yaml:"path,omitempty"`
-	Help        string            `yaml:"help,omitempty"` // NOTE: The Help text is displayed only when the command matches the full path of a command
 	Description string            `yaml:"description,omitempty"`
+	Help        string            `yaml:"help,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 

@@ -23,16 +23,27 @@ type ScriptCommand struct {
 	Function      string
 }
 
+// GetCommandInvocation returns the command invocation string
+func (sc *ScriptCommand) GetCommandInvocation() string {
+	return strings.Replace(sc.Function, sc.Script.FunctionNameSplitChar(), " ", -1)
+}
+
+// GetCommandInvocationPath returns the command invocation path
+func (sc *ScriptCommand) GetCommandInvocationPath() []string {
+	return strings.Split(sc.GetCommandInvocation(), " ")
+}
+
 // ToCLICommand returns a CLI command
 func (sc *ScriptCommand) ToCLICommand() *cli.Command {
-	cmdKeys := strings.Split(strings.Replace(sc.Function, sc.Script.FunctionNameSplitChar(), " ", -1), " ")
+	cmdKeys := sc.GetCommandInvocationPath()
+	cmdName := cmdKeys[len(cmdKeys)-1]
 	return &cli.Command{
-		Name:            cmdKeys[len(cmdKeys)-1],
-		Usage:           sc.Synopsis(),
-		UsageText:       sc.Help(),
+		Name:            cmdName,
+		Usage:           sc.Command.Description,
+		UsageText:       sc.Command.Help,
 		HideHelpCommand: true,
 		Action: func(c *cli.Context) error {
-			ec := sc.Run(c.Args().Slice())
+			ec := sc.Run(c, c.Args().Slice())
 			if ec > 0 {
 				return cli.Exit("command exited with non zero exit code", ec)
 			}
@@ -42,13 +53,13 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 }
 
 // Run builds the source and executes it
-func (sc *ScriptCommand) Run(args []string) int {
+func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
 	sc.Log.Debugf("Executing command \"%v\"", sc.Function)
 
 	var source string
 	switch sc.Script.Language() {
 	case "bash":
-		source = generateBashSource(sc, args)
+		source = generateBashSource(c, sc, args)
 		sc.Log.Debugf("Generated bash source:\n%s\n", source)
 	default:
 		sc.Log.Errorf("Unsupported script language %s", sc.Script.Language())
@@ -73,17 +84,7 @@ func (sc *ScriptCommand) Run(args []string) int {
 	return 0
 }
 
-// Help returns the help text of the ScriptCommand
-func (sc *ScriptCommand) Help() string {
-	return sc.Command.Help
-}
-
-// Synopsis returns the synopsis of the ScriptCommand
-func (sc *ScriptCommand) Synopsis() string {
-	return sc.Command.Description
-}
-
-func generateBashSource(sc *ScriptCommand, args []string) string {
+func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) string {
 	source := []string{}
 	source = append(source, "#!/usr/bin/env bash")
 
@@ -94,7 +95,7 @@ func generateBashSource(sc *ScriptCommand, args []string) string {
 	source = append(source, "")
 	source = append(source, "# Set exports from flags")
 
-	for _, v := range optionsSetToEnvVars(sc.GlobalOptions) {
+	for _, v := range optionsSetToEnvVars(c, sc.GlobalOptions) {
 		if v.Value != "" {
 			value := v.Value
 			if v.IsString() {

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
@@ -12,30 +14,35 @@ import (
 
 // Runtime defines the runtime
 type Runtime struct {
-	context *Context
 	cli     *cli.App
+	context *Context
+	file    string
 	args    []string
+	events  []string
 }
 
 // NewRuntime builds a runtime based on the given arguments
 func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	// Create the runtime
-	runtime := &Runtime{}
+	runtime := &Runtime{
+		cli:     nil,
+		context: context,
+		file:    "",
+		args:    []string{},
+		events:  []string{},
+	}
 
 	// Args
-	file := ""
-	runtime.args = []string{}
 	if len(inputArgs) >= 1 {
-		file = inputArgs[0]
+		runtime.file = inputArgs[0]
 		runtime.args = inputArgs[1:]
 	}
 
 	// Load manifest
-	manifest, err := config.LoadManifest(file)
+	manifest, err := config.LoadManifest(runtime.file)
 	if err != nil {
 		return nil, err
 	}
-
 	context.manifest = manifest
 
 	// Create the log manager
@@ -43,35 +50,41 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 
 	// Create global options
 	options := createGlobalOptions(context)
-	flags := createGlobalFlags(context)
-
-	// Parse global options to get cli args
-	// args, err = options.Parse(args, context.io)
-	// if err != nil {
-	// 	return nil, err
-	// }
 
 	// Initialize cli
 	app := &cli.App{
-		Name:            context.manifest.Config.Name,
-		HelpName:        context.manifest.Config.Name,
-		Usage:           "A tool for building declarative CLI's over bash scripts, written in go.", // TODO: Set from manifest config
-		UsageText:       "",
-		Version:         context.manifest.Config.Version,
-		HideHelpCommand: true,
+		Name:      context.manifest.Config.Name,
+		HelpName:  context.manifest.Config.Name,
+		Usage:     "A tool for building declarative CLI's over bash scripts, written in go.", // TODO: Set from manifest config
+		UsageText: "",
+		Version:   context.manifest.Config.Version,
 
 		Commands: make([]*cli.Command, 0),
-		Flags:    flags,
-	}
+		Flags:    toCliFlags(options),
 
-	// TODO: Fix log level from options
-	// Override the current log level from options
-	// logLevel := options.GetString("config.log.level")
-	// if options.GetBool("quiet") {
-	// 	logLevel = "panic"
-	// }
-	//context.log.TrySetLogLevel(logLevel)
-	context.log.TrySetLogLevel("debug")
+		HideHelpCommand:       true,
+		CustomAppHelpTemplate: cliHelpTemplate,
+
+		Writer:    context.io.Stdout,
+		ErrWriter: context.io.Stderr,
+
+		Before: func(c *cli.Context) error {
+			// Override the current log level from options
+			logLevel := c.String("config.log.level")
+			if c.Bool("quiet") {
+				logLevel = "panic"
+			}
+			context.log.TrySetLogLevel(logLevel)
+
+			// Print runtime events
+			logger := context.log.GetLogger()
+			for _, e := range runtime.events {
+				logger.Debugf(e)
+			}
+
+			return nil
+		},
+	}
 
 	logger := context.log.GetLogger()
 
@@ -121,9 +134,6 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 					cmd.Help = fn.Help
 				}
 
-				cmdKey := strings.Replace(fn.Name, script.FunctionNameSplitChar(), " ", -1)
-				cmdKeyParts := strings.Split(cmdKey, " ")
-
 				scriptCmd := &ScriptCommand{
 					Context:       context,
 					Log:           logger.WithFields(logrus.Fields{}),
@@ -132,11 +142,11 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 					Script:        script,
 					Function:      fn.Name,
 				}
-
 				cliCmd := scriptCmd.ToCLICommand()
 
-				var root *cli.Command
+				cmdKeyParts := scriptCmd.GetCommandInvocationPath()
 
+				var root *cli.Command
 				for depth, cmdKeyPart := range cmdKeyParts {
 					if depth == 0 {
 						if getCommand(app.Commands, cmdKeyPart) == nil {
@@ -175,12 +185,13 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 					}
 				}
 
-				logger.Debugf("Registered command \"%s\"", cmdKey)
+				runtime.events = append(runtime.events, fmt.Sprintf("Registered command \"%s\"", scriptCmd.GetCommandInvocation()))
 			}
 		}
 	}
 
-	runtime.context = context
+	sortCommands(app.Commands)
+
 	runtime.cli = app
 
 	return runtime, nil
@@ -218,4 +229,10 @@ func getCommand(commands []*cli.Command, name string) *cli.Command {
 	}
 
 	return nil
+}
+
+func sortCommands(commands []*cli.Command) {
+	sort.Slice(commands, func(i, j int) bool {
+		return commands[i].Name < commands[j].Name
+	})
 }

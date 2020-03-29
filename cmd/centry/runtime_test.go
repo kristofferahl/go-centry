@@ -80,8 +80,9 @@ func TestMain(t *testing.T) {
 		g.Describe("invoke with invalid option", func() {
 			g.It("should return error", func() {
 				res := execQuiet("--invalidoption test args foo bar")
-				g.Assert(res.Stdout).Equal("")
-				g.Assert(res.Error.Error()).Equal("flag provided but not defined: -invalidoption")
+				g.Assert(strings.Contains(res.Stdout, "Incorrect Usage. flag provided but not defined: -invalidoption")).IsTrue()
+				g.Assert(strings.Contains(res.Stderr, "flag provided but not defined: -invalidoption")).IsTrue()
+				g.Assert(res.Error == nil).IsTrue()
 			})
 		})
 	})
@@ -121,8 +122,8 @@ func TestMain(t *testing.T) {
 			result := execQuiet("")
 
 			g.It("should display help", func() {
-				expected := `Usage: centry`
-				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
+				expected := `USAGE:`
+				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
 			})
 		})
 
@@ -130,8 +131,8 @@ func TestMain(t *testing.T) {
 			result := execQuiet("-h")
 
 			g.It("should display help", func() {
-				expected := `Usage: centry`
-				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
+				expected := `USAGE:`
+				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
 			})
 		})
 
@@ -139,8 +140,8 @@ func TestMain(t *testing.T) {
 			result := execQuiet("--help")
 
 			g.It("should display help", func() {
-				expected := `Usage: centry`
-				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
+				expected := `USAGE:`
+				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
 			})
 		})
 
@@ -148,35 +149,27 @@ func TestMain(t *testing.T) {
 			result := execQuiet("")
 
 			g.It("should display available commands", func() {
-				expected := `Commands:
-    delete    Deletes stuff
-    get       Gets stuff
-    post      Creates stuff
-    put       Creates/Updates stuff`
+				expected := `COMMANDS:
+   delete  Deletes stuff
+   get     Gets stuff
+   post    Creates stuff
+   put     Creates/Updates stuff`
 
-				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)
+				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
 			})
 
 			g.It("should display global options", func() {
-				expected := `Global options:
-    --boolopt, -B         A custom option
-    --config.log.level    Overrides the log level
-    --help, -h            Displays help
-    --production          Sets the context to production
-    --quiet, -q           Disables logging
-    --staging             Sets the context to staging
-    --stringopt, -S       A custom option
-    --version, -v         Displays the version of the cli`
+				expected := `OPTIONS:
+   --boolopt, -B                A custom option (default: false)
+   --config.log.level value     Overrides the log level (default: "debug")
+   --production                 Sets the context to production (default: false)
+   --quiet, -q                  Disables logging (default: false)
+   --staging                    Sets the context to staging (default: false)
+   --stringopt value, -S value  A custom option (default: "foobar")
+   --help, -h                   show help (default: false)
+   --version, -v                print the version (default: false)`
 
-				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stderr)
-			})
-		})
-
-		g.Describe("call without arguments", func() {
-			result := execQuiet("")
-
-			g.It("should display help text", func() {
-				g.Assert(strings.Contains(result.Stderr, "Usage: centry")).IsTrue(result.Stderr)
+				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
 			})
 		})
 	})
@@ -188,7 +181,7 @@ func TestMain(t *testing.T) {
 
 				g.It("should display version", func() {
 					expected := `1.0.0`
-					g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
+					g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
 				})
 			})
 
@@ -197,7 +190,7 @@ func TestMain(t *testing.T) {
 
 				g.It("should display version", func() {
 					expected := `1.0.0`
-					g.Assert(strings.Contains(result.Stderr, expected)).IsTrue()
+					g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
 				})
 			})
 		})
