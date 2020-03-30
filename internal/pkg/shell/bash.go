@@ -63,7 +63,7 @@ func (s *BashScript) FullPath() string {
 
 // FunctionNames returns functions in declared in the script
 func (s *BashScript) FunctionNames() ([]string, error) {
-	callArgs := []string{"-c", fmt.Sprintf("source %s; declare -F", s.FullPath())}
+	callArgs := []string{"-c", fmt.Sprintf("set -e; source %s; declare -F", s.FullPath())}
 
 	io, buf := io.BufferedCombined()
 
