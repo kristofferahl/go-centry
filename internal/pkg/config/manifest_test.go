@@ -10,11 +10,8 @@ import (
 	. "github.com/franela/goblin"
 )
 
-func TestMain(t *testing.T) {
+func TestManifest(t *testing.T) {
 	g := Goblin(t)
-
-	// Esuring the workdir is the root of the repo
-	os.Chdir("../../../")
 
 	g.Describe("LoadManifest", func() {
 		g.It("returns error for invalid manifest file", func() {
