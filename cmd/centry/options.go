@@ -73,25 +73,37 @@ func toCliFlags(options *cmd.OptionsSet) []cli.Flag {
 
 		switch o.Type {
 		case cmd.SelectOption:
+			def := false
+			if o.Default != nil {
+				def = o.Default.(bool)
+			}
 			flags = append(flags, &cli.BoolFlag{
 				Name:    o.Name,
 				Aliases: short,
 				Usage:   o.Description,
-				Value:   o.Default.(bool),
+				Value:   def,
 			})
 		case cmd.BoolOption:
+			def := false
+			if o.Default != nil {
+				def = o.Default.(bool)
+			}
 			flags = append(flags, &cli.BoolFlag{
 				Name:    o.Name,
 				Aliases: short,
 				Usage:   o.Description,
-				Value:   o.Default.(bool),
+				Value:   def,
 			})
 		case cmd.StringOption:
+			def := ""
+			if o.Default != nil {
+				def = o.Default.(string)
+			}
 			flags = append(flags, &cli.StringFlag{
 				Name:    o.Name,
 				Aliases: short,
 				Usage:   o.Description,
-				Value:   o.Default.(string),
+				Value:   def,
 			})
 		}
 	}
