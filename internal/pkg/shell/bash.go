@@ -85,7 +85,7 @@ func (s *BashScript) FunctionNames() ([]string, error) {
 	return functions, nil
 }
 
-// FunctionAnnotations returns function annotations in declared in the script
+// FunctionAnnotations returns function annotations declared in the script file
 func (s *BashScript) FunctionAnnotations() ([]*config.Annotation, error) {
 	annotations := make([]*config.Annotation, 0)
 
