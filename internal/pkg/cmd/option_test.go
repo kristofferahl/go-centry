@@ -21,7 +21,7 @@ func TestMain(t *testing.T) {
 		g.Describe("Add", func() {
 			g.It("should add option", func() {
 				os := NewOptionsSet("Name")
-				os.Add(&Option{Name: "Option"})
+				os.Add(&Option{Name: "Option", Type: StringOption})
 				g.Assert(len(os.Sorted())).Equal(1)
 			})
 
@@ -40,10 +40,17 @@ func TestMain(t *testing.T) {
 				g.Assert(err.Error()).Equal("missing option name")
 			})
 
+			g.It("should return error when option type is unset", func() {
+				os := NewOptionsSet("Name")
+				err := os.Add(&Option{Name: "foo"})
+				g.Assert(len(os.Sorted())).Equal(0)
+				g.Assert(err.Error()).Equal("missing option type")
+			})
+
 			g.It("should return error when option name already exists", func() {
 				os := NewOptionsSet("Name")
-				err1 := os.Add(&Option{Name: "Option"})
-				err2 := os.Add(&Option{Name: "Option"})
+				err1 := os.Add(&Option{Name: "Option", Type: StringOption})
+				err2 := os.Add(&Option{Name: "Option", Type: StringOption})
 				g.Assert(len(os.Sorted())).Equal(1)
 				g.Assert(err1).Equal(nil)
 				g.Assert(err2 != nil).IsTrue("expected an error")

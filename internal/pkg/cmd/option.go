@@ -35,6 +35,19 @@ type Option struct {
 	value       valuePointer
 }
 
+// Validate returns true if the option is concidered valid
+func (o *Option) Validate() error {
+	if o.Name == "" {
+		return fmt.Errorf("missing option name")
+	}
+
+	if o.Type == "" {
+		return fmt.Errorf("missing option type")
+	}
+
+	return nil
+}
+
 type boolValue bool
 
 func (b *boolValue) string() string { return strconv.FormatBool(bool(*b)) }
@@ -61,15 +74,14 @@ func (s *OptionsSet) Add(option *Option) error {
 		return fmt.Errorf("an option is required")
 	}
 
-	if option.Name == "" {
-		return fmt.Errorf("missing option name")
+	err := option.Validate()
+	if err != nil {
+		return err
 	}
 
 	if _, ok := s.items[option.Name]; ok {
 		return fmt.Errorf("an option with the name \"%s\" has already been added", option.Name)
 	}
-
-	// TODO: Validate option type
 
 	s.items[option.Name] = option
 
