@@ -49,6 +49,7 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 			}
 			return nil
 		},
+		Flags: optionsSetToFlags(sc.Function.Options),
 	}
 }
 
@@ -93,9 +94,22 @@ func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) string
 	source = append(source, fmt.Sprintf("cd %s || exit 1", sc.Context.manifest.BasePath))
 
 	source = append(source, "")
-	source = append(source, "# Set exports from flags")
+	source = append(source, "# Set exports from global options")
 
 	for _, v := range optionsSetToEnvVars(c, sc.GlobalOptions) {
+		if v.Value != "" {
+			value := v.Value
+			if v.IsString() {
+				value = fmt.Sprintf("'%s'", v.Value)
+			}
+			source = append(source, fmt.Sprintf("export %s=%s", v.Name, value))
+		}
+	}
+
+	source = append(source, "")
+	source = append(source, "# Set exports from local options")
+
+	for _, v := range optionsSetToEnvVars(c, sc.Function.Options) {
 		if v.Value != "" {
 			value := v.Value
 			if v.IsString() {

@@ -1,10 +1,26 @@
 package cmd
 
 import (
+	"math/rand"
 	"testing"
+	"time"
 
 	. "github.com/franela/goblin"
 )
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randomString(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func TestMain(t *testing.T) {
 	g := Goblin(t)
@@ -56,6 +72,30 @@ func TestMain(t *testing.T) {
 				g.Assert(err2 != nil).IsTrue("expected an error")
 				g.Assert(err2.Error()).Equal("an option with the name \"Option\" has already been added")
 			})
+		})
+	})
+
+	g.Describe("StringToOptionType", func() {
+		g.It("should default to StringOption", func() {
+			g.Assert(StringToOptionType(randomString(10))).Equal(StringOption)
+		})
+
+		g.It("should return StringOption", func() {
+			g.Assert(StringToOptionType("string")).Equal(StringOption)
+			g.Assert(StringToOptionType("String")).Equal(StringOption)
+			g.Assert(StringToOptionType("STRING")).Equal(StringOption)
+		})
+
+		g.It("should return BoolOption", func() {
+			g.Assert(StringToOptionType("bool")).Equal(BoolOption)
+			g.Assert(StringToOptionType("Bool")).Equal(BoolOption)
+			g.Assert(StringToOptionType("BOOL")).Equal(BoolOption)
+		})
+
+		g.It("should return SelectOption", func() {
+			g.Assert(StringToOptionType("select")).Equal(SelectOption)
+			g.Assert(StringToOptionType("Select")).Equal(SelectOption)
+			g.Assert(StringToOptionType("SELECT")).Equal(SelectOption)
 		})
 	})
 }

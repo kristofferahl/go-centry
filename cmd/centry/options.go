@@ -62,7 +62,7 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 	return options
 }
 
-func toCliFlags(options *cmd.OptionsSet) []cli.Flag {
+func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 	flags := make([]cli.Flag, 0)
 
 	for _, o := range options.Sorted() {

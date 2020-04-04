@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/io"
 	"github.com/sirupsen/logrus"
@@ -129,18 +130,73 @@ func (s *BashScript) Functions() ([]*Function, error) {
 		return nil, err
 	}
 
+	// TODO: Make this part shared for all shell types
 	for _, fname := range fnames {
-		f := &Function{Name: fname}
+		s.Log.WithFields(logrus.Fields{
+			"func": fname,
+		}).Debugf("building function")
+
+		f := &Function{
+			Name:    fname,
+			Options: cmd.NewOptionsSet(fname),
+		}
+
+		options := make(map[string]*cmd.Option, 0)
+
 		for _, a := range annotations {
-			if a.Key == fname {
-				switch a.Namespace {
-				case config.CommandAnnotationDescriptionNamespace:
+			cmdName := a.NamespaceValues["cmd"]
+			if cmdName == "" || cmdName != f.Name {
+				continue
+			}
+
+			s.Log.WithFields(logrus.Fields{
+				"func":      a.NamespaceValues["cmd"],
+				"namespace": a.Namespace,
+				"key":       a.Key,
+			}).Debugf("handling annotation")
+
+			switch a.Namespace {
+			case config.CommandAnnotationCmdOptionNamespace:
+				name := a.NamespaceValues["option"]
+				if name == "" {
+					continue
+				}
+				if options[name] == nil {
+					options[name] = &cmd.Option{Type: cmd.StringOption, Name: name}
+				}
+				switch a.Key {
+				case "type":
+					options[name].Type = cmd.StringToOptionType(a.Value)
+				case "short":
+					options[name].Short = a.Value
+				case "envName":
+					options[name].EnvName = a.Value
+				case "description":
+					options[name].Description = a.Value
+				case "default":
+					options[name].Default = a.Value
+				}
+			case config.CommandAnnotationCmdNamespace:
+				switch a.Key {
+				case "description":
 					f.Description = a.Value
-				case config.CommandAnnotationHelpNamespace:
+				case "help":
 					f.Help = a.Value
 				}
 			}
 		}
+
+		for _, v := range options {
+			if err := v.Validate(); err != nil {
+				s.Log.WithFields(logrus.Fields{
+					"option": v.Name,
+					"type":   v.Type,
+				}).Warn(err.Error())
+			} else {
+				f.Options.Add(v)
+			}
+		}
+
 		funcs = append(funcs, f)
 	}
 

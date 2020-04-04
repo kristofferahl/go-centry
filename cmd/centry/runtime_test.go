@@ -115,6 +115,21 @@ func TestMain(t *testing.T) {
 				})
 			})
 		})
+
+		g.Describe("command options", func() {
+			g.Describe("invoking command with options", func() {
+				g.It("should have arguments passed", func() {
+					g.Assert(execQuiet("test args --cmdstringopt=hello --cmdboolopt --cmdsel1 --cmdsel2 foo bar baz").Stdout).Equal("test:args (foo bar baz)\n")
+				})
+
+				g.It("should have multipe environment variables set", func() {
+					out := execQuiet("test env --cmdstringopt=world --cmdboolopt --cmdsel1 --cmdsel2").Stdout
+					test.AssertKeyValueExists(g, "CMDSTRINGOPT", "world", out)
+					test.AssertKeyValueExists(g, "CMDBOOLOPT", "true", out)
+					test.AssertKeyValueExists(g, "CMDSELECTOPT", "cmdsel2", out)
+				})
+			})
+		})
 	})
 
 	g.Describe("help", func() {

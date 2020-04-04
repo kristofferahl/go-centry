@@ -60,7 +60,7 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 		Version:   context.manifest.Config.Version,
 
 		Commands: make([]*cli.Command, 0),
-		Flags:    toCliFlags(options),
+		Flags:    optionsSetToFlags(options),
 
 		HideHelpCommand:       true,
 		CustomAppHelpTemplate: cliHelpTemplate,

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 // OptionsSet represents a set of flags that can be passed to the cli
@@ -23,6 +24,21 @@ const BoolOption OptionType = "bool"
 
 // SelectOption defines a boolean select value option
 const SelectOption OptionType = "select"
+
+// StringToOptionType returns the OptionType matching the provided string
+func StringToOptionType(s string) OptionType {
+	s = strings.ToLower(s)
+	switch s {
+	case "string":
+		return StringOption
+	case "bool":
+		return BoolOption
+	case "select":
+		return SelectOption
+	default:
+		return StringOption
+	}
+}
 
 // Option represents a flag that can be passed to the cli
 type Option struct {
