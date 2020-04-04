@@ -29,10 +29,3 @@ scripts/test
 ```bash
 scripts/run-centry
 ```
-
-
-
-
-https://github.com/kristofferahl/go-centry
-https://github.com/urfave/cli/blob/master/docs/v2/manual.md#subcommands
-https://github.com/spf13/cobra
