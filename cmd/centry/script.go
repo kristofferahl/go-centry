@@ -20,12 +20,12 @@ type ScriptCommand struct {
 	Command       config.Command
 	GlobalOptions *cmd.OptionsSet
 	Script        shell.Script
-	Function      string
+	Function      shell.Function
 }
 
 // GetCommandInvocation returns the command invocation string
 func (sc *ScriptCommand) GetCommandInvocation() string {
-	return strings.Replace(sc.Function, sc.Script.FunctionNameSplitChar(), " ", -1)
+	return strings.Replace(sc.Function.Name, sc.Script.FunctionNameSplitChar(), " ", -1)
 }
 
 // GetCommandInvocationPath returns the command invocation path
@@ -54,7 +54,7 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 
 // Run builds the source and executes it
 func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
-	sc.Log.Debugf("Executing command \"%v\"", sc.Function)
+	sc.Log.Debugf("Executing command \"%v\"", sc.Function.Name)
 
 	var source string
 	switch sc.Script.Language() {
@@ -76,11 +76,11 @@ func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
 			}
 		}
 
-		sc.Log.Errorf("Command %v exited with error! %v", sc.Function, err)
+		sc.Log.Errorf("Command %v exited with error! %v", sc.Function.Name, err)
 		return exitCode
 	}
 
-	sc.Log.Debugf("Finished executing command %v...", sc.Function)
+	sc.Log.Debugf("Finished executing command %v...", sc.Function.Name)
 	return 0
 }
 
@@ -117,7 +117,7 @@ func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) string
 
 	source = append(source, "")
 	source = append(source, "# Executing command")
-	source = append(source, fmt.Sprintf("%s %s", sc.Function, strings.Join(args, " ")))
+	source = append(source, fmt.Sprintf("%s %s", sc.Function.Name, strings.Join(args, " ")))
 
 	return strings.Join(source, "\n")
 }

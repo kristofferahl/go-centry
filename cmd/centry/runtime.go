@@ -140,7 +140,7 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 					GlobalOptions: options,
 					Command:       cmd,
 					Script:        script,
-					Function:      fn.Name,
+					Function:      *fn,
 				}
 				cliCmd := scriptCmd.ToCLICommand()
 
