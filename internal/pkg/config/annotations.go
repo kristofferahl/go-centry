@@ -15,17 +15,8 @@ const CommandAnnotationCmdNamespace string = "centry.cmd"
 // CommandAnnotationCmdOptionNamespace defines an annotation namespace
 const CommandAnnotationCmdOptionNamespace string = "centry.cmd.option"
 
-// CommandAnnotationAPIServe defines an annotation
-const CommandAnnotationAPIServe string = "centry.api/serve"
-
-// // CommandAnnotationDescription defines an annotation namespace
-// const CommandAnnotationDescription string = "centry.cmd/description"
-//
-// // CommandAnnotationHelp defines an annotation namespace
-// const CommandAnnotationHelp string = "centry.cmd/help"
-//
-// // CommandAnnotationOptionType defines an annotation namespace
-// const CommandAnnotationOptionType string = "centry.cmd.option/type"
+// CommandAnnotationAPINamespace defines an annotation namespace
+const CommandAnnotationAPINamespace string = "centry.api"
 
 // Annotation defines an annotation
 type Annotation struct {
@@ -33,6 +24,16 @@ type Annotation struct {
 	NamespaceValues map[string]string
 	Key             string
 	Value           string
+}
+
+// AnnotationNamespaceKey creates an annotation namespace/key string
+func AnnotationNamespaceKey(namespace, key string) string {
+	return fmt.Sprintf("%s/%s", namespace, key)
+}
+
+// AnnotationString creates an annotation string
+func AnnotationString(namespace, key, value string) string {
+	return fmt.Sprintf("%s=%s", AnnotationNamespaceKey(namespace, key), value)
 }
 
 // ParseAnnotation parses text into an annotation

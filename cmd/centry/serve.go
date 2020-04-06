@@ -108,7 +108,8 @@ func (sc *ServeCommand) executeHandler() func(w http.ResponseWriter, r *http.Req
 		context := NewContext(API, io)
 
 		context.commandEnabledFunc = func(cmd config.Command) bool {
-			if cmd.Annotations == nil || cmd.Annotations[config.CommandAnnotationAPIServe] != config.TrueString {
+			serveAnnotation, _ := cmd.Annotation(config.CommandAnnotationAPINamespace, "serve")
+			if serveAnnotation == nil || serveAnnotation.Value != config.TrueString {
 				return false
 			}
 
@@ -116,7 +117,8 @@ func (sc *ServeCommand) executeHandler() func(w http.ResponseWriter, r *http.Req
 		}
 
 		context.optionEnabledFunc = func(opt config.Option) bool {
-			if opt.Annotations == nil || opt.Annotations[config.CommandAnnotationAPIServe] != config.TrueString {
+			serveAnnotation, _ := opt.Annotation(config.CommandAnnotationAPINamespace, "serve")
+			if serveAnnotation == nil || serveAnnotation.Value != config.TrueString {
 				return false
 			}
 

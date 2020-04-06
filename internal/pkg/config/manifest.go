@@ -31,6 +31,11 @@ type Command struct {
 	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
+// Annotation returns a parsed annotation if present
+func (c Command) Annotation(namespace, key string) (*Annotation, error) {
+	return ParseAnnotation(getAnnotationString(c.Annotations, namespace, key))
+}
+
 // Option defines the structure of options
 type Option struct {
 	Type        cmd.OptionType    `yaml:"type,omitempty"`
@@ -40,6 +45,11 @@ type Option struct {
 	Default     string            `yaml:"default,omitempty"`
 	Description string            `yaml:"description,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
+}
+
+// Annotation returns a parsed annotation if present
+func (o Option) Annotation(namespace, key string) (*Annotation, error) {
+	return ParseAnnotation(getAnnotationString(o.Annotations, namespace, key))
 }
 
 // Config defines the structure for the configuration section
@@ -105,4 +115,18 @@ func parseManifestYaml(bs []byte) (*Manifest, error) {
 		return nil, fmt.Errorf("Failed to parse manifest yaml. %v", err)
 	}
 	return &m, nil
+}
+
+func getAnnotationString(annotations map[string]string, namespace, key string) string {
+	if annotations == nil {
+		return ""
+	}
+
+	namespaceKey := AnnotationNamespaceKey(namespace, key)
+	value := annotations[namespaceKey]
+	if value == "" {
+		return ""
+	}
+
+	return AnnotationString(namespace, key, value)
 }
