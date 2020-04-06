@@ -25,10 +25,6 @@ func (v envVar) IsString() bool {
 	return v.Type == envTypeString
 }
 
-func (v envVar) IsBool() bool {
-	return v.Type == envTypeBool
-}
-
 func optionsSetToEnvVars(c *cli.Context, set *cmd.OptionsSet) []envVar {
 	envVars := make([]envVar, 0)
 	for _, o := range set.Sorted() {
