@@ -11,7 +11,7 @@ get:env() {
   local output
   output="$(env | ${SORTED} | grep "${FILTER}")"
 
-  if [[ ${SANITIZE_OUTPUT} ]]; then
+  if [[ ${SANITIZE_OUTPUT} == true ]]; then
     echo "${output}" | sed 's/\=.*$/=***/'
   else
     echo "${output}"
