@@ -181,8 +181,8 @@ func TestMain(t *testing.T) {
    --quiet, -q                  Disables logging (default: false)
    --staging                    Sets the context to staging (default: false)
    --stringopt value, -S value  A custom option (default: "foobar")
-   --help, -h                   show help (default: false)
-   --version, -v                print the version (default: false)`
+   --help, -h                   Show help (default: false)
+   --version, -v                Print the version (default: false)`
 
 				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
 			})

@@ -28,8 +28,6 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 		Default:     false,
 	})
 
-	// TODO: Override default version and help flags to get unified descriptions?
-
 	// Adding global options specified by the manifest
 	for _, o := range manifest.Options {
 		o := o

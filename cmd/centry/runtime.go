@@ -51,6 +51,17 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	// Create global options
 	options := createGlobalOptions(context)
 
+	cli.HelpFlag = &cli.BoolFlag{
+		Name:    "help",
+		Aliases: []string{"h"},
+		Usage:   "Show help",
+	}
+	cli.VersionFlag = &cli.BoolFlag{
+		Name:    "version",
+		Aliases: []string{"v"},
+		Usage:   "Print the version",
+	}
+
 	// Initialize cli
 	app := &cli.App{
 		Name:      context.manifest.Config.Name,
