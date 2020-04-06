@@ -25,7 +25,7 @@ type ScriptCommand struct {
 
 // GetCommandInvocation returns the command invocation string
 func (sc *ScriptCommand) GetCommandInvocation() string {
-	return strings.Replace(sc.Function.Name, sc.Script.FunctionNameSplitChar(), " ", -1)
+	return strings.Replace(sc.Function.Name, sc.Script.FunctionNamespaceSplitChar(), " ", -1)
 }
 
 // GetCommandInvocationPath returns the command invocation path

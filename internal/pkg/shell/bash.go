@@ -203,12 +203,12 @@ func (s *BashScript) Functions() ([]*Function, error) {
 	return funcs, nil
 }
 
-// CreateFunctionNamespace returns a namespaced function name
-func (s *BashScript) CreateFunctionNamespace(name string) string {
-	return fmt.Sprintf("%s%s", name, s.FunctionNameSplitChar())
+// FunctionNamespace returns a namespaced function name
+func (s *BashScript) FunctionNamespace(name string) string {
+	return fmt.Sprintf("%s%s", name, s.FunctionNamespaceSplitChar())
 }
 
-// FunctionNameSplitChar returns the separator used for function namespaces
-func (s *BashScript) FunctionNameSplitChar() string {
+// FunctionNamespaceSplitChar returns the separator used for function namespaces
+func (s *BashScript) FunctionNamespaceSplitChar() string {
 	return ":"
 }

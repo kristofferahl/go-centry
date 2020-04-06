@@ -1,14 +1,8 @@
 package main
 
 import (
-	"fmt"
-	"sort"
-	"strings"
-
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/log"
-	"github.com/kristofferahl/go-centry/internal/pkg/shell"
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
@@ -51,19 +45,11 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	// Create global options
 	options := createGlobalOptions(context)
 
-	cli.HelpFlag = &cli.BoolFlag{
-		Name:    "help",
-		Aliases: []string{"h"},
-		Usage:   "Show help",
-	}
-	cli.VersionFlag = &cli.BoolFlag{
-		Name:    "version",
-		Aliases: []string{"v"},
-		Usage:   "Print the version",
-	}
+	// Configure default options
+	configureDefaultOptions()
 
 	// Initialize cli
-	app := &cli.App{
+	runtime.cli = &cli.App{
 		Name:      context.manifest.Config.Name,
 		HelpName:  context.manifest.Config.Name,
 		Usage:     "A tool for building declarative CLI's over bash scripts, written in go.", // TODO: Set from manifest config
@@ -97,113 +83,14 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 		},
 	}
 
-	logger := context.log.GetLogger()
-
 	// Register builtin commands
-	if context.executor == CLI {
-		serveCmd := &ServeCommand{
-			Manifest: context.manifest,
-			Log: logger.WithFields(logrus.Fields{
-				"command": "serve",
-			}),
-		}
-		app.Commands = append(app.Commands, serveCmd.ToCLICommand())
-	}
+	registerBuiltinCommands(runtime)
 
-	// Build commands
-	for _, cmd := range context.manifest.Commands {
-		cmd := cmd
+	// Register manifest commands
+	registerManifestCommands(runtime, options)
 
-		if context.commandEnabledFunc != nil && context.commandEnabledFunc(cmd) == false {
-			continue
-		}
-
-		script := createScript(cmd, context)
-
-		funcs, err := script.Functions()
-		if err != nil {
-			logger.WithFields(logrus.Fields{
-				"command": cmd.Name,
-			}).Errorf("Failed to parse script functions. %v", err)
-		} else {
-			for _, fn := range funcs {
-				fn := fn
-				cmd := cmd
-				namespace := script.CreateFunctionNamespace(cmd.Name)
-
-				if fn.Name != cmd.Name && strings.HasPrefix(fn.Name, namespace) == false {
-					continue
-				}
-
-				cmdDescription := cmd.Description
-				if fn.Description != "" {
-					cmd.Description = fn.Description
-				}
-
-				cmdHelp := cmd.Help
-				if fn.Help != "" {
-					cmd.Help = fn.Help
-				}
-
-				scriptCmd := &ScriptCommand{
-					Context:       context,
-					Log:           logger.WithFields(logrus.Fields{}),
-					GlobalOptions: options,
-					Command:       cmd,
-					Script:        script,
-					Function:      *fn,
-				}
-				cliCmd := scriptCmd.ToCLICommand()
-
-				cmdKeyParts := scriptCmd.GetCommandInvocationPath()
-
-				var root *cli.Command
-				for depth, cmdKeyPart := range cmdKeyParts {
-					if depth == 0 {
-						if getCommand(app.Commands, cmdKeyPart) == nil {
-							if depth == len(cmdKeyParts)-1 {
-								// add destination command
-								app.Commands = append(app.Commands, cliCmd)
-							} else {
-								// add placeholder
-								app.Commands = append(app.Commands, &cli.Command{
-									Name:            cmdKeyPart,
-									Usage:           cmdDescription,
-									UsageText:       cmdHelp,
-									HideHelpCommand: true,
-									Action:          nil,
-								})
-							}
-						}
-						root = getCommand(app.Commands, cmdKeyPart)
-					} else {
-						if getCommand(root.Subcommands, cmdKeyPart) == nil {
-							if depth == len(cmdKeyParts)-1 {
-								// add destination command
-								root.Subcommands = append(root.Subcommands, cliCmd)
-							} else {
-								// add placeholder
-								root.Subcommands = append(root.Subcommands, &cli.Command{
-									Name:            cmdKeyPart,
-									Usage:           "...",
-									UsageText:       "",
-									HideHelpCommand: true,
-									Action:          nil,
-								})
-							}
-						}
-						root = getCommand(root.Subcommands, cmdKeyPart)
-					}
-				}
-
-				runtime.events = append(runtime.events, fmt.Sprintf("Registered command \"%s\"", scriptCmd.GetCommandInvocation()))
-			}
-		}
-	}
-
-	sortCommands(app.Commands)
-
-	runtime.cli = app
+	// Sort commands
+	sortCommands(runtime.cli.Commands)
 
 	return runtime, nil
 }
@@ -220,30 +107,4 @@ func (runtime *Runtime) Execute() int {
 	}
 
 	return 0
-}
-
-func createScript(cmd config.Command, context *Context) shell.Script {
-	return &shell.BashScript{
-		BasePath: context.manifest.BasePath,
-		Path:     cmd.Path,
-		Log: context.log.GetLogger().WithFields(logrus.Fields{
-			"script": cmd.Path,
-		}),
-	}
-}
-
-func getCommand(commands []*cli.Command, name string) *cli.Command {
-	for _, c := range commands {
-		if c.HasName(name) {
-			return c
-		}
-	}
-
-	return nil
-}
-
-func sortCommands(commands []*cli.Command) {
-	sort.Slice(commands, func(i, j int) bool {
-		return commands[i].Name < commands[j].Name
-	})
 }

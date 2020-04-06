@@ -187,6 +187,44 @@ func TestMain(t *testing.T) {
 				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
 			})
 		})
+
+		g.Describe("command help", func() {
+			result := execQuiet("get --help")
+
+			g.It("should display available commands", func() {
+				expected := `NAME:
+   centry get - Gets stuff
+
+USAGE:
+   centry get command [command options] [arguments...]
+
+COMMANDS:
+   sub  Description for subcommand
+
+OPTIONS:
+   --help, -h     Show help (default: false)
+   --version, -v  Print the version (default: false)`
+
+				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+			})
+		})
+
+		g.Describe("subcommand help", func() {
+			result := execQuiet("get sub --help")
+
+			g.It("should display full help", func() {
+				expected := `NAME:
+   centry get sub - Description for subcommand
+
+USAGE:
+   Help text for sub command
+
+OPTIONS:
+   --help, -h  Show help (default: false)`
+
+				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+			})
+		})
 	})
 
 	g.Describe("global options", func() {

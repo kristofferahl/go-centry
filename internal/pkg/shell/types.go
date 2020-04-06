@@ -23,6 +23,6 @@ type Script interface {
 	FullPath() string
 	RelativePath() string
 	Functions() (funcs []*Function, err error)
-	CreateFunctionNamespace(name string) string
-	FunctionNameSplitChar() string
+	FunctionNamespace(name string) string
+	FunctionNamespaceSplitChar() string
 }
