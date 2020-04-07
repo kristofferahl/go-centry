@@ -189,17 +189,20 @@ func TestMain(t *testing.T) {
 		})
 
 		g.Describe("command help", func() {
-			result := execQuiet("get --help")
+			result := execQuiet("test --help")
 
 			g.It("should display available commands", func() {
 				expected := `NAME:
-   centry get - Gets stuff
+   centry test - Test stuff
 
 USAGE:
-   centry get command [command options] [arguments...]
+   centry test command [command options] [arguments...]
 
 COMMANDS:
-   sub  Description for subcommand
+   args         Test stuff
+   env          Test stuff
+   placeholder  ...
+   subcommand   Description for subcommand
 
 OPTIONS:
    --help, -h     Show help (default: false)
@@ -210,11 +213,11 @@ OPTIONS:
 		})
 
 		g.Describe("subcommand help", func() {
-			result := execQuiet("get sub --help")
+			result := execQuiet("test subcommand --help")
 
 			g.It("should display full help", func() {
 				expected := `NAME:
-   centry get sub - Description for subcommand
+   centry test subcommand - Description for subcommand
 
 USAGE:
    Help text for sub command
@@ -223,6 +226,45 @@ OPTIONS:
    --help, -h  Show help (default: false)`
 
 				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+			})
+		})
+
+		g.Describe("placeholder help", func() {
+			result := execQuiet("test placeholder --help")
+
+			g.It("should display full help", func() {
+				expected := `NAME:
+   centry test placeholder - ...
+
+USAGE:
+   centry test placeholder command [command options] [arguments...]
+
+COMMANDS:
+   subcommand1  Description for placeholder subcommand1
+   subcommand2  Description for placeholder subcommand2
+
+OPTIONS:
+   --help, -h     Show help (default: false)
+   --version, -v  Print the version (default: false)`
+
+				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+			})
+
+			g.Describe("placeholder subcommand help", func() {
+				result := execQuiet("test placeholder subcommand1 --help")
+
+				g.It("should display full help", func() {
+					expected := `NAME:
+   centry test placeholder subcommand1 - Description for placeholder subcommand1
+
+USAGE:
+   Help text for placeholder subcommand1
+
+OPTIONS:
+   --help, -h  Show help (default: false)`
+
+					g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+				})
 			})
 		})
 	})
