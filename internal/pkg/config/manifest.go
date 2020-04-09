@@ -54,9 +54,10 @@ func (o Option) Annotation(namespace, key string) (*Annotation, error) {
 
 // Config defines the structure for the configuration section
 type Config struct {
-	Name    string    `yaml:"name,omitempty"`
-	Version string    `yaml:"version,omitempty"`
-	Log     LogConfig `yaml:"log,omitempty"`
+	Name        string    `yaml:"name,omitempty"`
+	Description string    `yaml:"description,omitempty"`
+	Version     string    `yaml:"version,omitempty"`
+	Log         LogConfig `yaml:"log,omitempty"`
 }
 
 // LogConfig defines the structure for log configuration section

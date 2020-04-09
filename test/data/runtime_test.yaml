@@ -43,6 +43,7 @@ options:
 
 config:
   name: centry
+  description: A manifest file used for testing purposes
   version: 1.0.0
   log:
     level: debug

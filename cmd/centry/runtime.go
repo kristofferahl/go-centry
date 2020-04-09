@@ -55,7 +55,7 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	runtime.cli = &cli.App{
 		Name:      context.manifest.Config.Name,
 		HelpName:  context.manifest.Config.Name,
-		Usage:     "A tool for building declarative CLI's over bash scripts, written in go.", // TODO: Set from manifest config
+		Usage:     context.manifest.Config.Description,
 		UsageText: "",
 		Version:   context.manifest.Config.Version,
 

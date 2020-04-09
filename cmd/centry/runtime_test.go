@@ -252,6 +252,18 @@ func TestMain(t *testing.T) {
 
 		g.Describe("output", func() {
 			out := execQuiet("")
+
+			g.It("should display the program name", func() {
+				expected := `NAME:
+   centry`
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+
+			g.It("should display the program description", func() {
+				expected := "A manifest file used for testing purposes"
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+
 			g.It("should display available commands", func() {
 				expected := `COMMANDS:
    commandtest  Command tests
@@ -274,6 +286,16 @@ func TestMain(t *testing.T) {
    --version, -v                Print the version (default: false)`
 
 				test.AssertStringContains(g, out.Stdout, expected)
+			})
+
+			g.Describe("default config output", func() {
+				g.It("should display the default program description", func() {
+					expected := `NAME:
+   name - A new cli application`
+					out := execQuiet("", "test/data/runtime_test_default_config.yaml")
+					test.AssertNoError(g, out.Error)
+					test.AssertStringContains(g, out.Stdout, expected)
+				})
 			})
 		})
 
@@ -334,10 +356,11 @@ OPTIONS:
 				out := execQuiet("helptest placeholder --help")
 				test.AssertStringContains(g, out.Stdout, expected)
 			})
+		})
 
-			g.Describe("placeholder subcommand help", func() {
-				g.It("should display full help", func() {
-					expected := `NAME:
+		g.Describe("placeholder subcommand help output", func() {
+			g.It("should display full help", func() {
+				expected := `NAME:
    centry helptest placeholder subcommand1 - Description for placeholder subcommand1
 
 USAGE:
@@ -347,13 +370,14 @@ OPTIONS:
    --opt1 value  Help text for opt1
    --help, -h    Show help (default: false)`
 
-					out := execQuiet("helptest placeholder subcommand1 --help")
-					test.AssertStringContains(g, out.Stdout, expected)
-				})
+				out := execQuiet("helptest placeholder subcommand1 --help")
+				test.AssertStringContains(g, out.Stdout, expected)
 			})
 		})
 	})
 }
+
+const defaultManifestPath string = "test/data/runtime_test.yaml"
 
 type execResult struct {
 	Source   string
@@ -363,15 +387,27 @@ type execResult struct {
 	Stderr   string
 }
 
-func execQuiet(source string) *execResult {
-	return execCentry(source, true)
+func execQuiet(source string, params ...string) *execResult {
+	manifestPath := defaultManifestPath
+	if len(params) > 0 {
+		if params[0] != "" {
+			manifestPath = params[0]
+		}
+	}
+	return execCentry(source, true, manifestPath)
 }
 
-func execWithLogging(source string) *execResult {
-	return execCentry(source, false)
+func execWithLogging(source string, params ...string) *execResult {
+	manifestPath := defaultManifestPath
+	if len(params) > 0 {
+		if params[0] != "" {
+			manifestPath = params[0]
+		}
+	}
+	return execCentry(source, false, manifestPath)
 }
 
-func execCentry(source string, quiet bool) *execResult {
+func execCentry(source string, quiet bool, manifestPath string) *execResult {
 	var exitCode int
 	var runtimeErr error
 
@@ -380,7 +416,7 @@ func execCentry(source string, quiet bool) *execResult {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
 		context := NewContext(CLI, io.Headless())
-		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("test/data/runtime_test.yaml %s", source), " "), context)
+		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("%s %s", manifestPath, source), " "), context)
 		if err != nil {
 			exitCode = 1
 			runtimeErr = err
