@@ -27,3 +27,7 @@ commandtest:options:args() {
 commandtest:options:printenv() {
   env | sort
 }
+
+commandtest:exitcode() {
+  exit 111
+}

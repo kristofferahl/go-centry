@@ -38,6 +38,20 @@ func TestMain(t *testing.T) {
 	})
 
 	g.Describe("commands", func() {
+		g.Describe("invoking invalid command", func() {
+			g.It("should exit with status code 127", func() {
+				out := execQuiet("commandnotdefined")
+				g.Assert(out.ExitCode).Equal(127)
+			})
+		})
+
+		g.Describe("invoking command that exits with a status code", func() {
+			g.It("should exit with exit code from command", func() {
+				out := execQuiet("commandtest exitcode")
+				g.Assert(out.ExitCode).Equal(111)
+			})
+		})
+
 		g.Describe("invoking command", func() {
 			g.Describe("with arguments", func() {
 				g.It("should have arguments passed", func() {
@@ -100,9 +114,9 @@ func TestMain(t *testing.T) {
 				test.AssertStringContains(g, out.Stdout, expected)
 			})
 
-			// TODO: Add assertions for all default values?
 			g.It("should have default value for environment variable set", func() {
 				out := execQuiet("optiontest printenv")
+				test.AssertStringHasKeyValue(g, out.Stdout, "BOOLOPT", "false")
 				test.AssertStringHasKeyValue(g, out.Stdout, "STRINGOPT", "foobar")
 			})
 		})
@@ -374,6 +388,10 @@ func execCentry(source string, quiet bool) *execResult {
 			exitCode = runtime.Execute()
 		}
 	})
+
+	if out.ExitCode > 0 {
+		exitCode = out.ExitCode
+	}
 
 	return &execResult{
 		Source:   source,

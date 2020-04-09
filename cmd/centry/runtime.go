@@ -3,8 +3,11 @@ package main
 import (
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/log"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
+
+const metadataExitCode string = "exitcode"
 
 // Runtime defines the runtime
 type Runtime struct {
@@ -66,20 +69,13 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 		ErrWriter: context.io.Stderr,
 
 		Before: func(c *cli.Context) error {
-			// Override the current log level from options
-			logLevel := c.String("config.log.level")
-			if c.Bool("quiet") {
-				logLevel = "panic"
-			}
-			context.log.TrySetLogLevel(logLevel)
-
-			// Print runtime events
-			logger := context.log.GetLogger()
-			for _, e := range runtime.events {
-				logger.Debugf(e)
-			}
-
-			return nil
+			return handleBefore(runtime, c)
+		},
+		CommandNotFound: func(c *cli.Context, command string) {
+			handleCommandNotFound(runtime, c, command)
+		},
+		ExitErrHandler: func(c *cli.Context, err error) {
+			handleExitErr(runtime, c, err)
 		},
 	}
 
@@ -102,9 +98,101 @@ func (runtime *Runtime) Execute() int {
 	// Run cli
 	err := runtime.cli.Run(args)
 	if err != nil {
-		logger := runtime.context.log.GetLogger()
-		logger.Error(err)
+		runtime.context.log.GetLogger().Error(err)
+	}
+
+	// Return exitcode defined in metadata
+	if runtime.cli.Metadata[metadataExitCode] != nil {
+		switch runtime.cli.Metadata[metadataExitCode].(type) {
+		case int:
+			return runtime.cli.Metadata[metadataExitCode].(int)
+		}
+		return 128
 	}
 
 	return 0
+}
+
+func handleBefore(runtime *Runtime, c *cli.Context) error {
+	// Override the current log level from options
+	logLevel := c.String("config.log.level")
+	if c.Bool("quiet") {
+		logLevel = "panic"
+	}
+	runtime.context.log.TrySetLogLevel(logLevel)
+
+	// Print runtime events
+	logger := runtime.context.log.GetLogger()
+	for _, e := range runtime.events {
+		logger.Debugf(e)
+	}
+
+	return nil
+}
+
+func handleCommandNotFound(runtime *Runtime, c *cli.Context, command string) {
+	logger := runtime.context.log.GetLogger()
+	logger.WithFields(logrus.Fields{
+		"command": command,
+	}).Warnf("Command not found!")
+	c.App.Metadata[metadataExitCode] = 127
+}
+
+// Handles errors implementing ExitCoder by printing their
+// message and calling OsExiter with the given exit code.
+// If the given error instead implements MultiError, each error will be checked
+// for the ExitCoder interface, and OsExiter will be called with the last exit
+// code found, or exit code 1 if no ExitCoder is found.
+func handleExitErr(runtime *Runtime, context *cli.Context, err error) {
+	if err == nil {
+		return
+	}
+
+	logger := runtime.context.log.GetLogger()
+
+	if exitErr, ok := err.(cli.ExitCoder); ok {
+		if err.Error() != "" {
+			if _, ok := exitErr.(cli.ErrorFormatter); ok {
+				logger.WithFields(logrus.Fields{
+					"command": context.Command.Name,
+					"code":    exitErr.ExitCode(),
+				}).Errorf("%+v\n", err)
+			} else {
+				logger.WithFields(logrus.Fields{
+					"command": context.Command.Name,
+					"code":    exitErr.ExitCode(),
+				}).Error(err)
+			}
+		}
+		cli.OsExiter(exitErr.ExitCode())
+		return
+	}
+
+	if multiErr, ok := err.(cli.MultiError); ok {
+		code := handleMultiError(runtime, context, multiErr)
+		cli.OsExiter(code)
+		return
+	}
+}
+
+func handleMultiError(runtime *Runtime, context *cli.Context, multiErr cli.MultiError) int {
+	code := 1
+	for _, merr := range multiErr.Errors() {
+		if multiErr2, ok := merr.(cli.MultiError); ok {
+			code = handleMultiError(runtime, context, multiErr2)
+		} else if merr != nil {
+			if exitErr, ok := merr.(cli.ExitCoder); ok {
+				code = exitErr.ExitCode()
+				runtime.context.log.GetLogger().WithFields(logrus.Fields{
+					"command": context.Command.Name,
+					"code":    code,
+				}).Error(merr)
+			} else {
+				runtime.context.log.GetLogger().WithFields(logrus.Fields{
+					"command": context.Command.Name,
+				}).Error(merr)
+			}
+		}
+	}
+	return code
 }

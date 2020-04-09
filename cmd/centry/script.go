@@ -45,7 +45,7 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 		Action: func(c *cli.Context) error {
 			ec := sc.Run(c, c.Args().Slice())
 			if ec > 0 {
-				return cli.Exit("command exited with non zero exit code", ec)
+				return cli.Exit("Command exited with non zero exit code", ec)
 			}
 			return nil
 		},
@@ -77,11 +77,11 @@ func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
 			}
 		}
 
-		sc.Log.Errorf("Command %v exited with error! %v", sc.Function.Name, err)
+		sc.Log.Debugf("Script exited with error, %v", err)
 		return exitCode
 	}
 
-	sc.Log.Debugf("Finished executing command %v...", sc.Function.Name)
+	sc.Log.Debugf("Finished executing command %s...", sc.Function.Name)
 	return 0
 }
 
