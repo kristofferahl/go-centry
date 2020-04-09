@@ -29,61 +29,11 @@ func TestMain(t *testing.T) {
 
 	g.Describe("scripts", func() {
 		g.It("loads script in the expected order", func() {
+			expected := "Loading init.sh\nLoading helpers.sh"
 			os.Setenv("OUTPUT_DEBUG", "true")
-			g.Assert(strings.HasPrefix(execQuiet("get").Stdout, "Loading init.sh\nLoading helpers.sh\n")).IsTrue()
+			out := execQuiet("scripttest")
+			test.AssertStringContains(g, out.Stdout, expected)
 			os.Unsetenv("OUTPUT_DEBUG")
-		})
-	})
-
-	g.Describe("options", func() {
-		g.Describe("invoke without option", func() {
-			g.It("should pass arguments", func() {
-				g.Assert(execQuiet("test args foo bar").Stdout).Equal("test:args (foo bar)\n")
-			})
-
-			g.It("should have default value for environment variable set", func() {
-				test.AssertKeyValueExists(g, "STRINGOPT", "foobar", execQuiet("test env").Stdout)
-			})
-		})
-
-		g.Describe("invoke with single option", func() {
-			g.It("should have arguments passed", func() {
-				g.Assert(execQuiet("--staging test args foo bar").Stdout).Equal("test:args (foo bar)\n")
-			})
-
-			g.It("should have environment set to staging", func() {
-				test.AssertKeyValueExists(g, "CONTEXT", "staging", execQuiet("--staging test env").Stdout)
-			})
-
-			g.It("should have environment set to last option with same env_name (production)", func() {
-				test.AssertKeyValueExists(g, "CONTEXT", "production", execQuiet("--staging=false --production test env").Stdout)
-			})
-
-			g.It("should have environment set to last option with same env_name (staging)", func() {
-				test.AssertKeyValueExists(g, "CONTEXT", "staging", execQuiet("--production=false --staging test env").Stdout)
-			})
-		})
-
-		g.Describe("invoke with multiple options", func() {
-			g.It("should have arguments passed", func() {
-				g.Assert(execQuiet("--staging --stringopt=baz test args foo bar").Stdout).Equal("test:args (foo bar)\n")
-			})
-
-			g.It("should have multipe environment variables set", func() {
-				out := execQuiet("--staging --stringopt=bazer --boolopt test env").Stdout
-				test.AssertKeyValueExists(g, "CONTEXT", "staging", out)
-				test.AssertKeyValueExists(g, "STRINGOPT", "bazer", out)
-				test.AssertKeyValueExists(g, "BOOLOPT", "true", out)
-			})
-		})
-
-		g.Describe("invoke with invalid option", func() {
-			g.It("should return error", func() {
-				res := execQuiet("--invalidoption test args foo bar")
-				g.Assert(strings.Contains(res.Stdout, "Incorrect Usage. flag provided but not defined: -invalidoption")).IsTrue()
-				g.Assert(strings.Contains(res.Stderr, "flag provided but not defined: -invalidoption")).IsTrue()
-				g.Assert(res.Error == nil).IsTrue()
-			})
 		})
 	})
 
@@ -91,13 +41,17 @@ func TestMain(t *testing.T) {
 		g.Describe("invoking command", func() {
 			g.Describe("with arguments", func() {
 				g.It("should have arguments passed", func() {
-					g.Assert(execQuiet("get foo bar").Stdout).Equal("get (foo bar)\n")
+					expected := "command args (foo bar)"
+					out := execQuiet("commandtest foo bar")
+					test.AssertStringContains(g, out.Stdout, expected)
 				})
 			})
 
 			g.Describe("without arguments", func() {
 				g.It("should have no arguments passed", func() {
-					g.Assert(execQuiet("get").Stdout).Equal("get ()\n")
+					expected := "command args ()"
+					out := execQuiet("commandtest")
+					test.AssertStringContains(g, out.Stdout, expected)
 				})
 			})
 		})
@@ -105,13 +59,17 @@ func TestMain(t *testing.T) {
 		g.Describe("invoking sub command", func() {
 			g.Describe("with arguments", func() {
 				g.It("should have arguments passed", func() {
-					g.Assert(execQuiet("get sub foo bar").Stdout).Equal("get:sub (foo bar)\n")
+					expected := "subcommand args (foo bar)"
+					out := execQuiet("commandtest subcommand foo bar")
+					test.AssertStringContains(g, out.Stdout, expected)
 				})
 			})
 
 			g.Describe("without arguments", func() {
 				g.It("should have no arguments passed", func() {
-					g.Assert(execQuiet("get sub").Stdout).Equal("get:sub ()\n")
+					expected := "subcommand args ()"
+					out := execQuiet("commandtest subcommand")
+					test.AssertStringContains(g, out.Stdout, expected)
 				})
 			})
 		})
@@ -119,88 +77,201 @@ func TestMain(t *testing.T) {
 		g.Describe("command options", func() {
 			g.Describe("invoking command with options", func() {
 				g.It("should have arguments passed", func() {
-					g.Assert(execQuiet("test args --cmdstringopt=hello --cmdboolopt --cmdsel1 --cmdsel2 foo bar baz").Stdout).Equal("test:args (foo bar baz)\n")
+					expected := "command args (foo bar baz)"
+					out := execQuiet("commandtest options args --cmdstringopt=hello --cmdboolopt --cmdsel1 --cmdsel2 foo bar baz")
+					test.AssertStringContains(g, out.Stdout, expected)
 				})
 
-				g.It("should have multipe environment variables set", func() {
-					out := execQuiet("test env --cmdstringopt=world --cmdboolopt --cmdsel1 --cmdsel2").Stdout
-					test.AssertKeyValueExists(g, "CMDSTRINGOPT", "world", out)
-					test.AssertKeyValueExists(g, "CMDBOOLOPT", "true", out)
-					test.AssertKeyValueExists(g, "CMDSELECTOPT", "cmdsel2", out)
+				g.It("should have environment variables set", func() {
+					out := execQuiet("commandtest options printenv --cmdstringopt=world --cmdboolopt --cmdsel1 --cmdsel2")
+					test.AssertStringHasKeyValue(g, out.Stdout, "CMDSTRINGOPT", "world")
+					test.AssertStringHasKeyValue(g, out.Stdout, "CMDBOOLOPT", "true")
+					test.AssertStringHasKeyValue(g, out.Stdout, "CMDSELECTOPT", "cmdsel2")
 				})
+			})
+		})
+	})
+
+	g.Describe("options", func() {
+		g.Describe("invoke without option", func() {
+			g.It("should pass arguments", func() {
+				expected := "args (foo bar)"
+				out := execQuiet("optiontest args foo bar")
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+
+			// TODO: Add assertions for all default values?
+			g.It("should have default value for environment variable set", func() {
+				out := execQuiet("optiontest printenv")
+				test.AssertStringHasKeyValue(g, out.Stdout, "STRINGOPT", "foobar")
+			})
+		})
+
+		g.Describe("invoke with single option", func() {
+			g.It("should have arguments passed", func() {
+				expected := "args (foo bar)"
+				out := execQuiet("--boolopt optiontest args foo bar")
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+
+			g.It("should have environment set for select option", func() {
+				out := execQuiet("--selectopt1 optiontest printenv")
+				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt1")
+			})
+
+			g.It("should have environment set to last select option with same env_name (selectopt2)", func() {
+				out := execQuiet("--selectopt1 --selectopt2 optiontest printenv")
+				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt2")
+			})
+
+			// TODO: Do we really need =false??
+			g.It("should have environment set to last select option with same env_name (selectopt1)", func() {
+				out := execQuiet("--selectopt2=false --selectopt1 optiontest printenv")
+				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt1")
+			})
+		})
+
+		g.Describe("invoke with multiple options", func() {
+			g.It("should have arguments passed", func() {
+				expected := "args (bar foo)"
+				out := execQuiet("--boolopt --stringopt=foo optiontest args bar foo")
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+
+			g.It("should have multipe environment variables set", func() {
+				out := execQuiet("--selectopt2 --stringopt=blazer --boolopt optiontest printenv")
+
+				test.AssertStringHasKeyValue(g, out.Stdout, "STRINGOPT", "blazer")
+				test.AssertStringHasKeyValue(g, out.Stdout, "BOOLOPT", "true")
+				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt2")
+			})
+		})
+
+		g.Describe("invoke with invalid option", func() {
+			g.It("should print error message", func() {
+				out := execQuiet("--invalidoption optiontest args")
+				test.AssertStringContains(g, out.Stdout, "Incorrect Usage. flag provided but not defined: -invalidoption")
+				test.AssertStringContains(g, out.Stderr, "flag provided but not defined: -invalidoption")
+				test.AssertNoError(g, out.Error)
+			})
+		})
+	})
+
+	g.Describe("global options", func() {
+		g.Describe("version", func() {
+			g.Describe("--version", func() {
+				g.It("should display version", func() {
+					expected := `1.0.0`
+					out := execQuiet("--version")
+					test.AssertStringContains(g, out.Stdout, expected)
+				})
+			})
+
+			g.Describe("-v", func() {
+				g.It("should display version", func() {
+					expected := `1.0.0`
+					out := execQuiet("-v")
+					test.AssertStringContains(g, out.Stdout, expected)
+				})
+			})
+		})
+
+		g.Describe("quiet", func() {
+			g.Describe("--quiet", func() {
+				g.It("should disable logging", func() {
+					expected := `Changing loglevel to panic (from debug)`
+					out := execWithLogging("--quiet")
+					test.AssertStringContains(g, out.Stderr, expected)
+				})
+			})
+
+			g.Describe("-q", func() {
+				g.It("should disable logging", func() {
+					expected := `Changing loglevel to panic (from debug)`
+					out := execWithLogging("-q")
+					test.AssertStringContains(g, out.Stderr, expected)
+				})
+			})
+		})
+
+		g.Describe("--config.log.level=info", func() {
+			g.It("should change log level to info", func() {
+				expected := `Changing loglevel to info (from debug)`
+				out := execWithLogging("--config.log.level=info")
+				test.AssertStringContains(g, out.Stderr, expected)
+			})
+		})
+
+		g.Describe("--config.log.level=error", func() {
+			g.It("should change log level to error", func() {
+				expected := `Changing loglevel to error (from debug)`
+				out := execWithLogging("--config.log.level=error")
+				test.AssertStringContains(g, out.Stderr, expected)
 			})
 		})
 	})
 
 	g.Describe("help", func() {
 		g.Describe("call with no arguments", func() {
-			result := execQuiet("")
-
 			g.It("should display help", func() {
-				expected := `USAGE:`
-				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
+				expected := "USAGE:"
+				out := execQuiet("")
+				test.AssertStringContains(g, out.Stdout, expected)
 			})
 		})
 
 		g.Describe("call with -h", func() {
-			result := execQuiet("-h")
-
 			g.It("should display help", func() {
-				expected := `USAGE:`
-				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
+				expected := "USAGE:"
+				out := execQuiet("-h")
+				test.AssertStringContains(g, out.Stdout, expected)
 			})
 		})
 
 		g.Describe("call with --help", func() {
-			result := execQuiet("--help")
-
 			g.It("should display help", func() {
-				expected := `USAGE:`
-				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
+				expected := "USAGE:"
+				out := execQuiet("--help")
+				test.AssertStringContains(g, out.Stdout, expected)
 			})
 		})
 
 		g.Describe("output", func() {
-			result := execQuiet("")
-
+			out := execQuiet("")
 			g.It("should display available commands", func() {
 				expected := `COMMANDS:
-   delete  Deletes stuff
-   get     Gets stuff
-   post    Creates stuff
-   put     Creates/Updates stuff`
+   commandtest  Command tests
+   helptest     Help tests
+   optiontest   Option tests
+   scripttest   Script tests`
 
-				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+				test.AssertStringContains(g, out.Stdout, expected)
 			})
 
 			g.It("should display global options", func() {
 				expected := `OPTIONS:
    --boolopt, -B                A custom option (default: false)
    --config.log.level value     Overrides the log level (default: "debug")
-   --production                 Sets the context to production (default: false)
    --quiet, -q                  Disables logging (default: false)
-   --staging                    Sets the context to staging (default: false)
+   --selectopt1                 Sets the selection to option 1 (default: false)
+   --selectopt2                 Sets the selection to option 2 (default: false)
    --stringopt value, -S value  A custom option (default: "foobar")
    --help, -h                   Show help (default: false)
    --version, -v                Print the version (default: false)`
 
-				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+				test.AssertStringContains(g, out.Stdout, expected)
 			})
 		})
 
-		g.Describe("command help", func() {
-			result := execQuiet("test --help")
-
-			g.It("should display available commands", func() {
+		g.Describe("command help output", func() {
+			g.It("should display full help", func() {
 				expected := `NAME:
-   centry test - Test stuff
+   centry helptest - Help tests
 
 USAGE:
-   centry test command [command options] [arguments...]
+   centry helptest command [command options] [arguments...]
 
 COMMANDS:
-   args         Test stuff
-   env          Test stuff
    placeholder  ...
    subcommand   Description for subcommand
 
@@ -208,36 +279,35 @@ OPTIONS:
    --help, -h     Show help (default: false)
    --version, -v  Print the version (default: false)`
 
-				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+				out := execQuiet("helptest --help")
+				test.AssertStringContains(g, out.Stdout, expected)
 			})
 		})
 
-		g.Describe("subcommand help", func() {
-			result := execQuiet("test subcommand --help")
-
+		g.Describe("subcommand help output", func() {
 			g.It("should display full help", func() {
 				expected := `NAME:
-   centry test subcommand - Description for subcommand
+   centry helptest subcommand - Description for subcommand
 
 USAGE:
    Help text for sub command
 
 OPTIONS:
-   --help, -h  Show help (default: false)`
+   --opt1 value, -o value  Help text for opt1 (default: "footothebar")
+   --help, -h              Show help (default: false)`
 
-				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+				out := execQuiet("helptest subcommand --help")
+				test.AssertStringContains(g, out.Stdout, expected)
 			})
 		})
 
-		g.Describe("placeholder help", func() {
-			result := execQuiet("test placeholder --help")
-
+		g.Describe("placeholder help output", func() {
 			g.It("should display full help", func() {
 				expected := `NAME:
-   centry test placeholder - ...
+   centry helptest placeholder - ...
 
 USAGE:
-   centry test placeholder command [command options] [arguments...]
+   centry helptest placeholder command [command options] [arguments...]
 
 COMMANDS:
    subcommand1  Description for placeholder subcommand1
@@ -247,84 +317,25 @@ OPTIONS:
    --help, -h     Show help (default: false)
    --version, -v  Print the version (default: false)`
 
-				g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+				out := execQuiet("helptest placeholder --help")
+				test.AssertStringContains(g, out.Stdout, expected)
 			})
 
 			g.Describe("placeholder subcommand help", func() {
-				result := execQuiet("test placeholder subcommand1 --help")
-
 				g.It("should display full help", func() {
 					expected := `NAME:
-   centry test placeholder subcommand1 - Description for placeholder subcommand1
+   centry helptest placeholder subcommand1 - Description for placeholder subcommand1
 
 USAGE:
    Help text for placeholder subcommand1
 
 OPTIONS:
-   --help, -h  Show help (default: false)`
+   --opt1 value  Help text for opt1
+   --help, -h    Show help (default: false)`
 
-					g.Assert(strings.Contains(result.Stdout, expected)).IsTrue("\n\nEXPECTED:\n\n", expected, "\n\nTO BE FOUND IN:\n\n", result.Stdout)
+					out := execQuiet("helptest placeholder subcommand1 --help")
+					test.AssertStringContains(g, out.Stdout, expected)
 				})
-			})
-		})
-	})
-
-	g.Describe("global options", func() {
-		g.Describe("version", func() {
-			g.Describe("--version", func() {
-				result := execQuiet("--version")
-
-				g.It("should display version", func() {
-					expected := `1.0.0`
-					g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
-				})
-			})
-
-			g.Describe("-v", func() {
-				result := execQuiet("-v")
-
-				g.It("should display version", func() {
-					expected := `1.0.0`
-					g.Assert(strings.Contains(result.Stdout, expected)).IsTrue()
-				})
-			})
-		})
-
-		g.Describe("quiet", func() {
-			g.Describe("--quiet", func() {
-				result := execWithLogging("--quiet")
-
-				g.It("should disable logging", func() {
-					expected := `Changing loglevel to panic (from debug)`
-					g.Assert(strings.Contains(result.Stderr, expected)).IsTrue(result.Stderr)
-				})
-			})
-
-			g.Describe("-q", func() {
-				result := execWithLogging("-q")
-
-				g.It("should disable logging", func() {
-					expected := `Changing loglevel to panic (from debug)`
-					g.Assert(strings.Contains(result.Stderr, expected)).IsTrue(result.Stderr)
-				})
-			})
-		})
-
-		g.Describe("--config.log.level=info", func() {
-			result := execWithLogging("--config.log.level=info")
-
-			g.It("should change log level to info", func() {
-				expected := `Changing loglevel to info (from debug)`
-				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue(result.Stderr)
-			})
-		})
-
-		g.Describe("--config.log.level=error", func() {
-			result := execWithLogging("--config.log.level=error")
-
-			g.It("should change log level to error", func() {
-				expected := `Changing loglevel to error (from debug)`
-				g.Assert(strings.Contains(result.Stderr, expected)).IsTrue(result.Stderr)
 			})
 		})
 	})
@@ -355,7 +366,7 @@ func execCentry(source string, quiet bool) *execResult {
 			source = fmt.Sprintf("--quiet %s", source)
 		}
 		context := NewContext(CLI, io.Headless())
-		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("test/data/main_test.yaml %s", source), " "), context)
+		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("test/data/runtime_test.yaml %s", source), " "), context)
 		if err != nil {
 			exitCode = 1
 			runtimeErr = err

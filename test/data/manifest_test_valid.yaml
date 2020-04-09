@@ -1,0 +1,37 @@
+scripts:
+  - scripts/init.sh
+
+commands:
+  - name: get
+    path: commands/get.sh
+    description: Gets stuff
+    help: Help get stuff
+
+options:
+  - name: stringopt
+    short: S
+    type: string
+    description: A custom option
+    default: foobar
+
+  - name: boolopt
+    short: B
+    type: bool
+    description: A custom option
+
+  - name: selectopt1
+    type: select
+    env_name: SELECTOPT
+    description: Sets the selection to option 1
+
+  - name: selectopt2
+    type: select
+    env_name: SELECTOPT
+    description: Sets the selection to option 2
+
+config:
+  name: centry
+  version: 1.0.0
+  log:
+    level: debug
+    prefix: '[centry] '

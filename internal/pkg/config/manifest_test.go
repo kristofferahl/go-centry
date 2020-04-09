@@ -15,12 +15,12 @@ func TestManifest(t *testing.T) {
 
 	g.Describe("LoadManifest", func() {
 		g.It("returns error for invalid manifest file", func() {
-			_, err := LoadManifest("test/data/invalid.yaml")
+			_, err := LoadManifest("test/data/manifest_test_invalid.yaml")
 			g.Assert(err != nil).IsTrue("expected validation error")
 		})
 
 		g.It("returns manifest when file is found", func() {
-			path := "test/data/main_test.yaml"
+			path := "test/data/manifest_test_valid.yaml"
 			absPath, _ := filepath.Abs(path)
 			basePath := filepath.Dir(absPath)
 

@@ -1,0 +1,49 @@
+scripts:
+  - scripts/init.sh
+  - scripts/helpers.sh
+
+commands:
+  - name: scripttest
+    path: commands/script_test.sh
+    description: Script tests
+
+  - name: commandtest
+    path: commands/command_test.sh
+    description: Command tests
+
+  - name: optiontest
+    path: commands/option_test.sh
+    description: Option tests
+
+  - name: helptest
+    path: commands/help_test.sh
+    description: Help tests
+
+options:
+  - name: stringopt
+    short: S
+    type: string
+    description: A custom option
+    default: foobar
+
+  - name: boolopt
+    short: B
+    type: bool
+    description: A custom option
+
+  - name: selectopt1
+    type: select
+    env_name: SELECTOPT
+    description: Sets the selection to option 1
+
+  - name: selectopt2
+    type: select
+    env_name: SELECTOPT
+    description: Sets the selection to option 2
+
+config:
+  name: centry
+  version: 1.0.0
+  log:
+    level: debug
+    prefix: '[centry] '
