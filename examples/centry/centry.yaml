@@ -32,6 +32,7 @@ options:
   - name: debug
     type: bool
     description: Run in debug mode
+    hidden: true
 
   - name: no-logo
     type: bool
@@ -79,3 +80,4 @@ config:
     level: info
     prefix: '[centry] '
   hideInternalCommands: true
+  hideInternalOptions: true

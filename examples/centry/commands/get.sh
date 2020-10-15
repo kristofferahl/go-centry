@@ -20,11 +20,13 @@ get:env() {
 
 # centry.cmd[get:files]/description=Prints files from the current working directory
 # centry.cmd[get:files]/help=Prints files from the current working directory. Usage: ./stack get files [<...options>]
+# centry.cmd[get:files].option[hidden]/description=A hidden option
+# centry.cmd[get:files].option[hidden]/hidden=true
 get:files() {
   ls -ahl | ${SORTED}
 }
 
-# centry.cmd[get:secrets]/hidden=true
-get:secrets() {
+# centry.cmd[get:hidden]/hidden=true
+get:hidden() {
   echo "This subcommand won't be displayed in help output"
 }

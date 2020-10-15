@@ -384,6 +384,27 @@ OPTIONS:
 				test.AssertStringContains(g, out.Stdout, expected)
 			})
 		})
+
+		g.Describe("hidden options", func() {
+			g.It("should not display internal or hidden options", func() {
+				out := execQuiet("", "test/data/runtime_test_hidden_options.yaml")
+				expected := `OPTIONS:
+   --visible value  A visible option
+   --help, -h       Show help (default: false)
+   --version, -v    Print the version (default: false)`
+
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+
+			g.It("should not display hidden subcommand options", func() {
+				out := execQuiet("helptest subcommand --help", "test/data/runtime_test_hidden_options.yaml")
+				expected := `OPTIONS:
+   --opt1 value, -o value  Help text for opt1 (default: "footothebar")
+   --help, -h              Show help (default: false)`
+
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+		})
 	})
 }
 

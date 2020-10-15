@@ -1,0 +1,19 @@
+commands:
+  - name: helptest
+    path: commands/help_test.sh
+    description: Help tests
+
+options:
+  - name: visible
+    type: string
+    description: A visible option
+
+  - name: hidden
+    type: string
+    description: A hidden option
+    hidden: true
+
+config:
+  name: centry
+  version: 1.0.0
+  hideInternalOptions: true

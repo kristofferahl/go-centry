@@ -9,6 +9,8 @@ helptest() {
 # centry.cmd[helptest:subcommand].option[opt1]/description=Help text for opt1
 # centry.cmd[helptest:subcommand].option[opt1]/short=o
 # centry.cmd[helptest:subcommand].option[opt1]/default=footothebar
+# centry.cmd[helptest:subcommand].option[hiddenopt]/description=A hidden option
+# centry.cmd[helptest:subcommand].option[hiddenopt]/hidden=true
 helptest:subcommand() {
   echo "helptest:subcommand ($*)"
 }

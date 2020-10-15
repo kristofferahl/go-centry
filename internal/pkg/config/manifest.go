@@ -46,6 +46,7 @@ type Option struct {
 	Default     string            `yaml:"default,omitempty"`
 	Description string            `yaml:"description,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
+	Hidden      bool              `yaml:"hidden,omitempty"`
 }
 
 // Annotation returns a parsed annotation if present
@@ -60,6 +61,7 @@ type Config struct {
 	Version              string    `yaml:"version,omitempty"`
 	Log                  LogConfig `yaml:"log,omitempty"`
 	HideInternalCommands bool      `yaml:"hideInternalCommands,omitempty"`
+	HideInternalOptions  bool      `yaml:"hideInternalOptions,omitempty"`
 }
 
 // LogConfig defines the structure for log configuration section

@@ -32,12 +32,14 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 		Name:        "centry-config-log-level",
 		Description: "Overrides the log level",
 		Default:     manifest.Config.Log.Level,
+		Hidden:      manifest.Config.HideInternalOptions,
 	})
 	options.Add(&cmd.Option{
 		Type:        cmd.BoolOption,
 		Name:        "centry-quiet",
 		Description: "Disables logging",
 		Default:     false,
+		Hidden:      manifest.Config.HideInternalOptions,
 	})
 
 	// Adding global options specified by the manifest
@@ -66,6 +68,7 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 			Description: o.Description,
 			EnvName:     o.EnvName,
 			Default:     def,
+			Hidden:      o.Hidden,
 		})
 	}
 
@@ -92,6 +95,7 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				Aliases: short,
 				Usage:   o.Description,
 				Value:   def,
+				Hidden:  o.Hidden,
 			})
 		case cmd.BoolOption:
 			def := false
@@ -103,6 +107,7 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				Aliases: short,
 				Usage:   o.Description,
 				Value:   def,
+				Hidden:  o.Hidden,
 			})
 		case cmd.StringOption:
 			def := ""
@@ -114,6 +119,7 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				Aliases: short,
 				Usage:   o.Description,
 				Value:   def,
+				Hidden:  o.Hidden,
 			})
 		}
 	}
