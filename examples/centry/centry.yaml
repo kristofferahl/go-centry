@@ -75,7 +75,7 @@ options:
 config:
   name: centry
   description: A tool for building declarative CLI's over bash scripts, written in go
-  version: 1.0.0
+  version: 1.0.0 # NOTE: This can also be set from an environment variable
   log:
     level: info
     prefix: '[centry] '

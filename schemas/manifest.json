@@ -58,7 +58,7 @@
         "hideInternalCommands": { "type": "boolean" },
         "hideInternalOptions": { "type": "boolean" }
       },
-      "required": [ "name", "version" ]
+      "required": [ "name" ]
     }
   },
   "required": [ "commands", "config" ]

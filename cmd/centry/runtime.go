@@ -79,6 +79,9 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 		},
 	}
 
+	// Environment overrides
+	overrideFromEnvironment(runtime)
+
 	// Register internal commands
 	registerInternalCommands(runtime)
 
