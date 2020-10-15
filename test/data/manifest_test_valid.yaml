@@ -6,6 +6,7 @@ commands:
     path: commands/get.sh
     description: Gets stuff
     help: Help get stuff
+    hidden: false
 
 options:
   - name: stringopt
@@ -29,6 +30,10 @@ options:
     env_name: SELECTOPT
     description: Sets the selection to option 2
 
+  - name: hiddenopt
+    type: string
+    hidden: true
+
 config:
   name: centry
   description: A description from manifest file
@@ -36,3 +41,5 @@ config:
   log:
     level: debug
     prefix: '[centry] '
+  hideInternalCommands: false
+  hideInternalOptions: false
