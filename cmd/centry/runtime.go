@@ -115,8 +115,8 @@ func (runtime *Runtime) Execute() int {
 
 func handleBefore(runtime *Runtime, c *cli.Context) error {
 	// Override the current log level from options
-	logLevel := c.String("config.log.level")
-	if c.Bool("quiet") {
+	logLevel := c.String("centry-config-log-level")
+	if c.Bool("centry-quiet") {
 		logLevel = "panic"
 	}
 	runtime.context.log.TrySetLogLevel(logLevel)

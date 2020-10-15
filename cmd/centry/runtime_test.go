@@ -190,36 +190,26 @@ func TestMain(t *testing.T) {
 			})
 		})
 
-		g.Describe("quiet", func() {
-			g.Describe("--quiet", func() {
-				g.It("should disable logging", func() {
-					expected := `Changing loglevel to panic (from debug)`
-					out := execWithLogging("--quiet")
-					test.AssertStringContains(g, out.Stderr, expected)
-				})
-			})
-
-			g.Describe("-q", func() {
-				g.It("should disable logging", func() {
-					expected := `Changing loglevel to panic (from debug)`
-					out := execWithLogging("-q")
-					test.AssertStringContains(g, out.Stderr, expected)
-				})
-			})
-		})
-
-		g.Describe("--config.log.level=info", func() {
-			g.It("should change log level to info", func() {
-				expected := `Changing loglevel to info (from debug)`
-				out := execWithLogging("--config.log.level=info")
+		g.Describe("--centry-quiet", func() {
+			g.It("should disable logging", func() {
+				expected := `Changing loglevel to panic (from debug)`
+				out := execWithLogging("--centry-quiet")
 				test.AssertStringContains(g, out.Stderr, expected)
 			})
 		})
 
-		g.Describe("--config.log.level=error", func() {
+		g.Describe("--centry-config-log-level=info", func() {
+			g.It("should change log level to info", func() {
+				expected := `Changing loglevel to info (from debug)`
+				out := execWithLogging("--centry-config-log-level=info")
+				test.AssertStringContains(g, out.Stderr, expected)
+			})
+		})
+
+		g.Describe("--centry-config-log-level=error", func() {
 			g.It("should change log level to error", func() {
 				expected := `Changing loglevel to error (from debug)`
-				out := execWithLogging("--config.log.level=error")
+				out := execWithLogging("--centry-config-log-level=error")
 				test.AssertStringContains(g, out.Stderr, expected)
 			})
 		})
@@ -277,14 +267,14 @@ func TestMain(t *testing.T) {
 
 			g.It("should display global options", func() {
 				expected := `OPTIONS:
-   --boolopt, -B                A custom option (default: false)
-   --config.log.level value     Overrides the log level (default: "debug")
-   --quiet, -q                  Disables logging (default: false)
-   --selectopt1                 Sets the selection to option 1 (default: false)
-   --selectopt2                 Sets the selection to option 2 (default: false)
-   --stringopt value, -S value  A custom option (default: "foobar")
-   --help, -h                   Show help (default: false)
-   --version, -v                Print the version (default: false)`
+   --boolopt, -B                    A custom option (default: false)
+   --centry-config-log-level value  Overrides the log level (default: "debug")
+   --centry-quiet                   Disables logging (default: false)
+   --selectopt1                     Sets the selection to option 1 (default: false)
+   --selectopt2                     Sets the selection to option 2 (default: false)
+   --stringopt value, -S value      A custom option (default: "foobar")
+   --help, -h                       Show help (default: false)
+   --version, -v                    Print the version (default: false)`
 
 				test.AssertStringContains(g, out.Stdout, expected)
 			})
@@ -433,7 +423,7 @@ func execCentry(source string, quiet bool, manifestPath string) *execResult {
 
 	out := test.CaptureOutput(func() {
 		if quiet {
-			source = fmt.Sprintf("--quiet %s", source)
+			source = fmt.Sprintf("--centry-quiet %s", source)
 		}
 		context := NewContext(CLI, io.Headless())
 		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("%s %s", manifestPath, source), " "), context)

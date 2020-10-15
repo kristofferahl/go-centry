@@ -29,14 +29,13 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 
 	options.Add(&cmd.Option{
 		Type:        cmd.StringOption,
-		Name:        "config.log.level",
+		Name:        "centry-config-log-level",
 		Description: "Overrides the log level",
 		Default:     manifest.Config.Log.Level,
 	})
 	options.Add(&cmd.Option{
 		Type:        cmd.BoolOption,
-		Name:        "quiet",
-		Short:       "q",
+		Name:        "centry-quiet",
 		Description: "Disables logging",
 		Default:     false,
 	})
