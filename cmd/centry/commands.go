@@ -12,7 +12,7 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func registerBuiltinCommands(runtime *Runtime) {
+func registerInternalCommands(runtime *Runtime) {
 	context := runtime.context
 
 	if context.executor == CLI {
@@ -22,7 +22,15 @@ func registerBuiltinCommands(runtime *Runtime) {
 				"command": "serve",
 			}),
 		}
-		runtime.cli.Commands = append(runtime.cli.Commands, serveCmd.ToCLICommand())
+		internalCmd := &cli.Command{
+			Name:      "internal",
+			Usage:     "Internal centry commands",
+			UsageText: "",
+			Subcommands: []*cli.Command{
+				serveCmd.ToCLICommand(),
+			},
+		}
+		runtime.cli.Commands = append(runtime.cli.Commands, internalCmd)
 	}
 }
 

@@ -79,8 +79,8 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 		},
 	}
 
-	// Register builtin commands
-	registerBuiltinCommands(runtime)
+	// Register internal commands
+	registerInternalCommands(runtime)
 
 	// Register manifest commands
 	registerManifestCommands(runtime, options)

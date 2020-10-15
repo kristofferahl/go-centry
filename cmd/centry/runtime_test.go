@@ -268,6 +268,7 @@ func TestMain(t *testing.T) {
 				expected := `COMMANDS:
    commandtest  Command tests
    helptest     Help tests
+   internal     Internal centry commands
    optiontest   Option tests
    scripttest   Script tests`
 
