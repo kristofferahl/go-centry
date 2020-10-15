@@ -1,93 +1,30 @@
 package main
 
-import (
-	"bytes"
-	"fmt"
-	"log"
-	"sort"
-	"strings"
+var cliHelpTemplate = `NAME:
+   {{.Name}}{{if .Usage}} - {{.Usage}}{{end}}
 
-	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
-	"github.com/kristofferahl/go-centry/internal/pkg/config"
-	"github.com/mitchellh/cli"
-)
+USAGE:
+   {{if .UsageText}}{{.UsageText}}{{else}}{{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Version}}{{if not .HideVersion}}
 
-func cliHelpFunc(manifest *config.Manifest, globalOptions *cmd.OptionsSet) cli.HelpFunc {
-	return func(commands map[string]cli.CommandFactory) string {
-		var buf bytes.Buffer
-		buf.WriteString(fmt.Sprintf("Usage: %s [<global options>] <command> [<args>]\n\n", manifest.Config.Name))
+VERSION:
+   {{.Version}}{{end}}{{end}}{{if .Description}}
 
-		writeCommands(&buf, commands, manifest)
-		writeOptionsSet(&buf, globalOptions)
+DESCRIPTION:
+   {{.Description}}{{end}}{{if len .Authors}}
 
-		return buf.String()
-	}
-}
+AUTHOR{{with $length := len .Authors}}{{if ne 1 $length}}S{{end}}{{end}}:
+   {{range $index, $author := .Authors}}{{if $index}}
+   {{end}}{{$author}}{{end}}{{end}}{{if .VisibleCommands}}
 
-func writeCommands(buf *bytes.Buffer, commands map[string]cli.CommandFactory, manifest *config.Manifest) {
-	buf.WriteString("Commands:\n")
+COMMANDS:{{range .VisibleCategories}}{{if .Name}}
+   {{.Name}}:{{range .VisibleCommands}}
+     {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{else}}{{range .VisibleCommands}}
+   {{join .Names ", "}}{{"\t"}}{{.Usage}}{{end}}{{end}}{{end}}{{end}}{{if .VisibleFlags}}
 
-	// Get the list of keys so we can sort them, and also get the maximum
-	// key length so they can be aligned properly.
-	keys := make([]string, 0, len(commands))
-	maxKeyLen := 0
-	for key := range commands {
-		if len(key) > maxKeyLen {
-			maxKeyLen = len(key)
-		}
+GLOBAL OPTIONS:
+   {{range $index, $option := .VisibleFlags}}{{if $index}}
+   {{end}}{{$option}}{{end}}{{end}}{{if .Copyright}}
 
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-
-	for _, key := range keys {
-		commandFunc, ok := commands[key]
-		if !ok {
-			// This should never happen since we JUST built the list of keys.
-			panic("command not found: " + key)
-		}
-
-		command, err := commandFunc()
-		if err != nil {
-			log.Printf("[ERR] cli: Command '%s' failed to load: %s", key, err)
-			continue
-		}
-
-		synopsis := command.Synopsis()
-		if synopsis == "" {
-			for _, mc := range manifest.Commands {
-				if mc.Name == key {
-					synopsis = mc.Description
-				}
-			}
-		}
-		key = fmt.Sprintf("%s%s", key, strings.Repeat(" ", maxKeyLen-len(key)))
-		buf.WriteString(fmt.Sprintf("    %s    %s\n", key, synopsis))
-	}
-}
-
-func writeOptionsSet(buf *bytes.Buffer, set *cmd.OptionsSet) {
-	buf.WriteString(fmt.Sprintf("\n%s options:\n", set.Name))
-
-	sorted := set.Sorted()
-
-	maxKeyLen := 0
-	for _, o := range sorted {
-		key := fmt.Sprintf("--%s", o.Name)
-		if len(key) > maxKeyLen {
-			maxKeyLen = len(key)
-		}
-	}
-
-	for _, o := range sorted {
-		l := fmt.Sprintf("--%s", o.Name)
-
-		if o.Short != "" {
-			l = fmt.Sprintf("%s, -%s", l, o.Short)
-		}
-
-		n := fmt.Sprintf("%s%s", l, strings.Repeat(" ", maxKeyLen-len(l)))
-		d := o.Description
-		buf.WriteString(fmt.Sprintf("    %s    %s\n", n, d))
-	}
-}
+COPYRIGHT:
+   {{.Copyright}}{{end}}
+`

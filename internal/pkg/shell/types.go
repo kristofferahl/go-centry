@@ -1,5 +1,6 @@
 package shell
 
+import "github.com/kristofferahl/go-centry/internal/pkg/cmd"
 import "github.com/kristofferahl/go-centry/internal/pkg/io"
 
 // Executable defines the interface of an executable program
@@ -12,6 +13,7 @@ type Function struct {
 	Name        string
 	Description string
 	Help        string
+	Options     *cmd.OptionsSet
 }
 
 // Script defines the interface of a script file
@@ -21,6 +23,6 @@ type Script interface {
 	FullPath() string
 	RelativePath() string
 	Functions() (funcs []*Function, err error)
-	CreateFunctionNamespace(name string) string
-	FunctionNameSplitChar() string
+	FunctionNamespace(name string) string
+	FunctionNamespaceSplitChar() string
 }

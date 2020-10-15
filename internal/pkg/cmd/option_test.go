@@ -1,12 +1,26 @@
 package cmd
 
 import (
-	"flag"
+	"math/rand"
 	"testing"
+	"time"
 
 	. "github.com/franela/goblin"
-	"github.com/kristofferahl/go-centry/internal/pkg/io"
 )
+
+var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+
+func randomString(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 func TestMain(t *testing.T) {
 	g := Goblin(t)
@@ -23,7 +37,7 @@ func TestMain(t *testing.T) {
 		g.Describe("Add", func() {
 			g.It("should add option", func() {
 				os := NewOptionsSet("Name")
-				os.Add(&Option{Name: "Option"})
+				os.Add(&Option{Name: "Option", Type: StringOption})
 				g.Assert(len(os.Sorted())).Equal(1)
 			})
 
@@ -42,384 +56,46 @@ func TestMain(t *testing.T) {
 				g.Assert(err.Error()).Equal("missing option name")
 			})
 
+			g.It("should return error when option type is unset", func() {
+				os := NewOptionsSet("Name")
+				err := os.Add(&Option{Name: "foo"})
+				g.Assert(len(os.Sorted())).Equal(0)
+				g.Assert(err.Error()).Equal("missing option type")
+			})
+
 			g.It("should return error when option name already exists", func() {
 				os := NewOptionsSet("Name")
-				err1 := os.Add(&Option{Name: "Option"})
-				err2 := os.Add(&Option{Name: "Option"})
+				err1 := os.Add(&Option{Name: "Option", Type: StringOption})
+				err2 := os.Add(&Option{Name: "Option", Type: StringOption})
 				g.Assert(len(os.Sorted())).Equal(1)
 				g.Assert(err1).Equal(nil)
 				g.Assert(err2 != nil).IsTrue("expected an error")
 				g.Assert(err2.Error()).Equal("an option with the name \"Option\" has already been added")
 			})
 		})
+	})
 
-		g.Describe("AsFlagSet", func() {
-			g.Describe("with no options", func() {
-				os := NewOptionsSet("Name")
-				fs := os.AsFlagSet()
-
-				g.It("should have error handling turned off", func() {
-					g.Assert(fs.ErrorHandling()).Equal(flag.ContinueOnError)
-				})
-
-				g.It("should have no flags", func() {
-					c := 0
-					fs.VisitAll(func(flag *flag.Flag) {
-						c++
-					})
-					g.Assert(c).Equal(0)
-				})
-			})
-
-			g.Describe("with options", func() {
-				os := NewOptionsSet("Name")
-				os.Add(&Option{Type: StringOption, Name: "Option"})
-				fs := os.AsFlagSet()
-
-				g.It("should have error handling turned off", func() {
-					g.Assert(fs.ErrorHandling()).Equal(flag.ContinueOnError)
-				})
-
-				g.It("should have flags", func() {
-					c := 0
-					var f *flag.Flag
-					fs.VisitAll(func(flag *flag.Flag) {
-						c++
-						f = flag
-					})
-					g.Assert(c).Equal(1)
-					g.Assert(f.Name).Equal("Option")
-				})
-			})
+	g.Describe("StringToOptionType", func() {
+		g.It("should default to StringOption", func() {
+			g.Assert(StringToOptionType(randomString(10))).Equal(StringOption)
 		})
 
-		g.Describe("Parse", func() {
-			g.Describe("with no options", func() {
-				os := NewOptionsSet("Name")
+		g.It("should return StringOption", func() {
+			g.Assert(StringToOptionType("string")).Equal(StringOption)
+			g.Assert(StringToOptionType("String")).Equal(StringOption)
+			g.Assert(StringToOptionType("STRING")).Equal(StringOption)
+		})
 
-				g.Describe("passing nil as args", func() {
-					g.It("should return 0 args", func() {
-						rest, err := os.Parse(nil, io.Headless())
-						g.Assert(err).Equal(nil)
-						g.Assert(len(rest)).Equal(0)
-					})
-				})
+		g.It("should return BoolOption", func() {
+			g.Assert(StringToOptionType("bool")).Equal(BoolOption)
+			g.Assert(StringToOptionType("Bool")).Equal(BoolOption)
+			g.Assert(StringToOptionType("BOOL")).Equal(BoolOption)
+		})
 
-				g.Describe("passing 0 args", func() {
-					g.It("should return 0 args", func() {
-						rest, err := os.Parse([]string{}, io.Headless())
-						g.Assert(err).Equal(nil)
-						g.Assert(len(rest)).Equal(0)
-					})
-				})
-
-				g.Describe("passing args", func() {
-					g.It("should return all args", func() {
-						rest, err := os.Parse([]string{"a1", "a2", "a3"}, io.Headless())
-						g.Assert(err).Equal(nil)
-						g.Assert(len(rest)).Equal(3)
-					})
-				})
-			})
-
-			g.Describe("boolean options", func() {
-				withBooleanOption := func(defaultValue bool) *OptionsSet {
-					os := NewOptionsSet("Name")
-					os.Add(&Option{
-						Type:    BoolOption,
-						Name:    "Option",
-						Default: defaultValue,
-					})
-					return os
-				}
-
-				g.Describe("with default value false", func() {
-					g.Describe("passing nil as args", func() {
-						os := withBooleanOption(false)
-						rest, err := os.Parse(nil, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should not have value for otpions", func() {
-							g.Assert(os.GetBool("Option")).Equal(false)
-						})
-					})
-
-					g.Describe("passing flag with value", func() {
-						os := withBooleanOption(false)
-						rest, err := os.Parse([]string{"--Option=true", "arg"}, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(1)
-							g.Assert(rest[0]).Equal("arg")
-						})
-
-						g.It("should not have value for option", func() {
-							g.Assert(os.GetBool("Option")).Equal(true)
-						})
-					})
-
-					g.Describe("passing flag without value", func() {
-						os := withBooleanOption(false)
-						rest, err := os.Parse([]string{"--Option", "arg"}, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(1)
-							g.Assert(rest[0]).Equal("arg")
-						})
-
-						g.It("should not have value for option", func() {
-							g.Assert(os.GetBool("Option")).Equal(true)
-						})
-					})
-				})
-
-				g.Describe("with default value true", func() {
-					g.Describe("passing nil as args", func() {
-						os := withBooleanOption(true)
-						rest, err := os.Parse(nil, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should not have value for otpions", func() {
-							g.Assert(os.GetBool("Option")).Equal(true)
-						})
-					})
-
-					g.Describe("passing flag with value", func() {
-						os := withBooleanOption(true)
-						rest, err := os.Parse([]string{"--Option=false", "arg"}, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(1)
-							g.Assert(rest[0]).Equal("arg")
-						})
-
-						g.It("should not have value for option", func() {
-							g.Assert(os.GetBool("Option")).Equal(false)
-						})
-					})
-
-					g.Describe("passing flag without value", func() {
-						os := withBooleanOption(true)
-						rest, err := os.Parse([]string{"--Option", "arg"}, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(1)
-							g.Assert(rest[0]).Equal("arg")
-						})
-
-						g.It("should not have value for option", func() {
-							g.Assert(os.GetBool("Option")).Equal(true)
-						})
-					})
-				})
-			})
-
-			g.Describe("string options", func() {
-				withStringOption := func(defaultValue string) *OptionsSet {
-					os := NewOptionsSet("Name")
-					os.Add(&Option{
-						Type:    StringOption,
-						Name:    "Option",
-						Default: defaultValue,
-					})
-					return os
-				}
-
-				g.Describe("without default value", func() {
-					g.Describe("passing nil as args", func() {
-						os := withStringOption("")
-						rest, err := os.Parse(nil, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should not have value for otpions", func() {
-							g.Assert(os.GetString("Option")).Equal("")
-						})
-					})
-
-					g.Describe("passing flag with value", func() {
-						os := withStringOption("")
-						rest, err := os.Parse([]string{"--Option", "value"}, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should not have value for option", func() {
-							g.Assert(os.GetString("Option")).Equal("value")
-						})
-					})
-				})
-
-				g.Describe("string option with default value", func() {
-					g.Describe("passing nil", func() {
-						os := withStringOption("DefaultValue")
-						rest, err := os.Parse(nil, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should not have value for otpions", func() {
-							g.Assert(os.GetString("Option")).Equal("DefaultValue")
-						})
-					})
-
-					g.Describe("passing flag with value", func() {
-						os := withStringOption("DefaultValue")
-						rest, err := os.Parse([]string{"--Option", "value"}, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should override default value", func() {
-							g.Assert(os.GetString("Option")).Equal("value")
-						})
-					})
-				})
-			})
-
-			g.Describe("select options", func() {
-				withSelectOptions := func(defaultValue bool) *OptionsSet {
-					os := NewOptionsSet("Name")
-					os.Add(&Option{
-						Type:    SelectOption,
-						Name:    "Option1",
-						EnvName: "OneOf",
-						Default: defaultValue,
-					})
-					os.Add(&Option{
-						Type:    SelectOption,
-						Name:    "Option2",
-						EnvName: "OneOf",
-						Default: defaultValue,
-					})
-					os.Add(&Option{
-						Type:    SelectOption,
-						Name:    "Option3",
-						EnvName: "OneOf",
-						Default: defaultValue,
-					})
-					return os
-				}
-
-				g.Describe("passing nil", func() {
-					os := withSelectOptions(false)
-					rest, err := os.Parse(nil, io.Headless())
-
-					g.It("should return 0 args and no error", func() {
-						g.Assert(err).Equal(nil)
-						g.Assert(len(rest)).Equal(0)
-					})
-
-					g.It("should not have default value for otpions", func() {
-						g.Assert(os.GetBool("Option1")).Equal(false)
-						g.Assert(os.GetBool("Option2")).Equal(false)
-					})
-				})
-
-				g.Describe("passing flag should", func() {
-					g.Describe("with no value", func() {
-						os := withSelectOptions(false)
-						rest, err := os.Parse([]string{"--Option1"}, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should set value", func() {
-							g.Assert(os.GetBool("Option1")).Equal(true)
-							g.Assert(os.GetBool("Option2")).Equal(false)
-						})
-					})
-
-					g.Describe("with value false", func() {
-						os := withSelectOptions(false)
-						rest, err := os.Parse([]string{"--Option1=false"}, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should set value", func() {
-							g.Assert(os.GetBool("Option1")).Equal(false)
-							g.Assert(os.GetBool("Option2")).Equal(false)
-						})
-					})
-
-					g.Describe("with value true", func() {
-						os := withSelectOptions(false)
-						rest, err := os.Parse([]string{"--Option1=true"}, io.Headless())
-
-						g.It("should return 0 args and no error", func() {
-							g.Assert(err).Equal(nil)
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should set value", func() {
-							g.Assert(os.GetBool("Option1")).Equal(true)
-							g.Assert(os.GetBool("Option2")).Equal(false)
-						})
-					})
-				})
-
-				g.Describe("passing multiple flags", func() {
-					g.Describe("when default is false", func() {
-						os := withSelectOptions(false)
-						rest, err := os.Parse([]string{"--Option3=false", "--Option2=true", "--Option1"}, io.Headless())
-
-						g.It("should return 0 args and error", func() {
-							g.Assert(err != nil).IsTrue("expected error")
-							g.Assert(err.Error()).Equal("ambiguous flag usage [Option1 Option2]")
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should set value", func() {
-							g.Assert(os.GetBool("Option1")).Equal(true)
-							g.Assert(os.GetBool("Option2")).Equal(true)
-							g.Assert(os.GetBool("Option3")).Equal(false)
-						})
-					})
-
-					g.Describe("when default is true", func() {
-						os := withSelectOptions(true)
-						rest, err := os.Parse([]string{"--Option3=false", "--Option2", "--Option1=false"}, io.Headless())
-
-						g.It("should return 0 args and error", func() {
-							g.Assert(err != nil).IsTrue("expected error")
-							g.Assert(err.Error()).Equal("ambiguous flag usage [Option1 Option3]")
-							g.Assert(len(rest)).Equal(0)
-						})
-
-						g.It("should set value", func() {
-							g.Assert(os.GetBool("Option1")).Equal(false)
-							g.Assert(os.GetBool("Option2")).Equal(true)
-							g.Assert(os.GetBool("Option3")).Equal(false)
-						})
-					})
-				})
-			})
+		g.It("should return SelectOption", func() {
+			g.Assert(StringToOptionType("select")).Equal(SelectOption)
+			g.Assert(StringToOptionType("Select")).Equal(SelectOption)
+			g.Assert(StringToOptionType("SELECT")).Equal(SelectOption)
 		})
 	})
 }

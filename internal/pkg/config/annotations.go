@@ -2,58 +2,80 @@ package config
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
 // TrueString defines a true value
 const TrueString string = "true"
 
-// CommandAnnotationAPIServe defines an annotation
-const CommandAnnotationAPIServe string = "centry.api/serve"
+// CommandAnnotationCmdNamespace defines an annotation namespace
+const CommandAnnotationCmdNamespace string = "centry.cmd"
 
-// CommandAnnotationDescriptionNamespace denines an annotation namespace
-const CommandAnnotationDescriptionNamespace string = "centry.cmd.description"
+// CommandAnnotationCmdOptionNamespace defines an annotation namespace
+const CommandAnnotationCmdOptionNamespace string = "centry.cmd.option"
 
-// CommandAnnotationHelpNamespace denines an annotation namespace
-const CommandAnnotationHelpNamespace string = "centry.cmd.help"
-
-// CommandAnnotationNamespaces holds a list of command annotation namespaces
-var CommandAnnotationNamespaces = []string{
-	CommandAnnotationDescriptionNamespace,
-	CommandAnnotationHelpNamespace,
-}
+// CommandAnnotationAPINamespace defines an annotation namespace
+const CommandAnnotationAPINamespace string = "centry.api"
 
 // Annotation defines an annotation
 type Annotation struct {
-	Namespace string
-	Key       string
-	Value     string
+	Namespace       string
+	NamespaceValues map[string]string
+	Key             string
+	Value           string
+}
+
+// AnnotationNamespaceKey creates an annotation namespace/key string
+func AnnotationNamespaceKey(namespace, key string) string {
+	return fmt.Sprintf("%s/%s", namespace, key)
+}
+
+// AnnotationString creates an annotation string
+func AnnotationString(namespace, key, value string) string {
+	return fmt.Sprintf("%s=%s", AnnotationNamespaceKey(namespace, key), value)
 }
 
 // ParseAnnotation parses text into an annotation
 func ParseAnnotation(text string) (*Annotation, error) {
 	text = strings.TrimSpace(text)
 
-	if !strings.HasPrefix(text, "centry") || !strings.Contains(text, "=") || !strings.Contains(text, "/") {
+	if !strings.HasPrefix(text, "centry") || !strings.Contains(text, "/") || !strings.Contains(text, "=") {
 		return nil, nil
 	}
 
-	kvp := strings.Split(text, "=")
+	namespaceKeyValueString := strings.SplitN(text, "/", 2)
+	namespace := namespaceKeyValueString[0]
+	keyValueString := namespaceKeyValueString[1]
+
+	kvp := strings.SplitN(keyValueString, "=", 2)
 	if len(kvp) != 2 {
 		return nil, fmt.Errorf("Failed to parse annotation! The text \"%s\" is not a valid annotation", text)
 	}
 
-	nk := kvp[0]
-	v := kvp[1]
+	return &Annotation{
+		Namespace:       cleanupNamespace(namespace),
+		NamespaceValues: extractNamespaceValues(namespace),
+		Key:             kvp[0],
+		Value:           kvp[1],
+	}, nil
+}
 
-	nkkvp := strings.Split(nk, "/")
-	if len(nkkvp) != 2 {
-		return nil, fmt.Errorf("Failed to parse annotation! The text \"%s\" is not a valid annotation", text)
+func extractNamespaceValues(namespace string) (params map[string]string) {
+	var compRegEx = regexp.MustCompile("\\.(\\w+)\\[([0-9A-Za-z_:]+)\\]")
+	match := compRegEx.FindAllStringSubmatch(namespace, -1)
+
+	params = make(map[string]string)
+	for _, kv := range match {
+		k := kv[1]
+		v := kv[2]
+		params[k] = v
 	}
 
-	return &Annotation{
-		Namespace: nkkvp[0],
-		Key:       nkkvp[1],
-		Value:     v,
-	}, nil
+	return
+}
+
+func cleanupNamespace(namespace string) string {
+	var compRegEx = regexp.MustCompile("(\\.*)(\\[([0-9A-Za-z_:]+)\\])")
+	return compRegEx.ReplaceAllString(namespace, `${1}`)
 }

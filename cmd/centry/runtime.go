@@ -1,40 +1,45 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/log"
-	"github.com/kristofferahl/go-centry/internal/pkg/shell"
-	"github.com/mitchellh/cli"
 	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
+
+const metadataExitCode string = "exitcode"
 
 // Runtime defines the runtime
 type Runtime struct {
+	cli     *cli.App
 	context *Context
-	cli     *cli.CLI
+	file    string
+	args    []string
+	events  []string
 }
 
 // NewRuntime builds a runtime based on the given arguments
 func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	// Create the runtime
-	runtime := &Runtime{}
+	runtime := &Runtime{
+		cli:     nil,
+		context: context,
+		file:    "",
+		args:    []string{},
+		events:  []string{},
+	}
 
 	// Args
-	file := ""
-	args := []string{}
 	if len(inputArgs) >= 1 {
-		file = inputArgs[0]
-		args = inputArgs[1:]
+		runtime.file = inputArgs[0]
+		runtime.args = inputArgs[1:]
 	}
 
 	// Load manifest
-	manifest, err := config.LoadManifest(file)
+	manifest, err := config.LoadManifest(runtime.file)
 	if err != nil {
 		return nil, err
 	}
-
 	context.manifest = manifest
 
 	// Create the log manager
@@ -43,123 +48,151 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	// Create global options
 	options := createGlobalOptions(context)
 
-	// Parse global options to get cli args
-	args, err = options.Parse(args, context.io)
-	if err != nil {
-		return nil, err
-	}
+	// Configure default options
+	configureDefaultOptions()
 
 	// Initialize cli
-	c := &cli.CLI{
-		Name:    context.manifest.Config.Name,
-		Version: context.manifest.Config.Version,
+	runtime.cli = &cli.App{
+		Name:      context.manifest.Config.Name,
+		HelpName:  context.manifest.Config.Name,
+		Usage:     context.manifest.Config.Description,
+		UsageText: "",
+		Version:   context.manifest.Config.Version,
 
-		Commands:   map[string]cli.CommandFactory{},
-		Args:       args,
-		HelpFunc:   cliHelpFunc(context.manifest, options),
-		HelpWriter: context.io.Stderr,
+		Commands: make([]*cli.Command, 0),
+		Flags:    optionsSetToFlags(options),
 
-		// Autocomplete:          true,
-		// AutocompleteInstall:   "install-autocomplete",
-		// AutocompleteUninstall: "uninstall-autocomplete",
+		HideHelpCommand:       true,
+		CustomAppHelpTemplate: cliHelpTemplate,
+
+		Writer:    context.io.Stdout,
+		ErrWriter: context.io.Stderr,
+
+		Before: func(c *cli.Context) error {
+			return handleBefore(runtime, c)
+		},
+		CommandNotFound: func(c *cli.Context, command string) {
+			handleCommandNotFound(runtime, c, command)
+		},
+		ExitErrHandler: func(c *cli.Context, err error) {
+			handleExitErr(runtime, c, err)
+		},
 	}
-
-	// Override the current log level from options
-	logLevel := options.GetString("config.log.level")
-	if options.GetBool("quiet") {
-		logLevel = "panic"
-	}
-	context.log.TrySetLogLevel(logLevel)
-
-	logger := context.log.GetLogger()
 
 	// Register builtin commands
-	if context.executor == CLI {
-		c.Commands["serve"] = func() (cli.Command, error) {
-			return &ServeCommand{
-				Manifest: context.manifest,
-				Log: logger.WithFields(logrus.Fields{
-					"command": "serve",
-				}),
-			}, nil
-		}
-	}
+	registerBuiltinCommands(runtime)
 
-	// Build commands
-	for _, cmd := range context.manifest.Commands {
-		cmd := cmd
+	// Register manifest commands
+	registerManifestCommands(runtime, options)
 
-		if context.commandEnabledFunc != nil && context.commandEnabledFunc(cmd) == false {
-			continue
-		}
-
-		script := createScript(cmd, context)
-
-		funcs, err := script.Functions()
-		if err != nil {
-			logger.WithFields(logrus.Fields{
-				"command": cmd.Name,
-			}).Errorf("Failed to parse script functions. %v", err)
-
-		} else {
-			for _, fn := range funcs {
-				fn := fn
-				cmd := cmd
-				namespace := script.CreateFunctionNamespace(cmd.Name)
-
-				if fn.Name != cmd.Name && strings.HasPrefix(fn.Name, namespace) == false {
-					continue
-				}
-
-				if fn.Description != "" {
-					cmd.Description = fn.Description
-				}
-
-				if fn.Help != "" {
-					cmd.Help = fn.Help
-				}
-
-				cmdKey := strings.Replace(fn.Name, script.FunctionNameSplitChar(), " ", -1)
-				c.Commands[cmdKey] = func() (cli.Command, error) {
-					return &ScriptCommand{
-						Context:       context,
-						Log:           logger.WithFields(logrus.Fields{}),
-						GlobalOptions: options,
-						Command:       cmd,
-						Script:        script,
-						Function:      fn.Name,
-					}, nil
-				}
-
-				logger.Debugf("Registered command \"%s\"", cmdKey)
-			}
-		}
-	}
-
-	runtime.context = context
-	runtime.cli = c
+	// Sort commands
+	sortCommands(runtime.cli.Commands)
 
 	return runtime, nil
 }
 
 // Execute runs the CLI and exits with a code
 func (runtime *Runtime) Execute() int {
+	args := append([]string{""}, runtime.args...)
+
 	// Run cli
-	exitCode, err := runtime.cli.Run()
+	err := runtime.cli.Run(args)
 	if err != nil {
-		logger := runtime.context.log.GetLogger()
-		logger.Error(err)
+		runtime.context.log.GetLogger().Error(err)
 	}
 
-	return exitCode
+	// Return exitcode defined in metadata
+	if runtime.cli.Metadata[metadataExitCode] != nil {
+		switch runtime.cli.Metadata[metadataExitCode].(type) {
+		case int:
+			return runtime.cli.Metadata[metadataExitCode].(int)
+		}
+		return 128
+	}
+
+	return 0
 }
 
-func createScript(cmd config.Command, context *Context) shell.Script {
-	return &shell.BashScript{
-		BasePath: context.manifest.BasePath,
-		Path:     cmd.Path,
-		Log: context.log.GetLogger().WithFields(logrus.Fields{
-			"script": cmd.Path,
-		}),
+func handleBefore(runtime *Runtime, c *cli.Context) error {
+	// Override the current log level from options
+	logLevel := c.String("config.log.level")
+	if c.Bool("quiet") {
+		logLevel = "panic"
 	}
+	runtime.context.log.TrySetLogLevel(logLevel)
+
+	// Print runtime events
+	logger := runtime.context.log.GetLogger()
+	for _, e := range runtime.events {
+		logger.Debugf(e)
+	}
+
+	return nil
+}
+
+func handleCommandNotFound(runtime *Runtime, c *cli.Context, command string) {
+	logger := runtime.context.log.GetLogger()
+	logger.WithFields(logrus.Fields{
+		"command": command,
+	}).Warnf("Command not found!")
+	c.App.Metadata[metadataExitCode] = 127
+}
+
+// Handles errors implementing ExitCoder by printing their
+// message and calling OsExiter with the given exit code.
+// If the given error instead implements MultiError, each error will be checked
+// for the ExitCoder interface, and OsExiter will be called with the last exit
+// code found, or exit code 1 if no ExitCoder is found.
+func handleExitErr(runtime *Runtime, context *cli.Context, err error) {
+	if err == nil {
+		return
+	}
+
+	logger := runtime.context.log.GetLogger()
+
+	if exitErr, ok := err.(cli.ExitCoder); ok {
+		if err.Error() != "" {
+			if _, ok := exitErr.(cli.ErrorFormatter); ok {
+				logger.WithFields(logrus.Fields{
+					"command": context.Command.Name,
+					"code":    exitErr.ExitCode(),
+				}).Errorf("%+v\n", err)
+			} else {
+				logger.WithFields(logrus.Fields{
+					"command": context.Command.Name,
+					"code":    exitErr.ExitCode(),
+				}).Error(err)
+			}
+		}
+		cli.OsExiter(exitErr.ExitCode())
+		return
+	}
+
+	if multiErr, ok := err.(cli.MultiError); ok {
+		code := handleMultiError(runtime, context, multiErr)
+		cli.OsExiter(code)
+		return
+	}
+}
+
+func handleMultiError(runtime *Runtime, context *cli.Context, multiErr cli.MultiError) int {
+	code := 1
+	for _, merr := range multiErr.Errors() {
+		if multiErr2, ok := merr.(cli.MultiError); ok {
+			code = handleMultiError(runtime, context, multiErr2)
+		} else if merr != nil {
+			if exitErr, ok := merr.(cli.ExitCoder); ok {
+				code = exitErr.ExitCode()
+				runtime.context.log.GetLogger().WithFields(logrus.Fields{
+					"command": context.Command.Name,
+					"code":    code,
+				}).Error(merr)
+			} else {
+				runtime.context.log.GetLogger().WithFields(logrus.Fields{
+					"command": context.Command.Name,
+				}).Error(merr)
+			}
+		}
+	}
+	return code
 }

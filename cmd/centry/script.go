@@ -10,6 +10,7 @@ import (
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/shell"
 	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
 // ScriptCommand is a Command implementation that applies stuff
@@ -19,24 +20,54 @@ type ScriptCommand struct {
 	Command       config.Command
 	GlobalOptions *cmd.OptionsSet
 	Script        shell.Script
-	Function      string
+	Function      shell.Function
+}
+
+// GetCommandInvocation returns the command invocation string
+func (sc *ScriptCommand) GetCommandInvocation() string {
+	return strings.Replace(sc.Function.Name, sc.Script.FunctionNamespaceSplitChar(), " ", -1)
+}
+
+// GetCommandInvocationPath returns the command invocation path
+func (sc *ScriptCommand) GetCommandInvocationPath() []string {
+	return strings.Split(sc.GetCommandInvocation(), " ")
+}
+
+// ToCLICommand returns a CLI command
+func (sc *ScriptCommand) ToCLICommand() *cli.Command {
+	cmdKeys := sc.GetCommandInvocationPath()
+	cmdName := cmdKeys[len(cmdKeys)-1]
+	return &cli.Command{
+		Name:            cmdName,
+		Usage:           sc.Command.Description,
+		UsageText:       sc.Command.Help,
+		HideHelpCommand: true,
+		Action: func(c *cli.Context) error {
+			ec := sc.Run(c, c.Args().Slice())
+			if ec > 0 {
+				return cli.Exit("Command exited with non zero exit code", ec)
+			}
+			return nil
+		},
+		Flags: optionsSetToFlags(sc.Function.Options),
+	}
 }
 
 // Run builds the source and executes it
-func (c *ScriptCommand) Run(args []string) int {
-	c.Log.Debugf("Executing command \"%v\"", c.Function)
+func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
+	sc.Log.Debugf("Executing command \"%v\"", sc.Function.Name)
 
 	var source string
-	switch c.Script.Language() {
+	switch sc.Script.Language() {
 	case "bash":
-		source = generateBashSource(c, args)
-		c.Log.Debugf("Generated bash source:\n%s\n", source)
+		source = generateBashSource(c, sc, args)
+		sc.Log.Debugf("Generated bash source:\n%s\n", source)
 	default:
-		c.Log.Errorf("Unsupported script language %s", c.Script.Language())
+		sc.Log.Errorf("Unsupported script language %s", sc.Script.Language())
 		return 1
 	}
 
-	err := c.Script.Executable().Run(c.Context.io, []string{"-c", source})
+	err := sc.Script.Executable().Run(sc.Context.io, []string{"-c", source})
 	if err != nil {
 		exitCode := 1
 
@@ -46,36 +77,39 @@ func (c *ScriptCommand) Run(args []string) int {
 			}
 		}
 
-		c.Log.Errorf("Command %v exited with error! %v", c.Function, err)
+		sc.Log.Debugf("Script exited with error, %v", err)
 		return exitCode
 	}
 
-	c.Log.Debugf("Finished executing command %v...", c.Function)
+	sc.Log.Debugf("Finished executing command %s...", sc.Function.Name)
 	return 0
 }
 
-// Help returns the help text of the ScriptCommand
-func (c *ScriptCommand) Help() string {
-	return c.Command.Help
-}
-
-// Synopsis returns the synopsis of the ScriptCommand
-func (c *ScriptCommand) Synopsis() string {
-	return c.Command.Description
-}
-
-func generateBashSource(c *ScriptCommand, args []string) string {
+func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) string {
 	source := []string{}
 	source = append(source, "#!/usr/bin/env bash")
 
 	source = append(source, "")
 	source = append(source, "# Set working directory")
-	source = append(source, fmt.Sprintf("cd %s || exit 1", c.Context.manifest.BasePath))
+	source = append(source, fmt.Sprintf("cd %s || exit 1", sc.Context.manifest.BasePath))
 
 	source = append(source, "")
-	source = append(source, "# Set exports from flags")
+	source = append(source, "# Set exports from global options")
 
-	for _, v := range optionsSetToEnvVars(c.GlobalOptions) {
+	for _, v := range optionsSetToEnvVars(c, sc.GlobalOptions) {
+		if v.Value != "" {
+			value := v.Value
+			if v.IsString() {
+				value = fmt.Sprintf("'%s'", v.Value)
+			}
+			source = append(source, fmt.Sprintf("export %s=%s", v.Name, value))
+		}
+	}
+
+	source = append(source, "")
+	source = append(source, "# Set exports from local options")
+
+	for _, v := range optionsSetToEnvVars(c, sc.Function.Options) {
 		if v.Value != "" {
 			value := v.Value
 			if v.IsString() {
@@ -87,17 +121,17 @@ func generateBashSource(c *ScriptCommand, args []string) string {
 
 	source = append(source, "")
 	source = append(source, "# Sourcing scripts")
-	for _, s := range c.Context.manifest.Scripts {
+	for _, s := range sc.Context.manifest.Scripts {
 		source = append(source, fmt.Sprintf("source %s", s))
 	}
 
 	source = append(source, "")
 	source = append(source, "# Sourcing command")
-	source = append(source, fmt.Sprintf("source %s", c.Script.FullPath()))
+	source = append(source, fmt.Sprintf("source %s", sc.Script.FullPath()))
 
 	source = append(source, "")
 	source = append(source, "# Executing command")
-	source = append(source, fmt.Sprintf("%s %s", c.Function, strings.Join(args, " ")))
+	source = append(source, fmt.Sprintf("%s %s", sc.Function.Name, strings.Join(args, " ")))
 
 	return strings.Join(source, "\n")
 }

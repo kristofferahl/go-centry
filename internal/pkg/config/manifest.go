@@ -26,9 +26,14 @@ type Manifest struct {
 type Command struct {
 	Name        string            `yaml:"name,omitempty"`
 	Path        string            `yaml:"path,omitempty"`
-	Help        string            `yaml:"help,omitempty"` // NOTE: The Help text is displayed only when the command matches the full path of a command
 	Description string            `yaml:"description,omitempty"`
+	Help        string            `yaml:"help,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
+}
+
+// Annotation returns a parsed annotation if present
+func (c Command) Annotation(namespace, key string) (*Annotation, error) {
+	return ParseAnnotation(getAnnotationString(c.Annotations, namespace, key))
 }
 
 // Option defines the structure of options
@@ -42,11 +47,17 @@ type Option struct {
 	Annotations map[string]string `yaml:"annotations,omitempty"`
 }
 
+// Annotation returns a parsed annotation if present
+func (o Option) Annotation(namespace, key string) (*Annotation, error) {
+	return ParseAnnotation(getAnnotationString(o.Annotations, namespace, key))
+}
+
 // Config defines the structure for the configuration section
 type Config struct {
-	Name    string    `yaml:"name,omitempty"`
-	Version string    `yaml:"version,omitempty"`
-	Log     LogConfig `yaml:"log,omitempty"`
+	Name        string    `yaml:"name,omitempty"`
+	Description string    `yaml:"description,omitempty"`
+	Version     string    `yaml:"version,omitempty"`
+	Log         LogConfig `yaml:"log,omitempty"`
 }
 
 // LogConfig defines the structure for log configuration section
@@ -105,4 +116,18 @@ func parseManifestYaml(bs []byte) (*Manifest, error) {
 		return nil, fmt.Errorf("Failed to parse manifest yaml. %v", err)
 	}
 	return &m, nil
+}
+
+func getAnnotationString(annotations map[string]string, namespace, key string) string {
+	if annotations == nil {
+		return ""
+	}
+
+	namespaceKey := AnnotationNamespaceKey(namespace, key)
+	value := annotations[namespaceKey]
+	if value == "" {
+		return ""
+	}
+
+	return AnnotationString(namespace, key, value)
 }

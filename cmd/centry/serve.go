@@ -11,12 +11,29 @@ import (
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/io"
 	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 )
 
 // ServeCommand is a Command implementation that applies stuff
 type ServeCommand struct {
 	Manifest *config.Manifest
 	Log      *logrus.Entry
+}
+
+// ToCLICommand returns a CLI command
+func (sc *ServeCommand) ToCLICommand() *cli.Command {
+	return &cli.Command{
+		Name:      "serve",
+		Usage:     "Exposes commands over HTTP",
+		UsageText: "",
+		Action: func(c *cli.Context) error {
+			ec := sc.Run(c.Args().Slice())
+			if ec > 0 {
+				return cli.Exit("failed to start the server", ec)
+			}
+			return nil
+		},
+	}
 }
 
 // Run starts an HTTP server and blocks
@@ -37,16 +54,6 @@ func (sc *ServeCommand) Run(args []string) int {
 	}
 
 	return 0
-}
-
-// Help returns the help text of the ServeCommand
-func (sc *ServeCommand) Help() string {
-	return "No help here..."
-}
-
-// Synopsis returns the synopsis of the ServeCommand
-func (sc *ServeCommand) Synopsis() string {
-	return "Exposes commands over HTTP"
 }
 
 func configureBasicAuth() *api.BasicAuth {
@@ -101,7 +108,8 @@ func (sc *ServeCommand) executeHandler() func(w http.ResponseWriter, r *http.Req
 		context := NewContext(API, io)
 
 		context.commandEnabledFunc = func(cmd config.Command) bool {
-			if cmd.Annotations == nil || cmd.Annotations[config.CommandAnnotationAPIServe] != config.TrueString {
+			serveAnnotation, _ := cmd.Annotation(config.CommandAnnotationAPINamespace, "serve")
+			if serveAnnotation == nil || serveAnnotation.Value != config.TrueString {
 				return false
 			}
 
@@ -109,7 +117,8 @@ func (sc *ServeCommand) executeHandler() func(w http.ResponseWriter, r *http.Req
 		}
 
 		context.optionEnabledFunc = func(opt config.Option) bool {
-			if opt.Annotations == nil || opt.Annotations[config.CommandAnnotationAPIServe] != config.TrueString {
+			serveAnnotation, _ := opt.Annotation(config.CommandAnnotationAPINamespace, "serve")
+			if serveAnnotation == nil || serveAnnotation.Value != config.TrueString {
 				return false
 			}
 

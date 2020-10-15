@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"io"
 	"os"
+
+	"bou.ke/monkey"
 )
 
 // Output represents config for capturing stdout and or stderr.
@@ -14,8 +16,9 @@ type Output struct {
 
 // OutputCapture contains the result of the capture opreation.
 type OutputCapture struct {
-	Stdout string
-	Stderr string
+	Stdout   string
+	Stderr   string
+	ExitCode int
 }
 
 // CaptureOutput captures stdout and stderr.
@@ -25,6 +28,13 @@ func CaptureOutput(f func()) *OutputCapture {
 }
 
 func (output *Output) capture(f func()) *OutputCapture {
+	capturedExitCode := 0
+	patchedOsExit := func(exitCode int) {
+		capturedExitCode = exitCode
+	}
+	patch := monkey.Patch(os.Exit, patchedOsExit)
+	defer patch.Unpatch()
+
 	rOut, wOut, errOut := os.Pipe()
 	if errOut != nil {
 		panic(errOut)
@@ -52,6 +62,12 @@ func (output *Output) capture(f func()) *OutputCapture {
 	}
 
 	f()
+
+	if capturedExitCode > 0 {
+		return &OutputCapture{
+			ExitCode: capturedExitCode,
+		}
+	}
 
 	wOut.Close()
 	wErr.Close()

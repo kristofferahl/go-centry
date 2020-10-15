@@ -1,0 +1,4 @@
+commands: []
+config:
+  name: name
+  version: version
