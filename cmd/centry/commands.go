@@ -26,6 +26,7 @@ func registerInternalCommands(runtime *Runtime) {
 			Name:      "internal",
 			Usage:     "Internal centry commands",
 			UsageText: "",
+			Hidden:    context.manifest.Config.HideInternalCommands,
 			Subcommands: []*cli.Command{
 				serveCmd.ToCLICommand(),
 			},

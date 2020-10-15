@@ -375,6 +375,25 @@ OPTIONS:
 				test.AssertStringContains(g, out.Stdout, expected)
 			})
 		})
+
+		g.Describe("hidden commands", func() {
+			g.It("should not display internal or hidden commands", func() {
+				out := execQuiet("", "test/data/runtime_test_hidden_commands.yaml")
+				expected := `COMMANDS:
+   helptest  Help tests`
+
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+
+			g.It("should not display hidden subcommands", func() {
+				out := execQuiet("helptest --help", "test/data/runtime_test_hidden_commands.yaml")
+				expected := `COMMANDS:
+   placeholder  ...
+   subcommand   Description for subcommand`
+
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+		})
 	})
 }
 

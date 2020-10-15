@@ -26,3 +26,8 @@ helptest:placeholder:subcommand1() {
 helptest:placeholder:subcommand2() {
   echo "helptest:placeholder:subcommand2 ($*)"
 }
+
+# centry.cmd[helptest:hidden]/hidden=true
+helptest:hidden() {
+  echo "helptest:hidden ($*)"
+}

@@ -29,6 +29,7 @@ type Command struct {
 	Description string            `yaml:"description,omitempty"`
 	Help        string            `yaml:"help,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
+	Hidden      bool              `yaml:"hidden,omitempty"`
 }
 
 // Annotation returns a parsed annotation if present
@@ -54,10 +55,11 @@ func (o Option) Annotation(namespace, key string) (*Annotation, error) {
 
 // Config defines the structure for the configuration section
 type Config struct {
-	Name        string    `yaml:"name,omitempty"`
-	Description string    `yaml:"description,omitempty"`
-	Version     string    `yaml:"version,omitempty"`
-	Log         LogConfig `yaml:"log,omitempty"`
+	Name                 string    `yaml:"name,omitempty"`
+	Description          string    `yaml:"description,omitempty"`
+	Version              string    `yaml:"version,omitempty"`
+	Log                  LogConfig `yaml:"log,omitempty"`
+	HideInternalCommands bool      `yaml:"hideInternalCommands,omitempty"`
 }
 
 // LogConfig defines the structure for log configuration section

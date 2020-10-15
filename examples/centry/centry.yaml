@@ -26,6 +26,7 @@ commands:
   - name: interactive
     path: commands/interactive.sh
     description: Reading from stdin
+    hidden: true
 
 options:
   - name: debug
@@ -77,3 +78,4 @@ config:
   log:
     level: info
     prefix: '[centry] '
+  hideInternalCommands: true

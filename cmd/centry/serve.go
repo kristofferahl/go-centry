@@ -26,6 +26,7 @@ func (sc *ServeCommand) ToCLICommand() *cli.Command {
 		Name:      "serve",
 		Usage:     "Exposes commands over HTTP",
 		UsageText: "",
+		Hidden:    sc.Manifest.Config.HideInternalCommands,
 		Action: func(c *cli.Context) error {
 			ec := sc.Run(c.Args().Slice())
 			if ec > 0 {

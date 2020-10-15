@@ -23,3 +23,8 @@ get:env() {
 get:files() {
   ls -ahl | ${SORTED}
 }
+
+# centry.cmd[get:secrets]/hidden=true
+get:secrets() {
+  echo "This subcommand won't be displayed in help output"
+}

@@ -13,6 +13,7 @@ type Function struct {
 	Name        string
 	Description string
 	Help        string
+	Hidden      bool
 	Options     *cmd.OptionsSet
 }
 

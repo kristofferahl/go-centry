@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
@@ -182,6 +183,11 @@ func (s *BashScript) Functions() ([]*Function, error) {
 					f.Description = a.Value
 				case "help":
 					f.Help = a.Value
+				case "hidden":
+					hidden, err := strconv.ParseBool(a.Value)
+					if err == nil {
+						f.Hidden = hidden
+					}
 				}
 			}
 		}

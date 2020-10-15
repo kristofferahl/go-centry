@@ -1,0 +1,14 @@
+commands:
+  - name: scripttest
+    path: commands/script_test.sh
+    description: Script tests
+    hidden: true
+
+  - name: helptest
+    path: commands/help_test.sh
+    description: Help tests
+
+config:
+  name: centry
+  version: 1.0.0
+  hideInternalCommands: true
