@@ -27,6 +27,7 @@ changelog:
   sort: asc
   filters:
     exclude:
+    - '^.github:'
     - '^docs:'
     - '^examples:'
     - '^scripts:'
