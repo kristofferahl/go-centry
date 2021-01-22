@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strings"
+
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
 	"github.com/kristofferahl/go-centry/internal/pkg/log"
 	"github.com/sirupsen/logrus"
@@ -102,6 +104,9 @@ func (runtime *Runtime) Execute() int {
 	err := runtime.cli.Run(args)
 	if err != nil {
 		runtime.context.log.GetLogger().Error(err)
+		if strings.HasPrefix(err.Error(), "flag provided but not defined:") {
+			return 127
+		}
 	}
 
 	// Return exitcode defined in metadata

@@ -52,6 +52,13 @@ func TestMain(t *testing.T) {
 			})
 		})
 
+		g.Describe("invoking command with undefined option", func() {
+			g.It("should exit with exit code", func() {
+				out := execWithLogging("commandtest --undef")
+				g.Assert(out.ExitCode).Equal(127)
+			})
+		})
+
 		g.Describe("invoking command", func() {
 			g.Describe("with arguments", func() {
 				g.It("should have arguments passed", func() {
