@@ -66,6 +66,7 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 
 		HideHelpCommand:       true,
 		CustomAppHelpTemplate: cliHelpTemplate,
+		EnableBashCompletion:  true,
 
 		Writer:    context.io.Stdout,
 		ErrWriter: context.io.Stderr,
