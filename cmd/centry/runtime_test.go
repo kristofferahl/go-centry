@@ -109,6 +109,13 @@ func TestMain(t *testing.T) {
 					test.AssertStringHasKeyValue(g, out.Stdout, "CMDBOOLOPT", "true")
 					test.AssertStringHasKeyValue(g, out.Stdout, "CMDSELECTOPT", "cmdsel2")
 				})
+
+				g.It("should hav prefixed environment variables set", func() {
+					out := execCentry("commandtest options printenv --cmdstringopt=world --cmdboolopt --cmdsel1 --cmdsel2", true, "test/data/runtime_test_environment_prefix.yaml")
+					test.AssertStringHasKeyValue(g, out.Stdout, "ENV_PREFIX_CMDSTRINGOPT", "world")
+					test.AssertStringHasKeyValue(g, out.Stdout, "ENV_PREFIX_CMDBOOLOPT", "true")
+					test.AssertStringHasKeyValue(g, out.Stdout, "ENV_PREFIX_CMDSELECTOPT", "cmdsel2")
+				})
 			})
 		})
 	})
@@ -125,6 +132,12 @@ func TestMain(t *testing.T) {
 				out := execQuiet("optiontest printenv")
 				test.AssertStringHasKeyValue(g, out.Stdout, "BOOLOPT", "false")
 				test.AssertStringHasKeyValue(g, out.Stdout, "STRINGOPT", "foobar")
+			})
+
+			g.It("should have prefixed environment variables set", func() {
+				out := execCentry("optiontest printenv", true, "test/data/runtime_test_environment_prefix.yaml")
+				test.AssertStringHasKeyValue(g, out.Stdout, "ENV_PREFIX_BOOLOPT", "false")
+				test.AssertStringHasKeyValue(g, out.Stdout, "ENV_PREFIX_STRINGOPT", "foobar")
 			})
 		})
 
@@ -202,6 +215,16 @@ func TestMain(t *testing.T) {
 				expected := `Changing loglevel to panic (from debug)`
 				out := execWithLogging("--centry-quiet")
 				test.AssertStringContains(g, out.Stderr, expected)
+			})
+
+			g.It("should have environment variable set", func() {
+				out := execCentry("optiontest printenv", true, defaultManifestPath)
+				test.AssertStringHasKeyValue(g, out.Stdout, "CENTRY_QUIET", "true")
+			})
+
+			g.It("should not have prefixed environment variable set", func() {
+				out := execCentry("optiontest printenv", true, "test/data/runtime_test_environment_prefix.yaml")
+				test.AssertStringHasKeyValue(g, out.Stdout, "CENTRY_QUIET", "true") // Make sure we don't prefix internal options
 			})
 		})
 

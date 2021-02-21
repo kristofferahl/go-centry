@@ -79,5 +79,6 @@ config:
   log:
     level: info
     prefix: '[centry] '
+  # environmentPrefix: MY_PREFIX_ # NOTE: This can be set to alter the naming of environment variables (internal environment variables stay the same)
   hideInternalCommands: true
   hideInternalOptions: true

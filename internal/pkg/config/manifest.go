@@ -60,6 +60,7 @@ type Config struct {
 	Description          string    `yaml:"description,omitempty"`
 	Version              string    `yaml:"version,omitempty"`
 	Log                  LogConfig `yaml:"log,omitempty"`
+	EnvironmentPrefix    string    `yaml:"environmentPrefix,omitempty"`
 	HideInternalCommands bool      `yaml:"hideInternalCommands,omitempty"`
 	HideInternalOptions  bool      `yaml:"hideInternalOptions,omitempty"`
 }

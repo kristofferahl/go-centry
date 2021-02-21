@@ -96,9 +96,9 @@ func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) string
 	source = append(source, fmt.Sprintf("cd %s || exit 1", sc.Context.manifest.BasePath))
 
 	source = append(source, "")
-	source = append(source, "# Set exports from global options")
-
-	for _, v := range optionsSetToEnvVars(c, sc.GlobalOptions) {
+	source = append(source, "# Set environment variables from global options")
+	conf := sc.Context.manifest.Config
+	for _, v := range optionsSetToEnvVars(c, sc.GlobalOptions, conf.EnvironmentPrefix) {
 		if v.Value != "" {
 			value := v.Value
 			if v.IsString() {
@@ -109,9 +109,9 @@ func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) string
 	}
 
 	source = append(source, "")
-	source = append(source, "# Set exports from local options")
+	source = append(source, "# Set environment variables from options defined by command")
 
-	for _, v := range optionsSetToEnvVars(c, sc.Function.Options) {
+	for _, v := range optionsSetToEnvVars(c, sc.Function.Options, conf.EnvironmentPrefix) {
 		if v.Value != "" {
 			value := v.Value
 			if v.IsString() {

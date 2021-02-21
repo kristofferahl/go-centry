@@ -33,6 +33,7 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 		Description: "Overrides the log level",
 		Default:     manifest.Config.Log.Level,
 		Hidden:      manifest.Config.HideInternalOptions,
+		Internal:    true,
 	})
 	options.Add(&cmd.Option{
 		Type:        cmd.BoolOption,
@@ -40,6 +41,7 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 		Description: "Disables logging",
 		Default:     false,
 		Hidden:      manifest.Config.HideInternalOptions,
+		Internal:    true,
 	})
 
 	// Adding global options specified by the manifest
@@ -127,7 +129,7 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 	return flags
 }
 
-func optionsSetToEnvVars(c *cli.Context, set *cmd.OptionsSet) []shell.EnvironmentVariable {
+func optionsSetToEnvVars(c *cli.Context, set *cmd.OptionsSet, prefix string) []shell.EnvironmentVariable {
 	envVars := make([]shell.EnvironmentVariable, 0)
 	for _, o := range set.Sorted() {
 		o := o
@@ -138,6 +140,10 @@ func optionsSetToEnvVars(c *cli.Context, set *cmd.OptionsSet) []shell.Environmen
 		}
 		envName = strings.Replace(strings.ToUpper(envName), ".", "_", -1)
 		envName = strings.Replace(strings.ToUpper(envName), "-", "_", -1)
+
+		if prefix != "" && o.Internal == false {
+			envName = prefix + envName
+		}
 
 		value := c.String(o.Name)
 

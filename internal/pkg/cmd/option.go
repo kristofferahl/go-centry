@@ -48,6 +48,7 @@ type Option struct {
 	EnvName     string
 	Description string
 	Hidden      bool
+	Internal    bool
 	Default     interface{}
 	value       valuePointer
 }
