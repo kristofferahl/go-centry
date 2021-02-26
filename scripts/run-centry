@@ -10,7 +10,7 @@ main() {
 
   rm -f ./centry &>/dev/null || true
   go build -o ./centry ./cmd/centry/
-  ./centry ./examples/centry/centry.yaml "$@"
+  ./centry --centry-file ./examples/centry/centry.yaml "$@"
 }
 
 main "$@"

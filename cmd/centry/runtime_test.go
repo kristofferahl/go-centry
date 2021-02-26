@@ -18,12 +18,56 @@ func TestMain(t *testing.T) {
 	os.Chdir("../../")
 
 	g.Describe("runtime", func() {
-		g.It("returns error when manifest fails to load", func() {
-			context := NewContext(CLI, io.Headless())
-			runtime, err := NewRuntime([]string{}, context)
-			g.Assert(runtime == nil).IsTrue("expected runtime to be nil")
-			g.Assert(err != nil).IsTrue("expected error")
-			g.Assert(strings.HasPrefix(err.Error(), "Failed to read manifest file")).IsTrue("expected error message")
+		g.Describe("manifest file", func() {
+			g.It("tries to use ./centry.yaml as the default file", func() {
+				context := NewContext(CLI, io.Headless())
+				runtime, err := NewRuntime([]string{}, context)
+				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
+				g.Assert(err != nil).IsTrue("expected error, %v", err)
+				g.Assert(err.Error()).Eql("Manifest file not found (path=./centry.yaml)")
+			})
+
+			g.It("tries to use file specified CENTRY_FILE environment variable", func() {
+				os.Setenv("CENTRY_FILE", "./centry-environment.yaml")
+				context := NewContext(CLI, io.Headless())
+				runtime, err := NewRuntime([]string{}, context)
+				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
+				g.Assert(err != nil).IsTrue("expected error, %v", err)
+				g.Assert(err.Error()).Eql("Manifest file not found (path=./centry-environment.yaml)")
+				os.Setenv("CENTRY_FILE", "")
+			})
+
+			g.It("tries to use file specified by --centry-file flag", func() {
+				context := NewContext(CLI, io.Headless())
+				runtime, err := NewRuntime([]string{"--centry-file", "./centry-flag.yaml"}, context)
+				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
+				g.Assert(err != nil).IsTrue("expected error, %v", err)
+				g.Assert(err.Error()).Eql("Manifest file not found (path=./centry-flag.yaml)")
+			})
+
+			g.It("tries to use file specified by --centry-file= flag", func() {
+				context := NewContext(CLI, io.Headless())
+				runtime, err := NewRuntime([]string{"--centry-file=./centry-flag-equals.yaml"}, context)
+				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
+				g.Assert(err != nil).IsTrue("expected error, %v", err)
+				g.Assert(err.Error()).Eql("Manifest file not found (path=./centry-flag-equals.yaml)")
+			})
+
+			g.It("tries to use file specified by --centry-file= flag even when it contains equal signs", func() {
+				context := NewContext(CLI, io.Headless())
+				runtime, err := NewRuntime([]string{"--centry-file=./foo=bar.yaml"}, context)
+				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
+				g.Assert(err != nil).IsTrue("expected error, %v", err)
+				g.Assert(err.Error()).Eql("Manifest file not found (path=./foo=bar.yaml)")
+			})
+
+			g.It("gives an error when --centry-file flag is missing it's value", func() {
+				context := NewContext(CLI, io.Headless())
+				runtime, err := NewRuntime([]string{"--centry-file"}, context)
+				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
+				g.Assert(err != nil).IsTrue("expected error, %v", err)
+				g.Assert(err.Error()).Eql("A value must be specified for --centry-file")
+			})
 		})
 	})
 
@@ -32,6 +76,7 @@ func TestMain(t *testing.T) {
 			expected := "Loading init.sh\nLoading helpers.sh"
 			os.Setenv("OUTPUT_DEBUG", "true")
 			out := execQuiet("scripttest")
+			test.AssertNoError(g, out.Error)
 			test.AssertStringContains(g, out.Stdout, expected)
 			os.Unsetenv("OUTPUT_DEBUG")
 		})
@@ -476,8 +521,12 @@ func execCentry(source string, quiet bool, manifestPath string) *execResult {
 		if quiet {
 			source = fmt.Sprintf("--centry-quiet %s", source)
 		}
+		if manifestPath != "" {
+			source = fmt.Sprintf("--centry-file %s %s", manifestPath, source)
+		}
 		context := NewContext(CLI, io.Headless())
-		runtime, err := NewRuntime(strings.Split(fmt.Sprintf("%s %s", manifestPath, source), " "), context)
+		os.Args = strings.Split(fmt.Sprintf("program %s", source), " ")
+		runtime, err := NewRuntime(os.Args[1:], context)
 		if err != nil {
 			exitCode = 1
 			runtimeErr = err

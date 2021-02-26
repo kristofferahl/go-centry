@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/kristofferahl/go-centry/internal/pkg/config"
@@ -26,15 +27,18 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	runtime := &Runtime{
 		cli:     nil,
 		context: context,
-		file:    "",
+		file:    "./centry.yaml",
 		args:    []string{},
 		events:  []string{},
 	}
 
-	// Args
-	if len(inputArgs) >= 1 {
-		runtime.file = inputArgs[0]
-		runtime.args = inputArgs[1:]
+	// Env manifest file
+	err := initFromEnvironment(runtime)
+
+	// Args and manifest file
+	err = initFromArgs(runtime, inputArgs)
+	if err != nil {
+		return nil, err
 	}
 
 	// Load manifest
@@ -97,6 +101,45 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	return runtime, nil
 }
 
+func initFromEnvironment(runtime *Runtime) error {
+	file := environmentOrDefault("CENTRY_FILE", "")
+	if file != "" {
+		runtime.file = file
+		runtime.events = append(runtime.events, fmt.Sprintf("manifest file path set (path=%s source=%s)", runtime.file, "environment"))
+	}
+	return nil
+}
+
+func initFromArgs(runtime *Runtime, inputArgs []string) error {
+	if len(inputArgs) >= 1 && inputArgs[0] == "--centry-file" {
+		runtime.file = ""
+		if len(inputArgs) >= 2 {
+			runtime.file = inputArgs[1]
+			runtime.args = inputArgs[2:]
+		}
+
+		if runtime.file == "" {
+			return fmt.Errorf("A value must be specified for --centry-file")
+		}
+
+		runtime.events = append(runtime.events, fmt.Sprintf("manifest file path set (path=%s source=%s)", runtime.file, "flag"))
+	} else if len(inputArgs) >= 1 && strings.HasPrefix(inputArgs[0], "--centry-file=") {
+		flagvalue := strings.Split(inputArgs[0], "=")
+		runtime.file = strings.Join(flagvalue[1:], "=")
+		runtime.args = inputArgs[1:]
+
+		if runtime.file == "" {
+			return fmt.Errorf("A value must be specified for --centry-file")
+		}
+
+		runtime.events = append(runtime.events, fmt.Sprintf("manifest file path set (path=%s source=%s)", runtime.file, "flag"))
+	} else {
+		runtime.args = inputArgs
+	}
+
+	return nil
+}
+
 // Execute runs the CLI and exits with a code
 func (runtime *Runtime) Execute() int {
 	args := append([]string{""}, runtime.args...)
@@ -133,7 +176,7 @@ func handleBefore(runtime *Runtime, c *cli.Context) error {
 	// Print runtime events
 	logger := runtime.context.log.GetLogger()
 	for _, e := range runtime.events {
-		logger.Debugf(e)
+		logger.Debugf("[runtime-event] %s", e)
 	}
 
 	return nil
