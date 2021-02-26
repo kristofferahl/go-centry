@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
@@ -21,7 +22,8 @@ func configureDefaultOptions() {
 	}
 }
 
-func createGlobalOptions(context *Context) *cmd.OptionsSet {
+func createGlobalOptions(runtime *Runtime) *cmd.OptionsSet {
+	context := runtime.context
 	manifest := context.manifest
 
 	// Add global options
@@ -72,6 +74,8 @@ func createGlobalOptions(context *Context) *cmd.OptionsSet {
 			Default:     def,
 			Hidden:      o.Hidden,
 		})
+
+		runtime.events = append(runtime.events, fmt.Sprintf("registered global option \"%s\"", o.Name))
 	}
 
 	return options

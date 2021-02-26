@@ -123,7 +123,7 @@ func registerManifestCommands(runtime *Runtime, options *cmd.OptionsSet) {
 					}
 				}
 
-				runtime.events = append(runtime.events, fmt.Sprintf("Registered command \"%s\"", scriptCmd.GetCommandInvocation()))
+				runtime.events = append(runtime.events, fmt.Sprintf("registered command \"%s\"", scriptCmd.GetCommandInvocation()))
 			}
 		}
 	}

@@ -52,7 +52,7 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 	context.log = log.CreateManager(context.manifest.Config.Log.Level, context.manifest.Config.Log.Prefix, context.io)
 
 	// Create global options
-	options := createGlobalOptions(context)
+	options := createGlobalOptions(runtime)
 
 	// Configure default options
 	configureDefaultOptions()
