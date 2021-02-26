@@ -57,15 +57,15 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 
 // Run builds the source and executes it
 func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
-	sc.Log.Debugf("Executing command \"%v\"", sc.Function.Name)
+	sc.Log.Debugf("executing command \"%v\"", sc.Function.Name)
 
 	var source string
 	switch sc.Script.Language() {
 	case "bash":
 		source = generateBashSource(c, sc, args)
-		sc.Log.Debugf("Generated bash source:\n%s\n", source)
+		sc.Log.Debugf("generated bash source\n%s\n", source)
 	default:
-		sc.Log.Errorf("Unsupported script language %s", sc.Script.Language())
+		sc.Log.Errorf("unsupported script language %s", sc.Script.Language())
 		return 1
 	}
 
@@ -79,11 +79,11 @@ func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
 			}
 		}
 
-		sc.Log.Debugf("Script exited with error, %v", err)
+		sc.Log.Debugf("script exited with error, %v", err)
 		return exitCode
 	}
 
-	sc.Log.Debugf("Finished executing command %s...", sc.Function.Name)
+	sc.Log.Debugf("finished executing command %s...", sc.Function.Name)
 	return 0
 }
 

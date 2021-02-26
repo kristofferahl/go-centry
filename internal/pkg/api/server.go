@@ -87,14 +87,14 @@ func basicAuthMiddleware(config Config) func(next http.Handler) http.Handler {
 				config.Log.WithFields(logrus.Fields{
 					"service":    "HTTP-Server",
 					"middleware": "basic-auth",
-				}).Debugf("Authentication failed")
+				}).Debugf("authentication failed")
 				return
 			}
 
 			config.Log.WithFields(logrus.Fields{
 				"service":    "HTTP-Server",
 				"middleware": "basic-auth",
-			}).Debugf("Successfully authenticated")
+			}).Debugf("successfully authenticated")
 
 			next.ServeHTTP(w, r)
 		})

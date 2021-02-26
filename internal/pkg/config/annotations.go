@@ -50,7 +50,7 @@ func ParseAnnotation(text string) (*Annotation, error) {
 
 	kvp := strings.SplitN(keyValueString, "=", 2)
 	if len(kvp) != 2 {
-		return nil, fmt.Errorf("Failed to parse annotation! The text \"%s\" is not a valid annotation", text)
+		return nil, fmt.Errorf("failed to parse annotation! The text \"%s\" is not a valid annotation", text)
 	}
 
 	return &Annotation{

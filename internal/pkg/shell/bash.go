@@ -103,7 +103,7 @@ func (s *BashScript) FunctionAnnotations() ([]*config.Annotation, error) {
 		if strings.HasPrefix(t, "#") {
 			a, err := config.ParseAnnotation(strings.TrimLeft(t, "#"))
 			if err != nil {
-				s.Log.Debugf("%s", err.Error())
+				s.Log.Debug(err.Error())
 			} else if a != nil {
 				annotations = append(annotations, a)
 			}

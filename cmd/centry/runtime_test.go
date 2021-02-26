@@ -24,7 +24,7 @@ func TestMain(t *testing.T) {
 				runtime, err := NewRuntime([]string{}, context)
 				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
 				g.Assert(err != nil).IsTrue("expected error, %v", err)
-				g.Assert(err.Error()).Eql("Manifest file not found (path=./centry.yaml)")
+				g.Assert(err.Error()).Eql("manifest file not found (path=./centry.yaml)")
 			})
 
 			g.It("tries to use file specified CENTRY_FILE environment variable", func() {
@@ -33,7 +33,7 @@ func TestMain(t *testing.T) {
 				runtime, err := NewRuntime([]string{}, context)
 				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
 				g.Assert(err != nil).IsTrue("expected error, %v", err)
-				g.Assert(err.Error()).Eql("Manifest file not found (path=./centry-environment.yaml)")
+				g.Assert(err.Error()).Eql("manifest file not found (path=./centry-environment.yaml)")
 				os.Setenv("CENTRY_FILE", "")
 			})
 
@@ -42,7 +42,7 @@ func TestMain(t *testing.T) {
 				runtime, err := NewRuntime([]string{"--centry-file", "./centry-flag.yaml"}, context)
 				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
 				g.Assert(err != nil).IsTrue("expected error, %v", err)
-				g.Assert(err.Error()).Eql("Manifest file not found (path=./centry-flag.yaml)")
+				g.Assert(err.Error()).Eql("manifest file not found (path=./centry-flag.yaml)")
 			})
 
 			g.It("tries to use file specified by --centry-file= flag", func() {
@@ -50,7 +50,7 @@ func TestMain(t *testing.T) {
 				runtime, err := NewRuntime([]string{"--centry-file=./centry-flag-equals.yaml"}, context)
 				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
 				g.Assert(err != nil).IsTrue("expected error, %v", err)
-				g.Assert(err.Error()).Eql("Manifest file not found (path=./centry-flag-equals.yaml)")
+				g.Assert(err.Error()).Eql("manifest file not found (path=./centry-flag-equals.yaml)")
 			})
 
 			g.It("tries to use file specified by --centry-file= flag even when it contains equal signs", func() {
@@ -58,7 +58,7 @@ func TestMain(t *testing.T) {
 				runtime, err := NewRuntime([]string{"--centry-file=./foo=bar.yaml"}, context)
 				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
 				g.Assert(err != nil).IsTrue("expected error, %v", err)
-				g.Assert(err.Error()).Eql("Manifest file not found (path=./foo=bar.yaml)")
+				g.Assert(err.Error()).Eql("manifest file not found (path=./foo=bar.yaml)")
 			})
 
 			g.It("gives an error when --centry-file flag is missing it's value", func() {
@@ -66,7 +66,7 @@ func TestMain(t *testing.T) {
 				runtime, err := NewRuntime([]string{"--centry-file"}, context)
 				g.Assert(runtime == nil).IsTrue("expected runtime to be nil, %v", runtime)
 				g.Assert(err != nil).IsTrue("expected error, %v", err)
-				g.Assert(err.Error()).Eql("A value must be specified for --centry-file")
+				g.Assert(err.Error()).Eql("a value must be specified for --centry-file")
 			})
 		})
 	})
@@ -257,7 +257,7 @@ func TestMain(t *testing.T) {
 
 		g.Describe("--centry-quiet", func() {
 			g.It("should disable logging", func() {
-				expected := `Changing loglevel to panic (from debug)`
+				expected := `changing loglevel to panic (from debug)`
 				out := execWithLogging("--centry-quiet")
 				test.AssertStringContains(g, out.Stderr, expected)
 			})
@@ -275,7 +275,7 @@ func TestMain(t *testing.T) {
 
 		g.Describe("--centry-config-log-level=info", func() {
 			g.It("should change log level to info", func() {
-				expected := `Changing loglevel to info (from debug)`
+				expected := `changing loglevel to info (from debug)`
 				out := execWithLogging("--centry-config-log-level=info")
 				test.AssertStringContains(g, out.Stderr, expected)
 			})
@@ -283,7 +283,7 @@ func TestMain(t *testing.T) {
 
 		g.Describe("--centry-config-log-level=error", func() {
 			g.It("should change log level to error", func() {
-				expected := `Changing loglevel to error (from debug)`
+				expected := `changing loglevel to error (from debug)`
 				out := execWithLogging("--centry-config-log-level=error")
 				test.AssertStringContains(g, out.Stderr, expected)
 			})

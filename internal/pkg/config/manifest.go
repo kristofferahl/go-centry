@@ -76,7 +76,7 @@ func LoadManifest(manifest string) (*Manifest, error) {
 	mp, _ := filepath.Abs(manifest)
 
 	if _, err := os.Stat(mp); os.IsNotExist(err) {
-		return nil, fmt.Errorf("Manifest file not found (path=%s)", manifest)
+		return nil, fmt.Errorf("manifest file not found (path=%s)", manifest)
 	}
 
 	bs, err := readManifestFile(mp)
@@ -109,7 +109,7 @@ func LoadManifest(manifest string) (*Manifest, error) {
 func readManifestFile(filename string) ([]byte, error) {
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read manifest file (path=%s). %v", filename, err)
+		return nil, fmt.Errorf("failed to read manifest file (path=%s). %v", filename, err)
 	}
 	return bs, nil
 }
@@ -118,7 +118,7 @@ func parseManifestYaml(bs []byte) (*Manifest, error) {
 	m := Manifest{}
 	err := yaml2.Unmarshal(bs, &m)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to parse manifest yaml. %v", err)
+		return nil, fmt.Errorf("failed to parse manifest yaml. %v", err)
 	}
 	return &m, nil
 }

@@ -53,10 +53,10 @@ func (m *Manager) GetLogger() *logrus.Logger {
 func (m *Manager) TrySetLogLevel(level string) {
 	if !strings.EqualFold(level, m.config.Level) {
 		logger := m.GetLogger()
-		logger.Debugf("Changing loglevel to %s (from %s)", level, m.config.Level)
+		logger.Debugf("changing loglevel to %s (from %s)", level, m.config.Level)
 		l, _ := logrus.ParseLevel(level)
 		logger.SetLevel(l)
-		logger.Debugf("Changed loglevel to %s (from %s)", l, m.config.Level)
+		logger.Debugf("changed loglevel to %s (from %s)", l, m.config.Level)
 		m.config.Level = l.String()
 	}
 }

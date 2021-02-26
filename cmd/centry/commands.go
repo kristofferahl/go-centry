@@ -51,7 +51,7 @@ func registerManifestCommands(runtime *Runtime, options *cmd.OptionsSet) {
 		if err != nil {
 			context.log.GetLogger().WithFields(logrus.Fields{
 				"command": cmd.Name,
-			}).Errorf("Failed to parse script functions. %v", err)
+			}).Errorf("failed to parse script functions. %v", err)
 		} else {
 			for _, fn := range funcs {
 				fn := fn

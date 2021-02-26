@@ -119,7 +119,7 @@ func initFromArgs(runtime *Runtime, inputArgs []string) error {
 		}
 
 		if runtime.file == "" {
-			return fmt.Errorf("A value must be specified for --centry-file")
+			return fmt.Errorf("a value must be specified for --centry-file")
 		}
 
 		runtime.events = append(runtime.events, fmt.Sprintf("manifest file path set (path=%s source=%s)", runtime.file, "flag"))
@@ -129,7 +129,7 @@ func initFromArgs(runtime *Runtime, inputArgs []string) error {
 		runtime.args = inputArgs[1:]
 
 		if runtime.file == "" {
-			return fmt.Errorf("A value must be specified for --centry-file")
+			return fmt.Errorf("a value must be specified for --centry-file")
 		}
 
 		runtime.events = append(runtime.events, fmt.Sprintf("manifest file path set (path=%s source=%s)", runtime.file, "flag"))
@@ -186,7 +186,7 @@ func handleCommandNotFound(runtime *Runtime, c *cli.Context, command string) {
 	logger := runtime.context.log.GetLogger()
 	logger.WithFields(logrus.Fields{
 		"command": command,
-	}).Warnf("Command not found!")
+	}).Warnf("command not found!")
 	c.App.Metadata[metadataExitCode] = 127
 }
 

@@ -39,7 +39,7 @@ func (sc *ServeCommand) ToCLICommand() *cli.Command {
 
 // Run starts an HTTP server and blocks
 func (sc *ServeCommand) Run(args []string) int {
-	sc.Log.Debugf("Serving HTTP api")
+	sc.Log.Debugf("serving HTTP api")
 
 	s := api.NewServer(api.Config{
 		Log:       sc.Log,

@@ -36,7 +36,7 @@ func TestManifest(t *testing.T) {
 			m, err := LoadManifest("foo")
 			g.Assert(m == nil).IsTrue("exected manifest to be nil")
 			g.Assert(err != nil).IsTrue("expected error")
-			g.Assert(err.Error()).Equal("Manifest file not found (path=foo)")
+			g.Assert(err.Error()).Equal("manifest file not found (path=foo)")
 		})
 	})
 
@@ -53,7 +53,7 @@ func TestManifest(t *testing.T) {
 			bs, err := readManifestFile("foo")
 			g.Assert(bs == nil).IsTrue("exected byte slice to be nil")
 			g.Assert(err != nil).IsTrue("expected error")
-			g.Assert(strings.HasPrefix(err.Error(), "Failed to read manifest file")).IsTrue("expected error message")
+			g.Assert(strings.HasPrefix(err.Error(), "failed to read manifest file")).IsTrue("expected error message")
 		})
 	})
 
@@ -68,7 +68,7 @@ func TestManifest(t *testing.T) {
 			m, err := parseManifestYaml([]byte("invalid yaml"))
 			g.Assert(m == nil).IsTrue("exected manifest to be nil")
 			g.Assert(err != nil).IsTrue("expected error")
-			g.Assert(strings.HasPrefix(err.Error(), "Failed to parse manifest yaml")).IsTrue("expected error message")
+			g.Assert(strings.HasPrefix(err.Error(), "failed to parse manifest yaml")).IsTrue("expected error message")
 		})
 	})
 
