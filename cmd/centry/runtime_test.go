@@ -23,7 +23,7 @@ func TestMain(t *testing.T) {
 			runtime, err := NewRuntime([]string{}, context)
 			g.Assert(runtime == nil).IsTrue("expected runtime to be nil")
 			g.Assert(err != nil).IsTrue("expected error")
-			g.Assert(strings.HasPrefix(err.Error(), "Failed to read manifest file.")).IsTrue("expected error message")
+			g.Assert(strings.HasPrefix(err.Error(), "Failed to read manifest file")).IsTrue("expected error message")
 		})
 	})
 

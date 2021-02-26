@@ -76,7 +76,7 @@ func LoadManifest(manifest string) (*Manifest, error) {
 	mp, _ := filepath.Abs(manifest)
 
 	if _, err := os.Stat(mp); os.IsNotExist(err) {
-		return nil, fmt.Errorf("The first argument must be a path to a valid manifest file (%s)", manifest)
+		return nil, fmt.Errorf("Manifest file not found (path=%s)", manifest)
 	}
 
 	bs, err := readManifestFile(mp)
@@ -109,7 +109,7 @@ func LoadManifest(manifest string) (*Manifest, error) {
 func readManifestFile(filename string) ([]byte, error) {
 	bs, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to read manifest file. %v", err)
+		return nil, fmt.Errorf("Failed to read manifest file (path=%s). %v", filename, err)
 	}
 	return bs, nil
 }
