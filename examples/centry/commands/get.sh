@@ -30,3 +30,9 @@ get:files() {
 get:hidden() {
   echo "This subcommand won't be displayed in help output"
 }
+
+# centry.cmd[get:error]/description=A command that will always generate an error
+get:error() {
+  echo "I will generate an error"
+  exit 123
+}
