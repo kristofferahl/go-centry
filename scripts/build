@@ -2,4 +2,4 @@
 set -euo pipefail
 
 scripts/make-schema
-go build -v ./...
+go build -v -o ./centry ./cmd/centry/
