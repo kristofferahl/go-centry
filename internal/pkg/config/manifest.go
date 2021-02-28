@@ -115,7 +115,12 @@ func readManifestFile(filename string) ([]byte, error) {
 }
 
 func parseManifestYaml(bs []byte) (*Manifest, error) {
-	m := Manifest{}
+	m := Manifest{
+		Config: Config{
+			HideInternalCommands: true,
+			HideInternalOptions:  true,
+		},
+	}
 	err := yaml2.Unmarshal(bs, &m)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse manifest yaml. %v", err)

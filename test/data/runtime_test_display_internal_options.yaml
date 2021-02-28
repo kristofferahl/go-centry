@@ -1,0 +1,7 @@
+commands: []
+options: []
+
+config:
+  name: centry
+  version: 1.0.0
+  hideInternalOptions: false

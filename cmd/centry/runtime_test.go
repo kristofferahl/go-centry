@@ -333,7 +333,6 @@ func TestMain(t *testing.T) {
 				expected := `COMMANDS:
    commandtest  Command tests
    helptest     Help tests
-   internal     Internal centry commands
    optiontest   Option tests
    scripttest   Script tests`
 
@@ -342,14 +341,12 @@ func TestMain(t *testing.T) {
 
 			g.It("should display global options", func() {
 				expected := `OPTIONS:
-   --boolopt, -B                    A custom option (default: false)
-   --centry-config-log-level value  Overrides the log level (default: "debug")
-   --centry-quiet                   Disables logging (default: false)
-   --selectopt1                     Sets the selection to option 1 (default: false)
-   --selectopt2                     Sets the selection to option 2 (default: false)
-   --stringopt value, -S value      A custom option (default: "foobar")
-   --help, -h                       Show help (default: false)
-   --version, -v                    Print the version (default: false)`
+   --boolopt, -B                A custom option (default: false)
+   --selectopt1                 Sets the selection to option 1 (default: false)
+   --selectopt2                 Sets the selection to option 2 (default: false)
+   --stringopt value, -S value  A custom option (default: "foobar")
+   --help, -h                   Show help (default: false)
+   --version, -v                Print the version (default: false)`
 
 				test.AssertStringContains(g, out.Stdout, expected)
 			})
@@ -458,6 +455,14 @@ OPTIONS:
 
 				test.AssertStringContains(g, out.Stdout, expected)
 			})
+
+			g.It("should display internal commands when hide is set to false", func() {
+				out := execQuiet("", "test/data/runtime_test_display_internal_commands.yaml")
+				expected := `COMMANDS:
+   internal  Internal centry commands`
+
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
 		})
 
 		g.Describe("hidden options", func() {
@@ -476,6 +481,15 @@ OPTIONS:
 				expected := `OPTIONS:
    --opt1 value, -o value  Help text for opt1 (default: "footothebar")
    --help, -h              Show help (default: false)`
+
+				test.AssertStringContains(g, out.Stdout, expected)
+			})
+
+			g.It("should display internal options when hide is set to false", func() {
+				out := execQuiet("", "test/data/runtime_test_display_internal_options.yaml")
+				expected := `OPTIONS:
+   --centry-config-log-level value  Overrides the log level
+   --centry-quiet                   Disables logging (default: false)`
 
 				test.AssertStringContains(g, out.Stdout, expected)
 			})
