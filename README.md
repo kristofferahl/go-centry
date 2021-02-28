@@ -22,12 +22,12 @@ Declarative **command line builder** for teams and one man bands
 
 ### Mac
 ```bash
-curl -L https://github.com/kristofferahl/go-centry/releases/download/v1.0.0-prerelease/go-centry_1.0.0-prerelease_Darwin_x86_64.tar.gz | tar -xzv -C /usr/local/bin/
+curl -L https://github.com/kristofferahl/go-centry/releases/download/v1.0.0-prerelease2/go-centry_1.0.0-prerelease2_Darwin_x86_64.tar.gz | tar -xzv -C /usr/local/bin/
 ```
 
 ### Linux
 ```bash
-curl -L https://github.com/kristofferahl/go-centry/releases/download/v1.0.0-prerelease/go-centry_1.0.0-prerelease_Linux_x86_64.tar.gz | tar -xzv -C /usr/local/bin/
+curl -L https://github.com/kristofferahl/go-centry/releases/download/v1.0.0-prerelease2/go-centry_1.0.0-prerelease2_Linux_x86_64.tar.gz | tar -xzv -C /usr/local/bin/
 ```
 
 ## Getting started
@@ -170,12 +170,7 @@ curl -o bash_autocomplete https://raw.githubusercontent.com/kristofferahl/go-cen
 PROG=mycli source bash_autocomplete
 ```
 
-Now, let try it out by typing `mycli` followed by a space and then hit `tab`.
-```bash
-mycli ➧
-hello     internal
-```
-This will display any command available at the root level. It works for options too.
+Now, let try it out by typing `mycli` followed by a space and then hit `tab`. This will display any command available at the root level. If there is only one, the command name will be autocompleted. It works for options too.
 ```bash
 mycli -- ➡
 --centry-config-log-level  --centry-quiet             --help
