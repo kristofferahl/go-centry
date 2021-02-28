@@ -12,6 +12,10 @@ import (
 	yaml2 "gopkg.in/yaml.v2"
 )
 
+const (
+	defaultLogLevel string = "info"
+)
+
 // Manifest defines the structure of a manifest
 type Manifest struct {
 	Scripts  []string  `yaml:"scripts,omitempty"`
@@ -117,6 +121,9 @@ func readManifestFile(filename string) ([]byte, error) {
 func parseManifestYaml(bs []byte) (*Manifest, error) {
 	m := Manifest{
 		Config: Config{
+			Log: LogConfig{
+				Level: defaultLogLevel,
+			},
 			HideInternalCommands: true,
 			HideInternalOptions:  true,
 		},

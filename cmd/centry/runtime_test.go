@@ -488,7 +488,7 @@ OPTIONS:
 			g.It("should display internal options when hide is set to false", func() {
 				out := execQuiet("", "test/data/runtime_test_display_internal_options.yaml")
 				expected := `OPTIONS:
-   --centry-config-log-level value  Overrides the log level
+   --centry-config-log-level value  Overrides the log level (default: "info")
    --centry-quiet                   Disables logging (default: false)`
 
 				test.AssertStringContains(g, out.Stdout, expected)

@@ -186,7 +186,7 @@ func handleCommandNotFound(runtime *Runtime, c *cli.Context, command string) {
 	logger := runtime.context.log.GetLogger()
 	logger.WithFields(logrus.Fields{
 		"command": command,
-	}).Warnf("command not found!")
+	}).Warnf("command not found")
 	c.App.Metadata[metadataExitCode] = 127
 }
 

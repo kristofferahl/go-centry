@@ -36,7 +36,7 @@ func CreateManager(level string, prefix string, io io.InputOutput) *Manager {
 func (m *Manager) GetLogger() *logrus.Logger {
 	if m.logger == nil {
 		m.logger = logrus.New()
-		m.logger.Out = m.config.IO.Stderr // TODO: Change to using Stdout
+		m.logger.Out = m.config.IO.Stderr // TODO: Allow changing to Stdout
 
 		l, _ := logrus.ParseLevel(m.config.Level)
 		m.logger.SetLevel(l)
