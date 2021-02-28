@@ -172,10 +172,10 @@ func (s *BashScript) Functions() ([]*Function, error) {
 					options[name].Short = a.Value
 				case "envName":
 					options[name].EnvName = a.Value
-				case "description":
-					options[name].Description = a.Value
 				case "default":
 					options[name].Default = a.Value
+				case "description":
+					options[name].Description = a.Value
 				case "hidden":
 					hidden, err := strconv.ParseBool(a.Value)
 					if err == nil {
