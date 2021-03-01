@@ -1,4 +1,4 @@
-# go-centry
+# centry
 
 Declarative **command line builder** for teams and one man bands
 
@@ -12,7 +12,7 @@ Declarative **command line builder** for teams and one man bands
 - **Unified syntax**: Provides a standard for using commands and options.
 - **Supports multi level commands**: `mycli get status` and `mycli get files`
 - **Supports multi level options (flags)**: `mycli --dev get status --out json`
-- **Contextual help**: `mycli get --help``
+- **Contextual help**: `mycli get --help`
 - **Autocomplete**: Bash-completions of commands and options
 - **Highly configurable**: Sensible defaults, lots of choises
 - **Easy setup**: Download centry, create a manifest file and you are good to go
@@ -34,11 +34,11 @@ curl -L https://github.com/kristofferahl/go-centry/releases/download/v1.0.0-prer
 
 **The documentation and examples below assumes that**
 1. You are running `bash` version 3.2 or later
-1. You have "installed" the `centry` binary for your OS and made it available in your path as `mycli`
+1. You have "installed" the `go-centry_*` binary for your OS and made it available in your path as `mycli` (by renaming the file)
 1. You have created an empty directory to hold your commands and manifest file
 
 ## Setup
-1. Create the manifest file for the CLI and name it `centry.yaml`
+1. Create the manifest file for the CLI and name it `centry.yaml` by running the following command in your shell.
     ```bash
     echo "commands: []
     config:
@@ -164,6 +164,9 @@ Arguments (2): arg1 arg2
 ```
 
 ## Autocomplete
+
+**NOTE: Only available for Bash**
+
 To make discovery of `mycli` easier, we may want to enable bash completions. Follow the steps below to set it up.
 ```bash
 curl -o bash_autocomplete https://raw.githubusercontent.com/kristofferahl/go-centry/master/bash_autocomplete
