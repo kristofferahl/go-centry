@@ -111,6 +111,12 @@ func TestMain(t *testing.T) {
 					out := execQuiet("commandtest foo bar")
 					test.AssertStringContains(g, out.Stdout, expected)
 				})
+
+				g.It("should pass any flags followed by -- as arguments", func() {
+					expected := "command args (--foo bar)"
+					out := execQuiet("commandtest -- --foo bar")
+					test.AssertStringContains(g, out.Stdout, expected)
+				})
 			})
 
 			g.Describe("without arguments", func() {
@@ -127,6 +133,12 @@ func TestMain(t *testing.T) {
 				g.It("should have arguments passed", func() {
 					expected := "subcommand args (foo bar)"
 					out := execQuiet("commandtest subcommand foo bar")
+					test.AssertStringContains(g, out.Stdout, expected)
+				})
+
+				g.It("should pass any flags followed by -- as arguments", func() {
+					expected := "subcommand args (--foo bar)"
+					out := execQuiet("commandtest subcommand -- --foo bar")
 					test.AssertStringContains(g, out.Stdout, expected)
 				})
 			})
