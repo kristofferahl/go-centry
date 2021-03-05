@@ -17,6 +17,8 @@ Declarative **command line builder** for teams and one man bands
 - **Highly configurable**: Sensible defaults, lots of choises
 - **Easy setup**: Download centry, create a manifest file and you are good to go
 
+## Full documentation
+- v1 - [./docs/index.md](./docs/index.md)
 
 ## Install
 
