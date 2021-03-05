@@ -11,6 +11,7 @@
     - Command options
     - Option properties
     - Option annotations
+- Arguments
 - Scripts
 - Configuration
     - Application properties
@@ -146,3 +147,74 @@ Command annotations are used to associate metadata with a command. Annotations a
 | Default     | `# centry.cmd[<command>].option[<option>]/default=<value>`     |
 | Description | `# centry.cmd[<command>].option[<option>]/description=<value>` |
 | Hidden      | `# centry.cmd[<command>].option[<option>]/hidden=<value>`      |
+
+## Arguments
+
+Anything after the last specified command or option will be passed to your command as arguments.
+
+```bash
+mycli mycommand --myoption=foo bar baz
+```
+Assuming `mycommand` have an option defined called `myoption`, in the example above, `bar` and `baz` would be passed as arguments. The same is true when `myoption` is left out.
+
+### Passing flags as arguments
+In some cases it is useful for flags to be passed on as arguments to a command.
+In the following command we have wrapped `curl` but want to allow the use of the verbose flag, even though that is not the default behavior.
+
+*`// file: get.sh`*
+```bash
+#!/usr/bin/env bash
+
+# centry.cmd[get:data]/description=Get's data from a URL
+# centry.cmd[get:data].option[url]/description=The URL to get data from
+get:data() {
+  echo "getting the data from ${URL:?}..."
+  curl "${URL:?}" "$@"
+}
+```
+
+The command below will fail since a verbose option is not defined.
+
+```bash
+mycli get data --url http://google.com --verbose
+```
+
+ To achive the desired behaviour we need to tell centry to **stop processing arguments**. This can be done by adding a `--` when calling the command.
+
+```bash
+mycli get data --url http://google.com -- --verbose
+```
+
+## Scripts
+Before executing a command, centry can import helper functions and run common setup tasks for the environment the command executes in. This is done by specifying an array of file paths in the `scripts` section that centry will [source](https://linuxize.com/post/bash-source-command/), in the specified order. This makes sharing functions across commands easier and more predictable while keeping things DRY.
+
+Comman use-cases include:
+- Sourcing of functions from script libraries and wrapper scripts
+- Installing missing dependencies and downloading files
+- Setting environment variables
+- Authentication and authorization
+
+Here's an example:
+
+*`// file: centry.yaml`*
+```yaml
+scripts:
+  - /usr/share/bash-commons-1.0.2/modules/bash-commons/src/log.sh
+  - scripts/helpers.sh
+  - scripts/init.sh
+```
+
+If you need something to run at the point of sourcing it, simply make it self executing like the init script below.
+
+*`// file: scripts/init.sh`*
+```bash
+#!/usr/bin/env bash
+
+init() {
+  echo 'initializing the environment'
+}
+
+init "$@"
+```
+
+**NOTE**: It is important to know that naming conflicts may occur. If multiple scripts are sourced, containing functions with the same name, only the last one would be available for commands to use.
