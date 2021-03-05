@@ -1,20 +1,21 @@
 # Documentation
 
-- Getting started (see README)
-- Commands
-  - Root commands
-  - Sub commands
-  - Command properties
-  - Command annotations
-- Options
-  - Accessing option values
-  - Global options
-  - Command options
-  - Option types
-  - Option properties
-  - Option annotations
-- Arguments
-- Scripts
+- [Installation](../README.md#install)
+- [Getting started](../README.md#getting-started)
+- [Commands](#commands)
+  - [Root commands](#root-commands)
+  - [Sub commands](#sub-commands)
+  - [Command properties](#command-properties)
+  - [Command annotations](#command-annotations)
+- [Options](#options-flags)
+  - [Accessing option values](#accessing-option-values)
+  - [Global options](#global-options)
+  - [Command options](#command-options)
+  - [Option types](#option-types)
+  - [Option properties](#option-properties)
+  - [Option annotations](#option-annotations)
+- [Arguments](#arguments)
+- [Scripts](#scripts)
 - Configuration
   - Application properties
     - Name
