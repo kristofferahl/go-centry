@@ -142,7 +142,7 @@ OPTIONS:
 ```
 
 ## Arguments
-A command may also accept any number of arguments. All arguments not matching the options of a command will be passed on to the function.
+A command may also accept any number of arguments. All arguments not matching an option of a command will be passed on to the function.
 
 *`// file: hello.sh`*
 ```

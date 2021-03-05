@@ -2,25 +2,27 @@
 
 - Getting started (see README)
 - Commands
-    - Root commands
-    - Sub commands
-    - Command properties
-    - Command annotations
+  - Root commands
+  - Sub commands
+  - Command properties
+  - Command annotations
 - Options
-    - Global options
-    - Command options
-    - Option properties
-    - Option annotations
+  - Accessing option values
+  - Global options
+  - Command options
+  - Option types
+  - Option properties
+  - Option annotations
 - Arguments
 - Scripts
 - Configuration
-    - Application properties
-        - Name
-        - Description
-        - Version
-    - Log
-        - Level
-        - Prefix
+  - Application properties
+    - Name
+    - Description
+    - Version
+  - Log
+    - Level
+    - Prefix
 - Help
 - Autocompletion
 
@@ -88,6 +90,7 @@ mycli get time
 
 Adding annotations for sub commands works in the same way as for root level commands. Here's an example adding a description for the two commands created above. *Note that the full function name must be used in the annotation.*
 
+*`// file: get.sh`*
 ```bash
 #!/usr/bin/env bash
 
@@ -123,7 +126,143 @@ Command annotations are used to associate metadata with a command. Annotations a
 | Help        | `# centry.cmd[<command>]/help=<value>`        |
 | Hidden      | `# centry.cmd[<command>]/hidden=<value>`      |
 
-## Options
+## Options (flags)
+Options (aka flags) are used to pass named arguments to commands. When used, `centry` will export a variable for you with the value of the option set.
+
+### Accessing option values
+Option values are made available to your commands as environment variables. Given an option named `filter`, centry sets the environment variable `FILTER` to the value provided by the option or to it's default value. The environment variable name that is used for an option can be changed by setting the `EnvName` property (see Option properties).
+
+### Global options
+Global options are made available for all commands. They are often used to to provide context for the commands you are executing. Global options are defined in the `options` section of the manifest file (`centry.yaml`). To define a global option, two properties are required. The name of the option and it's type. In general you should only specify a global option if it makes sense in the context of all commands provided by your cli.
+
+Here's how you would define the global option `--verbose`:
+
+*`// file: centry.yaml`*
+```yaml
+options:
+  - name: verbose
+    type: bool
+    description: Use verbose logging
+```
+
+Using a global option requires you to specify the option before the name of any command. This is by design and helps drive home the fact that global options are available for all commands.
+
+```bash
+mycli --verbose command1
+mycli --verbose command2
+```
+
+### Command options
+Command options are, as the name suggests, scoped to commands. Therefore there is no way to define these in the manifest file. Instead you will be using `annotations` to define command options. For a full list of available annotations, see Option annotations.
+
+Here's an example defining a `filter` option for the `get files` command:
+
+*`// file: get.sh`*
+```bash
+#!/usr/bin/env bash
+
+# centry.cmd[get:files].option[filter]/description=List only files matching the specified filter
+get:files() {
+  echo "listing files in the current directory (filter=${FILTER:-})..."
+  if [[ "${FILTER:-}" != "" ]]; then
+    ls . | grep "${FILTER:?}"
+  else
+    ls .
+  fi
+}
+```
+
+### Option types
+Options have a `type` property that defines it's behavior and possible values. The currently supported option types are:
+
+#### String option
+String options are the most common type to use. It has a `name` and it's `type` set to `string`. In addition to the required properties, it is quite common to use the `default` property to set a default value for the option. See Option properties for the full list of available properties.
+
+**Example**
+
+*`// file: centry.yaml`*
+```yaml
+options:
+  - name: filter
+    type: string
+    description: Filters output of the command
+```
+
+**Usage**: `--<option_name> <value>` or `--<option_name>=<value>`
+
+#### Bool option
+Boolean options can be used to provide a switch for behaviors in a command. As an example it could be used to turning debug logging on or off. A bool option have a value of `false` by default (this can be changed but it is not recommended). Using the default value of `false`, providing the option to your cli will tell centry to toggle that value to `true`.
+
+**Example**
+
+*`// file: centry.yaml`*
+```yaml
+options:
+  - name: verbose
+    type: bool
+    description: Turn on verbose logging
+```
+
+*`// file: get.sh`*
+```bash
+#!/usr/bin/env bash
+
+get:data() {
+  echo "getting data..."
+  if [[ ${VERBOSE} ]]; then
+    curl --verbose http://google.com
+  else
+    curl http://google.com
+  fi
+}
+```
+
+**Usage**: `--<option_name>` or `--<option_name>=<value>`
+
+#### Select option
+Select options are a bit different. It is commonly used to have the user select one value from an array of predefined values. The user selects a value by using the matching option.
+
+Let's dive into an example where we want the user to be able to select one of three AWS regions (eu-central-1, eu-west-1 and us-east-1). Here's how we would define that in our manifest.
+
+*`// file: centry.yaml`*
+```yaml
+options:
+  - name: eu-central-1
+    type: select
+    env_name: AWS_REGION
+    description: Use eu-central-1 AWS region
+  - name: eu-west-1
+    type: select
+    env_name: AWS_REGION
+    description: Use eu-west-1 AWS region
+  - name: us-east-1
+    type: select
+    env_name: AWS_REGION
+    description: Use us-east-1 AWS region
+```
+
+On it's own, a select option provides no real value. The magic happens when we override the environment variable name that will have it's value set when a select option is provided. This essentially creates an array of valid values scoped to the specified environment variable name.
+
+*`// file: get.sh`*
+```bash
+#!/usr/bin/env bash
+
+get:lambdas() {
+  : [ ${AWS_REGION:?'An AWS region must be selected using one of the predefined options'} ]
+  echo "listing AWS lambda functions in region ${AWS_REGION:?}..."
+  aws lambda list-functions --region ${AWS_REGION:?}
+}
+```
+
+With the above command defined we can now run the following to list lambdas in the region us-east-1:
+
+```bash
+mycli get lambdas --us-east-1
+```
+
+**NOTE**:
+- As no default value can be specified for select options, it's name is instead used as it's value.
+- If multiple select options with the same environment variable name is specified, the last one wins.
 
 ### Option properties
 
@@ -138,6 +277,8 @@ Command annotations are used to associate metadata with a command. Annotations a
 | Hidden      | When true, hides the option from help output        | `hidden`      | boolean                         | false    |
 
 ### Option annotations
+
+Option annotations are used to define options for a command. Annotations are defined using regular comments in bash (a line starting with #). They may be placed anywhere inside the script file and in any order you want. It is however recommended that you keep it close to your functions to double as documentation for the command/option.
 
 | Property    | Format                                                         |
 |-------------|----------------------------------------------------------------|
