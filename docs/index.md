@@ -16,14 +16,9 @@
   - [Option annotations](#option-annotations)
 - [Arguments](#arguments)
 - [Scripts](#scripts)
-- Configuration
-  - Application properties
-    - Name
-    - Description
-    - Version
-  - Log
-    - Level
-    - Prefix
+- [Configuration](#configuration)
+  - [Metadata](#cli-metadata)
+  - [Logging](#logging)
 - Help
 - Autocompletion
 
@@ -360,3 +355,55 @@ init "$@"
 ```
 
 **NOTE**: It is important to know that naming conflicts may occur. If multiple scripts are sourced, containing functions with the same name, only the last one would be available for commands to use.
+
+## Configuration
+The `config` section of the manifest file allows you to override default values as well as describing your CLI.
+
+### CLI metadata
+The most common place to start is with the metadata properties that are used to describe your CLI to it's users. They are defined at the root of the `config` section as shown below:
+
+```yaml
+config:
+  name: mycli
+  description: does whatever I wan't it to
+  version: 1.0.0
+```
+
+| Property    | Description            | Type   | Default                              | Required |
+|-------------|------------------------|--------|--------------------------------------|----------|
+| Name        | Name of the CLI        | string | -                                    | true     |
+| Description | Description of the CLI | string | A declarative cli built using centry | false    |
+| Version     | Version of the CLI     | string | -                                    | false    |
+
+### Logging
+In the `config.log` section you may change things related to logging in centry. You may want to turn on debug logging or add a prefix to the log messages printed by centry.
+
+```yaml
+config:
+  name: mycli
+  log:
+    level: debug
+    prefix: '[centry] '
+```
+
+| Property | Description                               | Type                                   | Default | Required |
+|----------|-------------------------------------------|----------------------------------------|---------|----------|
+| Level    | Log level used by centry                  | LogLevel (debug/info/warn/error/panic) | info    | true     |
+| Prefix   | Prefix applied to all centry log messages | string                                 | -       | false    |
+
+### Advanced config
+Also defined in the `config` section are some properties that allow even more control of how centry works.
+
+```yaml
+config:
+  name: mycli
+  environmentPrefix: MY_CLI_
+  hideInternalCommands: false
+  hideInternalOptions: false
+```
+
+| Property             | Description                                                | Type    | Default | Required |
+|----------------------|------------------------------------------------------------|---------|---------|----------|
+| EnvironmentPrefix    | Prefix used when exporting environment variables in centry | string  | -       | false    |
+| HideInternalCommands | Hides internal centry commands from help output            | boolean | true    | false    |
+| HideInternalOptions  | Hides internal centry options from help output             | boolean | true    | false    |
