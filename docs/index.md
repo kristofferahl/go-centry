@@ -19,6 +19,7 @@
 - [Configuration](#configuration)
   - [Metadata](#cli-metadata)
   - [Logging](#logging)
+  - [Advanced](#advanced-config)
 - Help
 - Autocompletion
 
