@@ -366,7 +366,7 @@ func TestMain(t *testing.T) {
 			g.Describe("default config output", func() {
 				g.It("should display the default program description", func() {
 					expected := `NAME:
-   name - A new cli application`
+   name - A declarative cli built using centry`
 					out := execQuiet("", "test/data/runtime_test_default_config.yaml")
 					test.AssertNoError(g, out.Error)
 					test.AssertStringContains(g, out.Stdout, expected)

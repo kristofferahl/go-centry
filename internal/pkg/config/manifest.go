@@ -121,6 +121,7 @@ func readManifestFile(filename string) ([]byte, error) {
 func parseManifestYaml(bs []byte) (*Manifest, error) {
 	m := Manifest{
 		Config: Config{
+			Description: "A declarative cli built using centry",
 			Log: LogConfig{
 				Level: defaultLogLevel,
 			},
