@@ -24,12 +24,12 @@ Declarative **command line builder** for teams and one man bands
 
 ### Mac
 ```bash
-curl -L https://github.com/kristofferahl/go-centry/releases/download/v1.0.0-prerelease2/go-centry_1.0.0-prerelease2_Darwin_x86_64.tar.gz | tar -xzv -C /usr/local/bin/
+curl -L https://github.com/kristofferahl/go-centry/releases/download/v1.0.0/go-centry_1.0.0-prerelease2_Darwin_x86_64.tar.gz | tar -xzv -C /usr/local/bin/
 ```
 
 ### Linux
 ```bash
-curl -L https://github.com/kristofferahl/go-centry/releases/download/v1.0.0-prerelease2/go-centry_1.0.0-prerelease2_Linux_x86_64.tar.gz | tar -xzv -C /usr/local/bin/
+curl -L https://github.com/kristofferahl/go-centry/releases/download/v1.0.0/go-centry_1.0.0-prerelease2_Linux_x86_64.tar.gz | tar -xzv -C /usr/local/bin/
 ```
 
 ## Getting started
