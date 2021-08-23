@@ -5,30 +5,34 @@ before:
     - go mod tidy
     - go mod download
 builds:
-- id: centry
-  binary: "{{ .ProjectName }}_{{ .Tag }}"
-  env:
-  - CGO_ENABLED=0
+  - id: centry
+    binary: "{{ .ProjectName }}_{{ .Tag }}"
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - "386"
+      - "amd64"
+      - "arm64"
+    env:
+      - CGO_ENABLED=0
 archives:
-- id: centry
-  builds:
-  - centry
-  replacements:
-    darwin: Darwin
-    linux: Linux
-    windows: Windows
-    386: i386
-    amd64: x86_64
+  - id: centry
+    builds:
+      - centry
+    replacements:
+      darwin: Darwin
+      linux: Linux
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
   sort: asc
   filters:
     exclude:
-    - '^.github:'
-    - '^docs:'
-    - '^examples:'
-    - '^scripts:'
-    - '^test:'
+      - "^.github:"
+      - "^docs:"
+      - "^examples:"
+      - "^scripts:"
+      - "^test:"
