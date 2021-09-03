@@ -62,7 +62,7 @@ func ParseAnnotation(text string) (*Annotation, error) {
 }
 
 func extractNamespaceValues(namespace string) (params map[string]string) {
-	var compRegEx = regexp.MustCompile("\\.(\\w+)\\[([0-9A-Za-z_:]+)\\]")
+	var compRegEx = regexp.MustCompile("\\.(\\w+)\\[([0-9A-Za-z_:-]+)\\]")
 	match := compRegEx.FindAllStringSubmatch(namespace, -1)
 
 	params = make(map[string]string)
@@ -76,6 +76,6 @@ func extractNamespaceValues(namespace string) (params map[string]string) {
 }
 
 func cleanupNamespace(namespace string) string {
-	var compRegEx = regexp.MustCompile("(\\.*)(\\[([0-9A-Za-z_:]+)\\])")
+	var compRegEx = regexp.MustCompile("(\\.*)(\\[([0-9A-Za-z_:-]+)\\])")
 	return compRegEx.ReplaceAllString(namespace, `${1}`)
 }

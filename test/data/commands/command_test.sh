@@ -24,6 +24,7 @@ commandtest:options:args() {
 # centry.cmd[commandtest:options:printenv].option[cmdsel1]/envName=CMDSELECTOPT
 # centry.cmd[commandtest:options:printenv].option[cmdsel2]/type=select
 # centry.cmd[commandtest:options:printenv].option[cmdsel2]/envName=CMDSELECTOPT
+# centry.cmd[commandtest:options:printenv].option[dashed-opt]/type=string
 commandtest:options:printenv() {
   env | sort
 }

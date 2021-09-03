@@ -54,7 +54,7 @@ func TestAnnotations(t *testing.T) {
 
 			g.It("returns annotation when it contains multiple equal signs", func() {
 				annotation, err := ParseAnnotation("centry/foo=bar=baz")
-				g.Assert(annotation != nil).IsTrue("expected no annotation")
+				g.Assert(annotation != nil).IsTrue("expected annotation")
 				g.Assert(err == nil).IsTrue("expected no error")
 				g.Assert(annotation.Namespace).Equal("centry")
 				g.Assert(annotation.Key).Equal("foo")
@@ -63,7 +63,7 @@ func TestAnnotations(t *testing.T) {
 
 			g.It("returns annotation when it contains multiple slashes", func() {
 				annotation, err := ParseAnnotation("centry/foo=bar/baz")
-				g.Assert(annotation != nil).IsTrue("expected no annotation")
+				g.Assert(annotation != nil).IsTrue("expected annotation")
 				g.Assert(err == nil).IsTrue("expected no error")
 				g.Assert(annotation.Namespace).Equal("centry")
 				g.Assert(annotation.Key).Equal("foo")
@@ -72,7 +72,7 @@ func TestAnnotations(t *testing.T) {
 
 			g.It("returns annotation when namespace contains key[value]", func() {
 				annotation, err := ParseAnnotation("centry.key[value]/foo=bar")
-				g.Assert(annotation != nil).IsTrue("expected no annotation")
+				g.Assert(annotation != nil).IsTrue("expected annotation")
 				g.Assert(err == nil).IsTrue("expected no error")
 				g.Assert(annotation.Namespace).Equal("centry.key")
 				g.Assert(annotation.NamespaceValues["key"]).Equal("value")
@@ -80,9 +80,29 @@ func TestAnnotations(t *testing.T) {
 				g.Assert(annotation.Value).Equal("bar")
 			})
 
+			g.It("returns annotation when namespace contains key[dashed-value]", func() {
+				annotation, err := ParseAnnotation("centry.key[dashed-value]/foo=bar")
+				g.Assert(annotation != nil).IsTrue("expected annotation")
+				g.Assert(err == nil).IsTrue("expected no error")
+				g.Assert(annotation.Namespace).Equal("centry.key")
+				g.Assert(annotation.NamespaceValues["key"]).Equal("dashed-value")
+				g.Assert(annotation.Key).Equal("foo")
+				g.Assert(annotation.Value).Equal("bar")
+			})
+
+			g.It("returns annotation when namespace contains key[double-dashed-value]", func() {
+				annotation, err := ParseAnnotation("centry.key[double-dashed-value]/foo=bar")
+				g.Assert(annotation != nil).IsTrue("expected annotation")
+				g.Assert(err == nil).IsTrue("expected no error")
+				g.Assert(annotation.Namespace).Equal("centry.key")
+				g.Assert(annotation.NamespaceValues["key"]).Equal("double-dashed-value")
+				g.Assert(annotation.Key).Equal("foo")
+				g.Assert(annotation.Value).Equal("bar")
+			})
+
 			g.It("returns annotation when namespace contains multiple key[value]", func() {
 				annotation, err := ParseAnnotation("centry.key1[value1].key2[value2]/foo=bar")
-				g.Assert(annotation != nil).IsTrue("expected no annotation")
+				g.Assert(annotation != nil).IsTrue("expected annotation")
 				g.Assert(err == nil).IsTrue("expected no error")
 				g.Assert(annotation.Namespace).Equal("centry.key1.key2")
 				g.Assert(annotation.NamespaceValues["key1"]).Equal("value1")
@@ -93,7 +113,7 @@ func TestAnnotations(t *testing.T) {
 
 			g.It("returns annotation when namespace contains key[value] where value has special character", func() {
 				annotation, err := ParseAnnotation("centry.key1[value:1].key2[value_2]/foo=bar")
-				g.Assert(annotation != nil).IsTrue("expected no annotation")
+				g.Assert(annotation != nil).IsTrue("expected annotation")
 				g.Assert(err == nil).IsTrue("expected no error")
 				g.Assert(annotation.Namespace).Equal("centry.key1.key2")
 				g.Assert(annotation.NamespaceValues["key1"]).Equal("value:1")

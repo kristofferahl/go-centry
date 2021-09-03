@@ -161,10 +161,11 @@ func TestMain(t *testing.T) {
 				})
 
 				g.It("should have environment variables set", func() {
-					out := execQuiet("commandtest options printenv --cmdstringopt=world --cmdboolopt --cmdsel1 --cmdsel2")
+					out := execQuiet("commandtest options printenv --cmdstringopt=world --cmdboolopt --cmdsel1 --cmdsel2 --dashed-opt dashed-val")
 					test.AssertStringHasKeyValue(g, out.Stdout, "CMDSTRINGOPT", "world")
 					test.AssertStringHasKeyValue(g, out.Stdout, "CMDBOOLOPT", "true")
 					test.AssertStringHasKeyValue(g, out.Stdout, "CMDSELECTOPT", "cmdsel2")
+					test.AssertStringHasKeyValue(g, out.Stdout, "DASHED_OPT", "dashed-val")
 				})
 
 				g.It("should hav prefixed environment variables set", func() {
