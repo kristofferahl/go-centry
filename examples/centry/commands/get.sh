@@ -9,7 +9,8 @@
 # centry.cmd[get:env].option[sanitize]/envName=SANITIZE_OUTPUT
 get:env() {
   local output
-  output="$(env | ${SORTED} | grep "${FILTER}")"
+  output="$(env | ${SORTED:-cat})"
+  [[ -n "${FILTER}" ]] && output="$(echo "${output:-}" | grep "${FILTER}")"
 
   if [[ ${SANITIZE_OUTPUT} == true ]]; then
     echo "${output}" | sed 's/\=.*$/=***/'
