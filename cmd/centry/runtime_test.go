@@ -402,8 +402,7 @@ COMMANDS:
    subcommand   Description for subcommand
 
 OPTIONS:
-   --help, -h     Show help (default: false)
-   --version, -v  Print the version (default: false)`
+   --help, -h  Show help (default: false)`
 
 				out := execQuiet("helptest --help")
 				test.AssertStringContains(g, out.Stdout, expected)
@@ -440,8 +439,7 @@ COMMANDS:
    subcommand2  Description for placeholder subcommand2
 
 OPTIONS:
-   --help, -h     Show help (default: false)
-   --version, -v  Print the version (default: false)`
+   --help, -h  Show help (default: false)`
 
 				out := execQuiet("helptest placeholder --help")
 				test.AssertStringContains(g, out.Stdout, expected)

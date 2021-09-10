@@ -38,12 +38,11 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 	cmdKeys := sc.GetCommandInvocationPath()
 	cmdName := cmdKeys[len(cmdKeys)-1]
 	cmdHidden := sc.Command.Hidden || sc.Function.Hidden
-	return &cli.Command{
-		Name:            cmdName,
-		Usage:           sc.Command.Description,
-		UsageText:       sc.Command.Help,
-		HideHelpCommand: true,
-		Hidden:          cmdHidden,
+	return withCommandDefaults(&cli.Command{
+		Name:      cmdName,
+		Usage:     sc.Command.Description,
+		UsageText: sc.Command.Help,
+		Hidden:    cmdHidden,
 		Action: func(c *cli.Context) error {
 			ec := sc.Run(c, c.Args().Slice())
 			if ec > 0 {
@@ -52,7 +51,7 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 			return nil
 		},
 		Flags: optionsSetToFlags(sc.Function.Options),
-	}
+	})
 }
 
 // Run builds the source and executes it

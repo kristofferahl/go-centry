@@ -12,6 +12,14 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+func withCommandDefaults(c *cli.Command) *cli.Command {
+	if c.CustomHelpTemplate == "" {
+		c.CustomHelpTemplate = commandHelpTemplate
+	}
+	c.HideHelpCommand = true
+	return c
+}
+
 func registerInternalCommands(runtime *Runtime) {
 	context := runtime.context
 
@@ -22,7 +30,7 @@ func registerInternalCommands(runtime *Runtime) {
 				"command": "serve",
 			}),
 		}
-		internalCmd := &cli.Command{
+		internalCmd := withCommandDefaults(&cli.Command{
 			Name:      "internal",
 			Usage:     "Internal centry commands",
 			UsageText: "",
@@ -30,7 +38,7 @@ func registerInternalCommands(runtime *Runtime) {
 			Subcommands: []*cli.Command{
 				serveCmd.ToCLICommand(),
 			},
-		}
+		})
 		runtime.cli.Commands = append(runtime.cli.Commands, internalCmd)
 	}
 }
@@ -93,13 +101,12 @@ func registerManifestCommands(runtime *Runtime, options *cmd.OptionsSet) {
 								runtime.cli.Commands = append(runtime.cli.Commands, cliCmd)
 							} else {
 								// add placeholder
-								runtime.cli.Commands = append(runtime.cli.Commands, &cli.Command{
-									Name:            cmdKeyPart,
-									Usage:           cmdDescription,
-									UsageText:       cmdHelp,
-									HideHelpCommand: true,
-									Action:          nil,
-								})
+								runtime.cli.Commands = append(runtime.cli.Commands, withCommandDefaults(&cli.Command{
+									Name:      cmdKeyPart,
+									Usage:     cmdDescription,
+									UsageText: cmdHelp,
+									Action:    nil,
+								}))
 							}
 						}
 						root = getCommand(runtime.cli.Commands, cmdKeyPart)
@@ -110,13 +117,12 @@ func registerManifestCommands(runtime *Runtime, options *cmd.OptionsSet) {
 								root.Subcommands = append(root.Subcommands, cliCmd)
 							} else {
 								// add placeholder
-								root.Subcommands = append(root.Subcommands, &cli.Command{
-									Name:            cmdKeyPart,
-									Usage:           "...",
-									UsageText:       "",
-									HideHelpCommand: true,
-									Action:          nil,
-								})
+								root.Subcommands = append(root.Subcommands, withCommandDefaults(&cli.Command{
+									Name:      cmdKeyPart,
+									Usage:     "...",
+									UsageText: "",
+									Action:    nil,
+								}))
 							}
 						}
 						root = getCommand(root.Subcommands, cmdKeyPart)

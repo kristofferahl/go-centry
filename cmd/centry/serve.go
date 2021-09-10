@@ -22,7 +22,7 @@ type ServeCommand struct {
 
 // ToCLICommand returns a CLI command
 func (sc *ServeCommand) ToCLICommand() *cli.Command {
-	return &cli.Command{
+	return withCommandDefaults(&cli.Command{
 		Name:      "serve",
 		Usage:     "Exposes commands over HTTP",
 		UsageText: "",
@@ -34,7 +34,7 @@ func (sc *ServeCommand) ToCLICommand() *cli.Command {
 			}
 			return nil
 		},
-	}
+	})
 }
 
 // Run starts an HTTP server and blocks
