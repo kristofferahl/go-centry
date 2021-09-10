@@ -72,6 +72,7 @@ func createGlobalOptions(runtime *Runtime) *cmd.OptionsSet {
 			Description: o.Description,
 			EnvName:     o.EnvName,
 			Default:     def,
+			Required:    o.Required,
 			Hidden:      o.Hidden,
 		})
 
@@ -101,7 +102,8 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				Aliases: short,
 				Usage:   o.Description,
 				Value:   def,
-				Hidden:  o.Hidden,
+				// Required: o.Required, // NOTE: We currently do not support specifying select options as required
+				Hidden: o.Hidden,
 			})
 		case cmd.BoolOption:
 			def := false
@@ -109,11 +111,12 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				def = o.Default.(bool)
 			}
 			flags = append(flags, &cli.BoolFlag{
-				Name:    o.Name,
-				Aliases: short,
-				Usage:   o.Description,
-				Value:   def,
-				Hidden:  o.Hidden,
+				Name:     o.Name,
+				Aliases:  short,
+				Usage:    o.Description,
+				Value:    def,
+				Required: o.Required,
+				Hidden:   o.Hidden,
 			})
 		case cmd.StringOption:
 			def := ""
@@ -121,11 +124,12 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				def = o.Default.(string)
 			}
 			flags = append(flags, &cli.StringFlag{
-				Name:    o.Name,
-				Aliases: short,
-				Usage:   o.Description,
-				Value:   def,
-				Hidden:  o.Hidden,
+				Name:     o.Name,
+				Aliases:  short,
+				Usage:    o.Description,
+				Value:    def,
+				Required: o.Required,
+				Hidden:   o.Hidden,
 			})
 		}
 	}

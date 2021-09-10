@@ -37,3 +37,10 @@ get:error() {
   echo "I will generate an error"
   exit 123
 }
+
+# centry.cmd[get:required].option[abc]/required=true
+# centry.cmd[get:required].option[def]/required=false
+get:required() {
+  echo "This subcommand has a required option"
+  env | sort
+}

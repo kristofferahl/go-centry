@@ -247,6 +247,20 @@ func TestMain(t *testing.T) {
 				test.AssertNoError(g, out.Error)
 			})
 		})
+
+		g.Describe("invoke without required option", func() {
+			g.It("should fail with error message", func() {
+				out := execCentry("optiontest required", false, "test/data/runtime_test.yaml")
+				test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required flag \\\"abc\\\" not set\"")
+			})
+		})
+
+		g.Describe("invoke with required option", func() {
+			g.It("should pass", func() {
+				out := execCentry("optiontest required --abc=foo", false, "test/data/runtime_test.yaml")
+				test.AssertStringHasKeyValue(g, out.Stdout, "ABC", "foo")
+			})
+		})
 	})
 
 	g.Describe("global options", func() {

@@ -174,6 +174,11 @@ func (s *BashScript) Functions() ([]*Function, error) {
 					options[name].EnvName = a.Value
 				case "default":
 					options[name].Default = a.Value
+				case "required":
+					required, err := strconv.ParseBool(a.Value)
+					if err == nil {
+						options[name].Required = required
+					}
 				case "description":
 					options[name].Description = a.Value
 				case "hidden":

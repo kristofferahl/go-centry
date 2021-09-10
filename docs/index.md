@@ -32,16 +32,18 @@ To define a command, two `properties` are required. The `name` is what you will 
 
 Here's how you would define a root level command called `get`:
 
-*`// file: centry.yaml`*
+_`// file: centry.yaml`_
+
 ```yaml
 commands:
-    - name: get
-      path: ./get.sh
+  - name: get
+    path: ./get.sh
 ```
 
 In the script file, create a function matching the `name` property.
 
-*`// file: get.sh`*
+_`// file: get.sh`_
+
 ```bash
 #!/usr/bin/env bash
 
@@ -58,14 +60,16 @@ What strategy you choose is entirely up to you but the root level commands must 
 
 Sub commands are exclusively defined in scripts. Creating a sub command is as easy as including the special character colon (`:`) in a script function name. Let's say you have already defined a root level command called `get` but wanted to define two commands that have `get` as their parent. Simply create two functions named `get:` and suffix it with the desired name of the sub command.
 
-*`// file: centry.yaml`*
+_`// file: centry.yaml`_
+
 ```yaml
 commands:
-    - name: get
-      path: ./get.sh
+  - name: get
+    path: ./get.sh
 ```
 
-*`// file: get.sh`*
+_`// file: get.sh`_
+
 ```bash
 #!/usr/bin/env bash
 
@@ -85,9 +89,10 @@ mycli get data
 mycli get time
 ```
 
-Adding annotations for sub commands works in the same way as for root level commands. Here's an example adding a description for the two commands created above. *Note that the full function name must be used in the annotation.*
+Adding annotations for sub commands works in the same way as for root level commands. Here's an example adding a description for the two commands created above. _Note that the full function name must be used in the annotation._
 
-*`// file: get.sh`*
+_`// file: get.sh`_
+
 ```bash
 #!/usr/bin/env bash
 
@@ -105,36 +110,39 @@ get:time() {
 ### Command properties
 
 | Property    | Description                                          | YAML key      | Type    | Required |
-|-------------|------------------------------------------------------|---------------|---------|----------|
+| ----------- | ---------------------------------------------------- | ------------- | ------- | -------- |
 | Name        | The name of the command                              | `name`        | string  | true     |
 | Path        | Relative path to the script containing the command   | `path`        | string  | true     |
 | Description | Description of the command, displayed in help output | `description` | string  | false    |
 | Help        | Usage example for the command                        | `help`        | string  | false    |
 | Hidden      | When true, hides the command from help output        | `hidden`      | boolean | false    |
 
-
 ### Command annotations
 
-Command annotations are used to associate metadata with a command. Annotations are defined using regular comments in bash (*a line starting with `#`*). They may be placed anywhere inside the script file and in any order you want. It is however recommended that you keep it close to your functions to act as documentation when changing your commands.
+Command annotations are used to associate metadata with a command. Annotations are defined using regular comments in bash (_a line starting with `#`_). They may be placed anywhere inside the script file and in any order you want. It is however recommended that you keep it close to your functions to act as documentation when changing your commands.
 
 | Property    | Format                                        |
-|-------------|-----------------------------------------------|
+| ----------- | --------------------------------------------- |
 | Description | `# centry.cmd[<command>]/description=<value>` |
 | Help        | `# centry.cmd[<command>]/help=<value>`        |
 | Hidden      | `# centry.cmd[<command>]/hidden=<value>`      |
 
 ## Options (flags)
+
 Options (aka flags) are used to pass named arguments to commands. When used, `centry` will export a variable for you with the value of the option set.
 
 ### Accessing option values
+
 Option values are made available to your commands as environment variables. Given an option named `filter`, centry sets the environment variable `FILTER` to the value provided by the option or to it's default value. The environment variable name that is used for an option can be changed by setting the `EnvName` property (see Option properties).
 
 ### Global options
+
 Global options are made available for all commands. They are often used to to provide context for the commands you are executing. Global options are defined in the `options` section of the manifest file (`centry.yaml`). To define a global option, two properties are required. The name of the option and it's type. In general you should only specify a global option if it makes sense in the context of all commands provided by your cli.
 
 Here's how you would define the global option `--verbose`:
 
-*`// file: centry.yaml`*
+_`// file: centry.yaml`_
+
 ```yaml
 options:
   - name: verbose
@@ -150,11 +158,13 @@ mycli --verbose command2
 ```
 
 ### Command options
+
 Command options are, as the name suggests, scoped to commands. Therefore there is no way to define these in the manifest file. Instead you will be using `annotations` to define command options. For a full list of available annotations, see Option annotations.
 
 Here's an example defining a `filter` option for the `get files` command:
 
-*`// file: get.sh`*
+_`// file: get.sh`_
+
 ```bash
 #!/usr/bin/env bash
 
@@ -170,14 +180,17 @@ get:files() {
 ```
 
 ### Option types
+
 Options have a `type` property that defines it's behavior and possible values. The currently supported option types are:
 
 #### String option
+
 String options are the most common type to use. It has a `name` and it's `type` set to `string`. In addition to the required properties, it is quite common to use the `default` property to set a default value for the option. See Option properties for the full list of available properties.
 
 **Example**
 
-*`// file: centry.yaml`*
+_`// file: centry.yaml`_
+
 ```yaml
 options:
   - name: filter
@@ -188,11 +201,13 @@ options:
 **Usage**: `--<option_name> <value>` or `--<option_name>=<value>`
 
 #### Bool option
+
 Boolean options can be used to provide a switch for behaviors in a command. As an example it could be used to turning debug logging on or off. A bool option have a value of `false` by default (this can be changed but it is not recommended). Using the default value of `false`, providing the option to your cli will tell centry to toggle that value to `true`.
 
 **Example**
 
-*`// file: centry.yaml`*
+_`// file: centry.yaml`_
+
 ```yaml
 options:
   - name: verbose
@@ -200,7 +215,8 @@ options:
     description: Turn on verbose logging
 ```
 
-*`// file: get.sh`*
+_`// file: get.sh`_
+
 ```bash
 #!/usr/bin/env bash
 
@@ -217,11 +233,13 @@ get:data() {
 **Usage**: `--<option_name>` or `--<option_name>=<value>`
 
 #### Select option
+
 Select options are a bit different. It is commonly used to have the user select one value from an array of predefined values. The user selects a value by using the matching option.
 
 Let's dive into an example where we want the user to be able to select one of three AWS regions (eu-central-1, eu-west-1 and us-east-1). Here's how we would define that in our manifest.
 
-*`// file: centry.yaml`*
+_`// file: centry.yaml`_
+
 ```yaml
 options:
   - name: eu-central-1
@@ -240,7 +258,8 @@ options:
 
 On it's own, a select option provides no real value. The magic happens when we override the environment variable name that will have it's value set when a select option is provided. This essentially creates an array of valid values scoped to the specified environment variable name.
 
-*`// file: get.sh`*
+_`// file: get.sh`_
+
 ```bash
 #!/usr/bin/env bash
 
@@ -258,13 +277,14 @@ mycli get lambdas --us-east-1
 ```
 
 **NOTE**:
+
 - As no default value can be specified for select options, it's name is instead used as it's value.
 - If multiple select options with the same environment variable name is specified, the last one wins.
 
 ### Option properties
 
 | Property    | Description                                         | YAML          | Type                            | Required |
-|-------------|-----------------------------------------------------|---------------|---------------------------------|----------|
+| ----------- | --------------------------------------------------- | ------------- | ------------------------------- | -------- |
 | Type        | Type of option                                      | `type`        | OptionType (string/bool/select) | true     |
 | Name        | Name of the option                                  | `name`        | string                          | true     |
 | Short       | Short name of the option                            | `short`       | string                          | false    |
@@ -272,19 +292,21 @@ mycli get lambdas --us-east-1
 | Default     | Default value of the option                         | `default`     | string                          | false    |
 | Description | Description of the option, displayed in help output | `description` | string                          | false    |
 | Hidden      | When true, hides the option from help output        | `hidden`      | boolean                         | false    |
+| Required    | When true, marks the option as required             | `required`    | boolean                         | false    |
 
 ### Option annotations
 
 Option annotations are used to define options for a command. Annotations are defined using regular comments in bash (a line starting with #). They may be placed anywhere inside the script file and in any order you want. It is however recommended that you keep it close to your functions to double as documentation for the command/option.
 
 | Property    | Format                                                         |
-|-------------|----------------------------------------------------------------|
+| ----------- | -------------------------------------------------------------- |
 | Type        | `# centry.cmd[<command>].option[<option>]/type=<value>`        |
 | Short       | `# centry.cmd[<command>].option[<option>]/short=<value>`       |
 | EnvName     | `# centry.cmd[<command>].option[<option>]/envName=<value>`     |
 | Default     | `# centry.cmd[<command>].option[<option>]/default=<value>`     |
 | Description | `# centry.cmd[<command>].option[<option>]/description=<value>` |
 | Hidden      | `# centry.cmd[<command>].option[<option>]/hidden=<value>`      |
+| Required    | `# centry.cmd[<command>].option[<option>]/required=<value>`    |
 
 ## Arguments
 
@@ -293,13 +315,16 @@ Anything after the last specified command or option will be passed to your comma
 ```bash
 mycli mycommand --myoption=foo bar baz
 ```
+
 Assuming `mycommand` have an option defined called `myoption`, in the example above, `bar` and `baz` would be passed as arguments. The same is true when `myoption` is left out.
 
 ### Passing flags as arguments
+
 In some cases it is useful for flags to be passed on as arguments to a command.
 In the following command we have wrapped `curl` but want to allow the use of the verbose flag, even though that is not the default behavior.
 
-*`// file: get.sh`*
+_`// file: get.sh`_
+
 ```bash
 #!/usr/bin/env bash
 
@@ -317,16 +342,18 @@ The command below will fail since a verbose option is not defined.
 mycli get data --url http://google.com --verbose
 ```
 
- To achive the desired behaviour we need to tell centry to **stop processing arguments**. This can be done by adding a `--` when calling the command.
+To achive the desired behaviour we need to tell centry to **stop processing arguments**. This can be done by adding a `--` when calling the command.
 
 ```bash
 mycli get data --url http://google.com -- --verbose
 ```
 
 ## Scripts
+
 Before executing a command, centry can import helper functions and run common setup tasks for the environment the command executes in. This is done by specifying an array of file paths in the `scripts` section that centry will [source](https://linuxize.com/post/bash-source-command/), in the specified order. This makes sharing functions across commands easier and more predictable while keeping things DRY.
 
 Comman use-cases include:
+
 - Sourcing of functions from script libraries and wrapper scripts
 - Installing missing dependencies and downloading files
 - Setting environment variables
@@ -334,7 +361,8 @@ Comman use-cases include:
 
 Here's an example:
 
-*`// file: centry.yaml`*
+_`// file: centry.yaml`_
+
 ```yaml
 scripts:
   - /usr/share/bash-commons-1.0.2/modules/bash-commons/src/log.sh
@@ -344,7 +372,8 @@ scripts:
 
 If you need something to run at the point of sourcing it, simply make it self executing like the init script below.
 
-*`// file: scripts/init.sh`*
+_`// file: scripts/init.sh`_
+
 ```bash
 #!/usr/bin/env bash
 
@@ -358,9 +387,11 @@ init "$@"
 **NOTE**: It is important to know that naming conflicts may occur. If multiple scripts are sourced, containing functions with the same name, only the last one would be available for commands to use.
 
 ## Configuration
+
 The `config` section of the manifest file allows you to override default values as well as describing your CLI.
 
 ### CLI metadata
+
 The most common place to start is with the metadata properties that are used to describe your CLI to it's users. They are defined at the root of the `config` section as shown below:
 
 ```yaml
@@ -371,12 +402,13 @@ config:
 ```
 
 | Property    | Description            | Type   | Default                              | Required |
-|-------------|------------------------|--------|--------------------------------------|----------|
+| ----------- | ---------------------- | ------ | ------------------------------------ | -------- |
 | Name        | Name of the CLI        | string | -                                    | true     |
 | Description | Description of the CLI | string | A declarative cli built using centry | false    |
 | Version     | Version of the CLI     | string | -                                    | false    |
 
 ### Logging
+
 In the `config.log` section you may change things related to logging in centry. You may want to turn on debug logging or add a prefix to the log messages printed by centry.
 
 ```yaml
@@ -384,15 +416,16 @@ config:
   name: mycli
   log:
     level: debug
-    prefix: '[centry] '
+    prefix: "[centry] "
 ```
 
 | Property | Description                               | Type                                   | Default | Required |
-|----------|-------------------------------------------|----------------------------------------|---------|----------|
+| -------- | ----------------------------------------- | -------------------------------------- | ------- | -------- |
 | Level    | Log level used by centry                  | LogLevel (debug/info/warn/error/panic) | info    | true     |
 | Prefix   | Prefix applied to all centry log messages | string                                 | -       | false    |
 
 ### Advanced config
+
 Also defined in the `config` section are some properties that allow even more control of how centry works.
 
 ```yaml
@@ -404,7 +437,7 @@ config:
 ```
 
 | Property             | Description                                                | Type    | Default | Required |
-|----------------------|------------------------------------------------------------|---------|---------|----------|
+| -------------------- | ---------------------------------------------------------- | ------- | ------- | -------- |
 | EnvironmentPrefix    | Prefix used when exporting environment variables in centry | string  | -       | false    |
 | HideInternalCommands | Hides internal centry commands from help output            | boolean | true    | false    |
 | HideInternalOptions  | Hides internal centry options from help output             | boolean | true    | false    |

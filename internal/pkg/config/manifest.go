@@ -48,6 +48,7 @@ type Option struct {
 	Short       string            `yaml:"short,omitempty"`
 	EnvName     string            `yaml:"env_name,omitempty"`
 	Default     string            `yaml:"default,omitempty"`
+	Required    bool              `yaml:"required,omitempty"`
 	Description string            `yaml:"description,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
 	Hidden      bool              `yaml:"hidden,omitempty"`
