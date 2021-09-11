@@ -20,6 +20,7 @@
   - [Metadata](#cli-metadata)
   - [Logging](#logging)
   - [Advanced](#advanced-config)
+- Internal commands
 - Help
 - Autocompletion
 
