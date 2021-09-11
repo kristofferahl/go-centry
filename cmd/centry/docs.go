@@ -33,7 +33,9 @@ func (sc *GenerateMarkdownCommand) ToCLICommand() *cli.Command {
 		},
 		Flags: []cli.Flag{
 			&cli.PathFlag{
-				Name: "file",
+				Name:    "file",
+				Aliases: []string{"f"},
+				Usage:   "Outputs the generated markedown to the specified file",
 			},
 		},
 	})
