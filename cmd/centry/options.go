@@ -6,6 +6,7 @@ import (
 
 	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
 	"github.com/kristofferahl/go-centry/internal/pkg/shell"
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 )
 
@@ -98,12 +99,12 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				def = o.Default.(bool)
 			}
 			flags = append(flags, &cli.BoolFlag{
-				Name:    o.Name,
-				Aliases: short,
-				Usage:   o.Description,
-				Value:   def,
-				// Required: o.Required, // NOTE: We currently do not support specifying select options as required
-				Hidden: o.Hidden,
+				Name:     o.Name,
+				Aliases:  short,
+				Usage:    o.Description,
+				Value:    def,
+				Required: false,
+				Hidden:   o.Hidden,
 			})
 		case cmd.BoolOption:
 			def := false
@@ -180,4 +181,43 @@ func optionsSetToEnvVars(c *cli.Context, set *cmd.OptionsSet, prefix string) []s
 	}
 
 	return shell.SortEnvironmentVariables(envVars)
+}
+
+func validateOptionsSet(c *cli.Context, set *cmd.OptionsSet, cmdName string, level string, log *logrus.Entry) error {
+	selectOptions := make(map[string][]string)
+	selectOptionRequired := make(map[string]bool)
+	selectOptionSelected := make(map[string]string)
+
+	for _, o := range set.Sorted() {
+		o := o
+
+		switch o.Type {
+		case cmd.SelectOption:
+			group := o.EnvName
+			selectOptions[o.EnvName] = append(selectOptions[group], o.Name)
+			if o.Required {
+				selectOptionRequired[group] = true
+			}
+			v := c.String(o.Name)
+			log.Debugf("found select option %s (group=%s value=%v required=%v)\n", o.Name, group, v, o.Required)
+			if v == "true" {
+				selectOptionSelected[group] = o.Name
+			}
+			break
+		}
+	}
+
+	for group, _ := range selectOptions {
+		if selectOptionRequired[group] {
+			if option, ok := selectOptionSelected[group]; ok && option != "" {
+				log.Debugf("select option group %s was set by option %s", group, option)
+			} else {
+				cli.ShowCommandHelp(c, cmdName)
+				return fmt.Errorf("Required %s flag missing for select option group %s (one of \" %s \" must be provided)\n", level, group, strings.Join(selectOptions[group], " | "))
+			}
+		} else {
+			log.Debugf("select option group %s does not require a value", group)
+		}
+	}
+	return nil
 }

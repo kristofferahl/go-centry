@@ -44,3 +44,13 @@ get:required() {
   echo "This subcommand has a required option"
   env | sort
 }
+
+# centry.cmd[get:selected].option[abc]/type=select
+# centry.cmd[get:selected].option[abc]/envName=SELECTED
+# centry.cmd[get:selected].option[abc]/required=true
+# centry.cmd[get:selected].option[def]/type=select
+# centry.cmd[get:selected].option[def]/envName=SELECTED
+# centry.cmd[get:selected].option[def]/required=true
+get:selected() {
+  echo "The selected value was ${SELECTED:?}"
+}

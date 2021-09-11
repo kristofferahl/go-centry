@@ -249,16 +249,32 @@ func TestMain(t *testing.T) {
 		})
 
 		g.Describe("invoke without required option", func() {
-			g.It("should fail with error message", func() {
-				out := execCentry("optiontest required", false, "test/data/runtime_test.yaml")
-				test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required flag \\\"abc\\\" not set\"")
+			g.Describe("of type string", func() {
+				g.It("should fail with error message", func() {
+					out := execCentry("optiontest required --boolopt --selectopt1", false, "test/data/runtime_test.yaml")
+					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required flag \\\"stringopt\\\" not set\"")
+				})
+			})
+			g.Describe("of type bool", func() {
+				g.It("should fail with error message", func() {
+					out := execCentry("optiontest required --stringopt=foo --selectopt1", false, "test/data/runtime_test.yaml")
+					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required flag \\\"boolopt\\\" not set\"")
+				})
+			})
+			g.Describe("of type select", func() {
+				g.It("should fail with error message", func() {
+					out := execCentry("optiontest required --stringopt=foo --boolopt", false, "test/data/runtime_test.yaml")
+					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required command flag missing for select option group SELECT (one of \\\" selectopt1 | selectopt2 \\\" must be provided)")
+				})
 			})
 		})
 
 		g.Describe("invoke with required option", func() {
 			g.It("should pass", func() {
-				out := execCentry("optiontest required --abc=foo", false, "test/data/runtime_test.yaml")
-				test.AssertStringHasKeyValue(g, out.Stdout, "ABC", "foo")
+				out := execCentry("optiontest required --stringopt=foo --boolopt --selectopt1", false, "test/data/runtime_test.yaml")
+				test.AssertStringHasKeyValue(g, out.Stdout, "STRINGOPT", "foo")
+				test.AssertStringHasKeyValue(g, out.Stdout, "BOOLOPT", "true")
+				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt1")
 			})
 		})
 	})
