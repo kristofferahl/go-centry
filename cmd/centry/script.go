@@ -38,13 +38,17 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 	cmdKeys := sc.GetCommandInvocationPath()
 	cmdName := cmdKeys[len(cmdKeys)-1]
 	cmdHidden := sc.Command.Hidden || sc.Function.Hidden
-	return &cli.Command{
-		Name:            cmdName,
-		Usage:           sc.Command.Description,
-		UsageText:       sc.Command.Help,
-		HideHelpCommand: true,
-		Hidden:          cmdHidden,
+	return withCommandDefaults(&cli.Command{
+		Name:      cmdName,
+		Usage:     sc.Command.Description,
+		UsageText: sc.Command.Help,
+		Hidden:    cmdHidden,
 		Action: func(c *cli.Context) error {
+			err := validateOptions(c, sc, cmdName)
+			if err != nil {
+				return err
+			}
+
 			ec := sc.Run(c, c.Args().Slice())
 			if ec > 0 {
 				return cli.Exit("Command exited with non zero exit code", ec)
@@ -52,7 +56,7 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 			return nil
 		},
 		Flags: optionsSetToFlags(sc.Function.Options),
-	}
+	})
 }
 
 // Run builds the source and executes it
@@ -85,6 +89,16 @@ func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
 
 	sc.Log.Debugf("finished executing command %s...", sc.Function.Name)
 	return 0
+}
+
+func validateOptions(c *cli.Context, sc *ScriptCommand, cmdName string) error {
+	if err := validateOptionsSet(c, sc.GlobalOptions, cmdName, "global", sc.Log.WithField("option-valiation", "global")); err != nil {
+		return err
+	}
+	if err := validateOptionsSet(c, sc.Function.Options, cmdName, "command", sc.Log.WithField("option-valiation", "command")); err != nil {
+		return err
+	}
+	return nil
 }
 
 func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) string {

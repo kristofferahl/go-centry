@@ -23,8 +23,26 @@ COMMANDS:{{range .VisibleCategories}}{{if .Name}}
 
 GLOBAL OPTIONS:
    {{range $index, $option := .VisibleFlags}}{{if $index}}
-   {{end}}{{$option}}{{end}}{{end}}{{if .Copyright}}
+   {{end}}{{$option}}{{if $option.Required}}{{if or ($option.Usage) ($option.Value)}} {{end}}(required: true){{end}}{{end}}{{end}}{{if .Copyright}}
 
 COPYRIGHT:
    {{.Copyright}}{{end}}
 `
+
+var commandHelpTemplate = `NAME:
+   {{.HelpName}} - {{.Usage}}
+
+USAGE:
+   {{if .UsageText}}{{.UsageText | nindent 3 | trim}}{{else}}{{.HelpName}}{{if .VisibleFlags}} [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}{{end}}{{if .Category}}
+
+CATEGORY:
+   {{.Category}}{{end}}{{if .Description}}
+
+DESCRIPTION:
+   {{.Description | nindent 3 | trim}}{{end}}{{if .VisibleFlags}}
+
+OPTIONS:
+   {{range .VisibleFlags}}{{.}}{{if .Required}}{{if or (.Usage) (.Value)}} {{end}}(required: true){{end}}
+   {{end}}{{end}}
+`
+

@@ -47,6 +47,7 @@ type Option struct {
 	Short       string
 	EnvName     string
 	Description string
+	Required    bool
 	Hidden      bool
 	Internal    bool
 	Default     interface{}

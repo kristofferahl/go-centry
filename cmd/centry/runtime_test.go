@@ -247,6 +247,36 @@ func TestMain(t *testing.T) {
 				test.AssertNoError(g, out.Error)
 			})
 		})
+
+		g.Describe("invoke without required option", func() {
+			g.Describe("of type string", func() {
+				g.It("should fail with error message", func() {
+					out := execCentry("optiontest required --boolopt --selectopt1", false, "test/data/runtime_test.yaml")
+					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required flag \\\"stringopt\\\" not set\"")
+				})
+			})
+			g.Describe("of type bool", func() {
+				g.It("should fail with error message", func() {
+					out := execCentry("optiontest required --stringopt=foo --selectopt1", false, "test/data/runtime_test.yaml")
+					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required flag \\\"boolopt\\\" not set\"")
+				})
+			})
+			g.Describe("of type select", func() {
+				g.It("should fail with error message", func() {
+					out := execCentry("optiontest required --stringopt=foo --boolopt", false, "test/data/runtime_test.yaml")
+					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required command flag missing for select option group SELECT (one of \\\" selectopt1 | selectopt2 \\\" must be provided)")
+				})
+			})
+		})
+
+		g.Describe("invoke with required option", func() {
+			g.It("should pass", func() {
+				out := execCentry("optiontest required --stringopt=foo --boolopt --selectopt1", false, "test/data/runtime_test.yaml")
+				test.AssertStringHasKeyValue(g, out.Stdout, "STRINGOPT", "foo")
+				test.AssertStringHasKeyValue(g, out.Stdout, "BOOLOPT", "true")
+				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt1")
+			})
+		})
 	})
 
 	g.Describe("global options", func() {
@@ -388,8 +418,7 @@ COMMANDS:
    subcommand   Description for subcommand
 
 OPTIONS:
-   --help, -h     Show help (default: false)
-   --version, -v  Print the version (default: false)`
+   --help, -h  Show help (default: false)`
 
 				out := execQuiet("helptest --help")
 				test.AssertStringContains(g, out.Stdout, expected)
@@ -426,8 +455,7 @@ COMMANDS:
    subcommand2  Description for placeholder subcommand2
 
 OPTIONS:
-   --help, -h     Show help (default: false)
-   --version, -v  Print the version (default: false)`
+   --help, -h  Show help (default: false)`
 
 				out := execQuiet("helptest placeholder --help")
 				test.AssertStringContains(g, out.Stdout, expected)

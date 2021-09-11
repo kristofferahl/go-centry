@@ -41,6 +41,7 @@ options:
   - name: ops
     type: select
     env_name: CONTEXT
+    required: true
     description: Set the context to ops (operations)
     annotations:
       centry.api/serve: "true"
@@ -48,6 +49,7 @@ options:
   - name: dev
     type: select
     env_name: CONTEXT
+    required: true
     description: Set the context to dev (development)
     annotations:
       centry.api/serve: "false"
@@ -55,10 +57,12 @@ options:
   - name: qa
     type: select
     env_name: CONTEXT
+    required: true
     description: Set the context to qa (quality assurance)
 
   - name: prod
     type: select
+    required: true
     env_name: CONTEXT
     description: Set the context to prod (production)
 
@@ -78,7 +82,7 @@ config:
   version: 1.0.0 # NOTE: This can also be set from an environment variable
   log:
     level: info
-    prefix: '[centry] '
+    prefix: "[centry] "
   # environmentPrefix: MY_PREFIX_ # NOTE: This can be set to alter the naming of environment variables (internal environment variables stay the same)
   hideInternalCommands: true # default: true
   hideInternalOptions: true # default: true
