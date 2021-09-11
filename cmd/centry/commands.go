@@ -30,6 +30,13 @@ func registerInternalCommands(runtime *Runtime) {
 				"command": "serve",
 			}),
 		}
+		generateMarkdownCmd := &GenerateMarkdownCommand{
+			CLI:      runtime.cli,
+			Manifest: context.manifest,
+			Log: context.log.GetLogger().WithFields(logrus.Fields{
+				"command": "generate-markdown",
+			}),
+		}
 		internalCmd := withCommandDefaults(&cli.Command{
 			Name:      "internal",
 			Usage:     "Internal centry commands",
@@ -37,6 +44,7 @@ func registerInternalCommands(runtime *Runtime) {
 			Hidden:    context.manifest.Config.HideInternalCommands,
 			Subcommands: []*cli.Command{
 				serveCmd.ToCLICommand(),
+				generateMarkdownCmd.ToCLICommand(),
 			},
 		})
 		runtime.cli.Commands = append(runtime.cli.Commands, internalCmd)
