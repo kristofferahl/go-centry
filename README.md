@@ -18,6 +18,7 @@ Declarative **command line builder** for teams and one man bands
 - **Autocomplete**: Bash-completions of commands and options
 - **Highly configurable**: Sensible defaults, lots of choises
 - **Easy setup**: Download centry, create a manifest file and you are good to go
+- **Generated documentation**: Markdown documentation generated from your CLI
 
 ## Full documentation
 
