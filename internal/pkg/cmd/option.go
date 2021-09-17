@@ -51,7 +51,6 @@ type Option struct {
 	Hidden      bool
 	Internal    bool
 	Default     interface{}
-	value       valuePointer
 }
 
 // Validate returns true if the option is concidered valid
@@ -65,18 +64,6 @@ func (o *Option) Validate() error {
 	}
 
 	return nil
-}
-
-type boolValue bool
-
-func (b *boolValue) string() string { return strconv.FormatBool(bool(*b)) }
-
-type stringValue string
-
-func (s *stringValue) string() string { return string(*s) }
-
-type valuePointer interface {
-	string() string
 }
 
 // NewOptionsSet creates a new set of options
