@@ -231,6 +231,43 @@ get:data() {
 }
 ```
 
+#### Integer option
+
+Integer options can be used to pass numbers to your commands. Things like `--max-retries=5` and `--cluster-size=3` are great examples where you might want to use an integer option. Integer options have a default value of `0` but may be set to any integer value. Passing an integer option will override the default value to the value provided.
+
+**Example**
+
+_`// file: get.sh`_
+
+```bash
+#!/usr/bin/env bash
+
+# centry.cmd[get:url].option[url]/required=true
+# centry.cmd[get:url].option[max-retries]/type=integer
+# centry.cmd[get:url].option[max-retries]/default=3
+get:url() {
+  echo "Calling ${URL:?} a maximum of ${MAX_RETRIES:?} time(s)"
+  echo
+
+  local success=false
+  local attempts=0
+  until [[ ${success:?} == true ]]; do
+    ((attempts++))
+
+    if ! curl "${URL:?}"; then
+      if [[ ${attempts:?} -ge ${MAX_RETRIES:?} ]]; then
+        echo
+        echo "Max retries reached... exiting!"
+        return 1
+      fi
+      sleep 1
+    else
+      success=true
+    fi
+  done
+}
+```
+
 **Usage**: `--<option_name>` or `--<option_name>=<value>`
 
 #### Select option
