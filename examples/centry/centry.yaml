@@ -76,6 +76,11 @@ options:
     env_name: SORTED
     description: Set's sort order to descending
 
+  - name: max-retries
+    type: integer
+    default: "3"
+    description: The default number of times to retry an action before failing
+
 config:
   name: centry
   description: A tool for building declarative CLI's over bash scripts, written in go

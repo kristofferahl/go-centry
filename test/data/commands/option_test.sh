@@ -15,6 +15,8 @@ optiontest:noop() {
 # centry.cmd[optiontest:required].option[stringopt]/required=true
 # centry.cmd[optiontest:required].option[boolopt]/type=bool
 # centry.cmd[optiontest:required].option[boolopt]/required=true
+# centry.cmd[optiontest:required].option[intopt]/type=integer
+# centry.cmd[optiontest:required].option[intopt]/required=true
 # centry.cmd[optiontest:required].option[selectopt1]/required=true
 # centry.cmd[optiontest:required].option[selectopt1]/type=select
 # centry.cmd[optiontest:required].option[selectopt1]/envName=SELECT

@@ -22,7 +22,10 @@ const StringOption OptionType = "string"
 // BoolOption defines a boolean value option
 const BoolOption OptionType = "bool"
 
-// SelectOption defines a boolean select value option
+// IntegerOption defines a boolean select value option
+const IntegerOption OptionType = "integer"
+
+// IntOption defines a boolean select value option
 const SelectOption OptionType = "select"
 
 // StringToOptionType returns the OptionType matching the provided string
@@ -33,6 +36,8 @@ func StringToOptionType(s string) OptionType {
 		return StringOption
 	case "bool":
 		return BoolOption
+	case "integer":
+		return IntegerOption
 	case "select":
 		return SelectOption
 	default:
@@ -85,6 +90,11 @@ func (s *OptionsSet) Add(option *Option) error {
 		return err
 	}
 
+	err = convertDefaultValueToCorrectType(option)
+	if err != nil {
+		return err
+	}
+
 	if _, ok := s.items[option.Name]; ok {
 		return fmt.Errorf("an option with the name \"%s\" has already been added", option.Name)
 	}
@@ -109,4 +119,35 @@ func (s *OptionsSet) Sorted() []*Option {
 	}
 
 	return options
+}
+
+func convertDefaultValueToCorrectType(option *Option) error {
+	var def interface{}
+
+	switch option.Type {
+	case SelectOption:
+		def = false
+	case IntegerOption:
+		def = 0
+		switch option.Default.(type) {
+		case string:
+			if option.Default != "" {
+				val, err := strconv.Atoi(option.Default.(string))
+				if err != nil {
+					return err
+				}
+				def = val
+			}
+		}
+	case BoolOption:
+		def = false
+	case StringOption:
+		def = option.Default
+	default:
+		return fmt.Errorf("default value conversion not registered for type \"%s\"", option.Type)
+	}
+
+	option.Default = def
+
+	return nil
 }

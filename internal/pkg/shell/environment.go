@@ -13,6 +13,9 @@ const (
 
 	// EnvironmentVariableTypeBool represents a boolean environment variable
 	EnvironmentVariableTypeBool EnvironmentVariableType = "bool"
+
+	// EnvironmentVariableTypeInteger represents an integer environment variable
+	EnvironmentVariableTypeInteger EnvironmentVariableType = "integer"
 )
 
 // EnvironmentVariable represents an environment variable
@@ -30,6 +33,11 @@ func (v EnvironmentVariable) IsString() bool {
 // IsBool returns true if the environment variable is of type boolean
 func (v EnvironmentVariable) IsBool() bool {
 	return v.Type == EnvironmentVariableTypeBool
+}
+
+// IsInteger returns true if the environment variable is of type integer
+func (v EnvironmentVariable) IsInteger() bool {
+	return v.Type == EnvironmentVariableTypeInteger
 }
 
 // SortEnvironmentVariables sorts environment variables by name
