@@ -22,7 +22,10 @@ const StringOption OptionType = "string"
 // BoolOption defines a boolean value option
 const BoolOption OptionType = "bool"
 
-// SelectOption defines a boolean select value option
+// IntegerOption defines a boolean select value option
+const IntegerOption OptionType = "integer"
+
+// IntOption defines a boolean select value option
 const SelectOption OptionType = "select"
 
 // StringToOptionType returns the OptionType matching the provided string
@@ -33,6 +36,8 @@ func StringToOptionType(s string) OptionType {
 		return StringOption
 	case "bool":
 		return BoolOption
+	case "integer":
+		return IntegerOption
 	case "select":
 		return SelectOption
 	default:
@@ -51,7 +56,6 @@ type Option struct {
 	Hidden      bool
 	Internal    bool
 	Default     interface{}
-	value       valuePointer
 }
 
 // Validate returns true if the option is concidered valid
@@ -65,18 +69,6 @@ func (o *Option) Validate() error {
 	}
 
 	return nil
-}
-
-type boolValue bool
-
-func (b *boolValue) string() string { return strconv.FormatBool(bool(*b)) }
-
-type stringValue string
-
-func (s *stringValue) string() string { return string(*s) }
-
-type valuePointer interface {
-	string() string
 }
 
 // NewOptionsSet creates a new set of options
@@ -94,6 +86,11 @@ func (s *OptionsSet) Add(option *Option) error {
 	}
 
 	err := option.Validate()
+	if err != nil {
+		return err
+	}
+
+	err = convertDefaultValueToCorrectType(option)
 	if err != nil {
 		return err
 	}
@@ -122,4 +119,35 @@ func (s *OptionsSet) Sorted() []*Option {
 	}
 
 	return options
+}
+
+func convertDefaultValueToCorrectType(option *Option) error {
+	var def interface{}
+
+	switch option.Type {
+	case SelectOption:
+		def = false
+	case IntegerOption:
+		def = 0
+		switch option.Default.(type) {
+		case string:
+			if option.Default != "" {
+				val, err := strconv.Atoi(option.Default.(string))
+				if err != nil {
+					return err
+				}
+				def = val
+			}
+		}
+	case BoolOption:
+		def = false
+	case StringOption:
+		def = option.Default
+	default:
+		return fmt.Errorf("default value conversion not registered for type \"%s\"", option.Type)
+	}
+
+	option.Default = def
+
+	return nil
 }

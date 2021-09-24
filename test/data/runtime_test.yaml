@@ -31,6 +31,11 @@ options:
     type: bool
     description: A custom option
 
+  - name: intopt
+    short: I
+    type: integer
+    description: A custom option
+
   - name: selectopt1
     type: select
     env_name: SELECTOPT
@@ -47,4 +52,4 @@ config:
   version: 1.0.0
   log:
     level: debug
-    prefix: '[centry] '
+    prefix: "[centry] "

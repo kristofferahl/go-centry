@@ -54,3 +54,28 @@ get:required() {
 get:selected() {
   echo "The selected value was ${SELECTED:?}"
 }
+
+# centry.cmd[get:url].option[url]/required=true
+# centry.cmd[get:url].option[max-retries]/type=integer
+# centry.cmd[get:url].option[max-retries]/default=3
+get:url() {
+  echo "Calling ${URL:?} a maximum of ${MAX_RETRIES:?} time(s)"
+  echo
+
+  local success=false
+  local attempts=0
+  until [[ ${success:?} == true ]]; do
+    ((attempts++))
+
+    if ! curl "${URL:?}"; then
+      if [[ ${attempts:?} -ge ${MAX_RETRIES:?} ]]; then
+        echo
+        echo "Max retries reached... exiting!"
+        return 1
+      fi
+      sleep 1
+    else
+      success=true
+    fi
+  done
+}

@@ -92,6 +92,12 @@ func TestMain(t *testing.T) {
 			g.Assert(StringToOptionType("BOOL")).Equal(BoolOption)
 		})
 
+		g.It("should return IntegerOption", func() {
+			g.Assert(StringToOptionType("integer")).Equal(IntegerOption)
+			g.Assert(StringToOptionType("Integer")).Equal(IntegerOption)
+			g.Assert(StringToOptionType("INTEGER")).Equal(IntegerOption)
+		})
+
 		g.It("should return SelectOption", func() {
 			g.Assert(StringToOptionType("select")).Equal(SelectOption)
 			g.Assert(StringToOptionType("Select")).Equal(SelectOption)

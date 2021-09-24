@@ -55,27 +55,21 @@ func createGlobalOptions(runtime *Runtime) *cmd.OptionsSet {
 			continue
 		}
 
-		var def interface{}
-
-		switch o.Type {
-		case cmd.SelectOption:
-			def = false
-		case cmd.BoolOption:
-			def = false
-		default:
-			def = o.Default
-		}
-
-		options.Add(&cmd.Option{
+		err := options.Add(&cmd.Option{
 			Type:        o.Type,
 			Name:        o.Name,
 			Short:       o.Short,
 			Description: o.Description,
 			EnvName:     o.EnvName,
-			Default:     def,
+			Default:     o.Default,
 			Required:    o.Required,
 			Hidden:      o.Hidden,
 		})
+
+		if err != nil {
+			runtime.events = append(runtime.events, fmt.Sprintf("failed to register global option \"%s\", error: %v", o.Name, err))
+			continue
+		}
 
 		runtime.events = append(runtime.events, fmt.Sprintf("registered global option \"%s\"", o.Name))
 	}
@@ -106,6 +100,19 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				Required: false,
 				Hidden:   o.Hidden,
 			})
+		case cmd.IntegerOption:
+			def := 0
+			if o.Default != nil {
+				def = o.Default.(int)
+			}
+			flags = append(flags, &cli.IntFlag{
+				Name:     o.Name,
+				Aliases:  short,
+				Usage:    o.Description,
+				Value:    def,
+				Required: o.Required,
+				Hidden:   o.Hidden,
+			})
 		case cmd.BoolOption:
 			def := false
 			if o.Default != nil {
@@ -132,6 +139,8 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				Required: o.Required,
 				Hidden:   o.Hidden,
 			})
+		default:
+			panic(fmt.Sprintf("option type \"%s\" not implemented", o.Type))
 		}
 	}
 
@@ -157,17 +166,23 @@ func optionsSetToEnvVars(c *cli.Context, set *cmd.OptionsSet, prefix string) []s
 		value := c.String(o.Name)
 
 		switch o.Type {
+		case cmd.StringOption:
+			envVars = append(envVars, shell.EnvironmentVariable{
+				Name:  envName,
+				Value: value,
+				Type:  shell.EnvironmentVariableTypeString,
+			})
 		case cmd.BoolOption:
 			envVars = append(envVars, shell.EnvironmentVariable{
 				Name:  envName,
 				Value: value,
 				Type:  shell.EnvironmentVariableTypeBool,
 			})
-		case cmd.StringOption:
+		case cmd.IntegerOption:
 			envVars = append(envVars, shell.EnvironmentVariable{
 				Name:  envName,
 				Value: value,
-				Type:  shell.EnvironmentVariableTypeString,
+				Type:  shell.EnvironmentVariableTypeInteger,
 			})
 		case cmd.SelectOption:
 			if value == "true" {
@@ -177,6 +192,8 @@ func optionsSetToEnvVars(c *cli.Context, set *cmd.OptionsSet, prefix string) []s
 					Type:  shell.EnvironmentVariableTypeString,
 				})
 			}
+		default:
+			panic(fmt.Sprintf("option type \"%s\" not implemented", o.Type))
 		}
 	}
 
