@@ -34,6 +34,9 @@ func NewRuntime(inputArgs []string, context *Context) (*Runtime, error) {
 
 	// Env manifest file
 	err := initFromEnvironment(runtime)
+	if err != nil {
+		return nil, err
+	}
 
 	// Args and manifest file
 	err = initFromArgs(runtime, inputArgs)
