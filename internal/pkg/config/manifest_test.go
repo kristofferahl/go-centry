@@ -33,10 +33,17 @@ func TestManifest(t *testing.T) {
 		})
 
 		g.It("returns error when path is invalid", func() {
-			m, err := LoadManifest("foo")
+			m, err := LoadManifest("foo.yaml")
 			g.Assert(m == nil).IsTrue("exected manifest to be nil")
 			g.Assert(err != nil).IsTrue("expected error")
-			g.Assert(err.Error()).Equal("manifest file not found (path=foo)")
+			g.Assert(err.Error()).Equal("manifest file not found (path=foo.yaml)")
+		})
+
+		g.It("returns error when path is not a yaml or yml file", func() {
+			m, err := LoadManifest("foo.bar")
+			g.Assert(m == nil).IsTrue("exected manifest to be nil")
+			g.Assert(err != nil).IsTrue("expected error")
+			g.Assert(err.Error()).Equal("manifest file must have a valid extension (yaml,yml)")
 		})
 	})
 

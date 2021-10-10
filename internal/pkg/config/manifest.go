@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/ghodss/yaml"
 	"github.com/kristofferahl/go-centry/internal/pkg/cmd"
@@ -78,6 +79,10 @@ type LogConfig struct {
 
 // LoadManifest reads, parses and returns a manifest root object
 func LoadManifest(manifest string) (*Manifest, error) {
+	if !strings.HasSuffix(manifest, ".yaml") && !strings.HasSuffix(manifest, ".yml") {
+		return nil, fmt.Errorf("manifest file must have a valid extension (yaml,yml)")
+	}
+
 	mp, _ := filepath.Abs(manifest)
 
 	if _, err := os.Stat(mp); os.IsNotExist(err) {
