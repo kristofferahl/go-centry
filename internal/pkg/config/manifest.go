@@ -79,17 +79,9 @@ type LogConfig struct {
 
 // LoadManifest reads, parses and returns a manifest root object
 func LoadManifest(manifest string) (*Manifest, error) {
-	if !strings.HasSuffix(manifest, ".yaml") && !strings.HasSuffix(manifest, ".yml") {
-		return nil, fmt.Errorf("manifest file must have a valid extension (yaml,yml)")
-	}
-
 	mp, _ := filepath.Abs(manifest)
 
-	if _, err := os.Stat(mp); os.IsNotExist(err) {
-		return nil, fmt.Errorf("manifest file not found (path=%s)", manifest)
-	}
-
-	bs, err := readManifestFile(mp)
+	bs, err := readManifestFile(manifest)
 	if err != nil {
 		return nil, err
 	}
@@ -116,10 +108,18 @@ func LoadManifest(manifest string) (*Manifest, error) {
 	return m, nil
 }
 
-func readManifestFile(filename string) ([]byte, error) {
-	bs, err := ioutil.ReadFile(filename)
+func readManifestFile(filepath string) ([]byte, error) {
+	if !strings.HasSuffix(filepath, ".yaml") && !strings.HasSuffix(filepath, ".yml") {
+		return nil, fmt.Errorf("manifest file must have a yaml or yml extension (path=%s)", filepath)
+	}
+
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		return nil, fmt.Errorf("manifest file not found (path=%s)", filepath)
+	}
+
+	bs, err := ioutil.ReadFile(filepath)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read manifest file (path=%s). %v", filename, err)
+		return nil, fmt.Errorf("failed to read manifest file (path=%s). %v", filepath, err)
 	}
 	return bs, nil
 }

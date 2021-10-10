@@ -43,13 +43,13 @@ func TestManifest(t *testing.T) {
 			m, err := LoadManifest("foo.bar")
 			g.Assert(m == nil).IsTrue("exected manifest to be nil")
 			g.Assert(err != nil).IsTrue("expected error")
-			g.Assert(err.Error()).Equal("manifest file must have a valid extension (yaml,yml)")
+			g.Assert(err.Error()).Equal("manifest file must have a yaml or yml extension (path=foo.bar)")
 		})
 	})
 
 	g.Describe("read file", func() {
 		g.It("returns byte slice when file is found", func() {
-			file, _ := ioutil.TempFile("", "manifest")
+			file, _ := ioutil.TempFile("", "manifest-*.yaml")
 			defer os.Remove(file.Name())
 			bs, err := readManifestFile(file.Name())
 			g.Assert(bs != nil).IsTrue("exected byte slice")
@@ -57,10 +57,10 @@ func TestManifest(t *testing.T) {
 		})
 
 		g.It("returns error when file not found", func() {
-			bs, err := readManifestFile("foo")
+			bs, err := readManifestFile("foo.yml")
 			g.Assert(bs == nil).IsTrue("exected byte slice to be nil")
 			g.Assert(err != nil).IsTrue("expected error")
-			g.Assert(strings.HasPrefix(err.Error(), "failed to read manifest file")).IsTrue("expected error message")
+			g.Assert(strings.HasPrefix(err.Error(), "manifest file not found (path=foo.yml)")).IsTrue("expected error message")
 		})
 	})
 
