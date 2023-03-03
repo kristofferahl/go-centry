@@ -5,7 +5,7 @@ import (
 	"io"
 	"os"
 
-	"bou.ke/monkey"
+	"github.com/procodr/monkey"
 )
 
 // Output represents config for capturing stdout and or stderr.
