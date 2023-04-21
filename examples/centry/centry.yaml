@@ -38,33 +38,24 @@ options:
     type: bool
     description: Run commands without logo
 
-  - name: ops
-    type: select
+  - name: context
+    type: select/v2
     env_name: CONTEXT
     required: true
-    description: Set the context to ops (operations)
-    annotations:
-      centry.api/serve: "true"
-
-  - name: dev
-    type: select
-    env_name: CONTEXT
-    required: true
-    description: Set the context to dev (development)
-    annotations:
-      centry.api/serve: "false"
-
-  - name: qa
-    type: select
-    env_name: CONTEXT
-    required: true
-    description: Set the context to qa (quality assurance)
-
-  - name: prod
-    type: select
-    required: true
-    env_name: CONTEXT
-    description: Set the context to prod (production)
+    description: Set the context for execution
+    values:
+      - name: operations
+        short: ops
+        value: ops
+      - name: development
+        short: dev
+        value: dev
+      - name: qualityassurance
+        short: qa
+        value: qa
+      - name: production
+        short: prod
+        value: prod
 
   - name: asc
     type: select

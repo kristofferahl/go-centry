@@ -156,12 +156,12 @@ func TestMain(t *testing.T) {
 			g.Describe("invoking command with options", func() {
 				g.It("should have arguments passed", func() {
 					expected := "command args (foo bar baz)"
-					out := execQuiet("commandtest options args --cmdstringopt=hello --cmdboolopt --cmdsel1 --cmdsel2 foo bar baz")
+					out := execQuiet("commandtest options args --cmdstringopt=hello --cmdboolopt --cmdsel2 foo bar baz")
 					test.AssertStringContains(g, out.Stdout, expected)
 				})
 
 				g.It("should have environment variables set", func() {
-					out := execQuiet("commandtest options printenv --cmdstringopt=world --cmdboolopt --cmdsel1 --cmdsel2 --dashed-opt dashed-val")
+					out := execQuiet("commandtest options printenv --cmdstringopt=world --cmdboolopt --cmdsel2 --dashed-opt dashed-val")
 					test.AssertStringHasKeyValue(g, out.Stdout, "CMDSTRINGOPT", "world")
 					test.AssertStringHasKeyValue(g, out.Stdout, "CMDBOOLOPT", "true")
 					test.AssertStringHasKeyValue(g, out.Stdout, "CMDSELECTOPT", "cmdsel2")
@@ -169,7 +169,7 @@ func TestMain(t *testing.T) {
 				})
 
 				g.It("should hav prefixed environment variables set", func() {
-					out := execCentry("commandtest options printenv --cmdstringopt=world --cmdboolopt --cmdsel1 --cmdsel2", true, "test/data/runtime_test_environment_prefix.yaml")
+					out := execCentry("commandtest options printenv --cmdstringopt=world --cmdboolopt --cmdsel2", true, "test/data/runtime_test_environment_prefix.yaml")
 					test.AssertStringHasKeyValue(g, out.Stdout, "ENV_PREFIX_CMDSTRINGOPT", "world")
 					test.AssertStringHasKeyValue(g, out.Stdout, "ENV_PREFIX_CMDBOOLOPT", "true")
 					test.AssertStringHasKeyValue(g, out.Stdout, "ENV_PREFIX_CMDSELECTOPT", "cmdsel2")
@@ -206,20 +206,14 @@ func TestMain(t *testing.T) {
 				test.AssertStringContains(g, out.Stdout, expected)
 			})
 
-			g.It("should have environment set for select option", func() {
+			g.It("should have environment set for select option (v1)", func() {
 				out := execQuiet("--selectopt1 optiontest printenv")
 				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt1")
 			})
 
-			g.It("should have environment set to last select option with same env_name (selectopt2)", func() {
-				out := execQuiet("--selectopt1 --selectopt2 optiontest printenv")
-				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt2")
-			})
-
-			// TODO: Do we really need =false??
-			g.It("should have environment set to last select option with same env_name (selectopt1)", func() {
-				out := execQuiet("--selectopt2=false --selectopt1 optiontest printenv")
-				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt1")
+			g.It("should have environment set for select option (v2)", func() {
+				out := execQuiet("--opt1 optiontest printenv")
+				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPTV2", "value1")
 			})
 		})
 
@@ -240,48 +234,65 @@ func TestMain(t *testing.T) {
 		})
 
 		g.Describe("invoke with invalid option", func() {
-			g.It("should print error message", func() {
+			g.It("should fail with error message", func() {
 				out := execQuiet("--invalidoption optiontest args")
 				test.AssertStringContains(g, out.Stdout, "Incorrect Usage. flag provided but not defined: -invalidoption")
 				test.AssertStringContains(g, out.Stderr, "flag provided but not defined: -invalidoption")
 				test.AssertNoError(g, out.Error)
+			})
+
+			g.It("should fail with error when specifying multiple options for the same select option group (v1)", func() {
+				out := execCentry("--selectopt1 --selectopt2 optiontest args", false, "test/data/runtime_test.yaml")
+				test.AssertStringContains(g, out.Stderr, "level=error msg=\"global flag specified multiple times for select option group \\\"SELECTOPT\\\" (one of \\\" selectopt1 | selectopt2 \\\" must be provided)")
+			})
+
+			g.It("should fail with error when specifying multiple options for the same select option group (v2)", func() {
+				out := execCentry("--opt1 --opt2 optiontest args", false, "test/data/runtime_test.yaml")
+				test.AssertStringContains(g, out.Stderr, "level=error msg=\"global flag specified multiple times for select option group \\\"selectoptv2\\\" (one of \\\" opt1 | opt2 \\\" must be provided)")
 			})
 		})
 
 		g.Describe("invoke without required option", func() {
 			g.Describe("of type string", func() {
 				g.It("should fail with error message", func() {
-					out := execCentry("optiontest required --boolopt --intopt=999 --selectopt1", false, "test/data/runtime_test.yaml")
+					out := execCentry("optiontest required --boolopt --intopt=999 --selectopt1 --selectopt_v2_1", false, "test/data/runtime_test.yaml")
 					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required flag \\\"stringopt\\\" not set\"")
 				})
 			})
 			g.Describe("of type bool", func() {
 				g.It("should fail with error message", func() {
-					out := execCentry("optiontest required --stringopt=foo --intopt=999 --selectopt1", false, "test/data/runtime_test.yaml")
+					out := execCentry("optiontest required --stringopt=foo --intopt=999 --selectopt1 --selectopt_v2_1", false, "test/data/runtime_test.yaml")
 					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required flag \\\"boolopt\\\" not set\"")
 				})
 			})
 			g.Describe("of type integer", func() {
 				g.It("should fail with error message", func() {
-					out := execCentry("optiontest required --stringopt=foo --boolopt --selectopt1", false, "test/data/runtime_test.yaml")
+					out := execCentry("optiontest required --stringopt=foo --boolopt --selectopt1 --selectopt_v2_1", false, "test/data/runtime_test.yaml")
 					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required flag \\\"intopt\\\" not set\"")
 				})
 			})
 			g.Describe("of type select", func() {
 				g.It("should fail with error message", func() {
-					out := execCentry("optiontest required --stringopt=foo --boolopt --intopt=999", false, "test/data/runtime_test.yaml")
-					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required command flag missing for select option group SELECT (one of \\\" selectopt1 | selectopt2 \\\" must be provided)")
+					out := execCentry("optiontest required --stringopt=foo --boolopt --intopt=999 --selectopt_v2_1", false, "test/data/runtime_test.yaml")
+					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required command flag missing for select option group \\\"SELECTOPTV1\\\" (one of \\\" selectopt1 | selectopt2 \\\" must be provided)")
+				})
+			})
+			g.Describe("of type select/v2", func() {
+				g.It("should fail with error message", func() {
+					out := execCentry("optiontest required --stringopt=foo --boolopt --intopt=999 --selectopt1", false, "test/data/runtime_test.yaml")
+					test.AssertStringContains(g, out.Stderr, "level=error msg=\"Required command flag missing for select option group \\\"selectoptv2\\\" (one of \\\" selectopt_v2_1 | selectopt_v2_2 \\\" must be provided)")
 				})
 			})
 		})
 
 		g.Describe("invoke with required option", func() {
 			g.It("should pass", func() {
-				out := execCentry("optiontest required --stringopt=foo --boolopt --intopt=111 --selectopt1", false, "test/data/runtime_test.yaml")
+				out := execCentry("optiontest required --stringopt=foo --boolopt --intopt=111 --selectopt1 --selectopt_v2_1", false, "test/data/runtime_test.yaml")
 				test.AssertStringHasKeyValue(g, out.Stdout, "STRINGOPT", "foo")
 				test.AssertStringHasKeyValue(g, out.Stdout, "BOOLOPT", "true")
 				test.AssertStringHasKeyValue(g, out.Stdout, "INTOPT", "111")
-				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPT", "selectopt1")
+				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPTV1", "selectopt1")
+				test.AssertStringHasKeyValue(g, out.Stdout, "SELECTOPTV2", "selectopt_v2_1")
 			})
 		})
 	})
@@ -395,6 +406,8 @@ func TestMain(t *testing.T) {
    --intopt value, -I value     A custom option (default: 0)
    --selectopt1                 Sets the selection to option 1 (default: false)
    --selectopt2                 Sets the selection to option 2 (default: false)
+   --opt1, --o1                 Sets the selection (selectoptv2=value1) (default: false)
+   --opt2, --o2                 Sets the selection (selectoptv2=value2) (default: false)
    --stringopt value, -S value  A custom option (default: "foobar")
    --help, -h                   Show help (default: false)
    --version, -v                Print the version (default: false)`

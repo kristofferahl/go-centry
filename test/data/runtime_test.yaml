@@ -46,6 +46,18 @@ options:
     env_name: SELECTOPT
     description: Sets the selection to option 2
 
+  - name: selectoptv2
+    type: select/v2
+    env_name: SELECTOPTV2
+    description: Sets the selection
+    values:
+      - name: opt1
+        short: o1
+        value: value1
+      - name: opt2
+        short: o2
+        value: value2
+
 config:
   name: centry
   description: A manifest file used for testing purposes
