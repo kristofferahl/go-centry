@@ -76,7 +76,15 @@ type Config struct {
 	EnvironmentPrefix    string    `yaml:"environmentPrefix,omitempty"`
 	HideInternalCommands bool      `yaml:"hideInternalCommands,omitempty"`
 	HideInternalOptions  bool      `yaml:"hideInternalOptions,omitempty"`
+	HelpMode             HelpMode  `yaml:"helpMode,omitempty"`
 }
+
+type HelpMode string
+
+const (
+	HelpModeDefault     HelpMode = "default"
+	HelpModeInteractive HelpMode = "interactive"
+)
 
 // LogConfig defines the structure for log configuration section
 type LogConfig struct {

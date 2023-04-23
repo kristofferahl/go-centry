@@ -82,3 +82,4 @@ config:
   # environmentPrefix: MY_PREFIX_ # NOTE: This can be set to alter the naming of environment variables (internal environment variables stay the same)
   hideInternalCommands: true # default: true
   hideInternalOptions: true # default: true
+  helpMode: interactive # default: default

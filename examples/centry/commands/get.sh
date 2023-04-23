@@ -40,8 +40,12 @@ get:error() {
 
 # centry.cmd[get:required].option[abc]/required=true
 # centry.cmd[get:required].option[def]/required=false
+# centry.cmd[get:required].option[selected]/type=select/v2
+# centry.cmd[get:required].option[selected]/description=Is it foo or bar?
+# centry.cmd[get:required].option[selected]/required=true
+# centry.cmd[get:required].option[selected]/values=[{"name":"foo"},{"name":"bar"}]
 get:required() {
-  echo "This subcommand has a required option"
+  echo "This subcommand has required options"
   env | sort
 }
 

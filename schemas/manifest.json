@@ -162,6 +162,13 @@
         },
         "hideInternalOptions": {
           "type": "boolean"
+        },
+        "helpMode": {
+          "type": "string",
+          "enum": [
+            "default",
+            "interactive"
+          ]
         }
       },
       "required": [
