@@ -112,15 +112,11 @@ func optionsSetToFlags(options *cmd.OptionsSet) []cli.Flag {
 				if v.Short == "" {
 					short = nil
 				}
-				value := v.Value
-				if value == "" {
-					value = v.Name
-				}
 				flags = append(flags, &SelectOptionFlag{
 					BoolFlag: cli.BoolFlag{
 						Name:     v.Name,
 						Aliases:  short,
-						Usage:    fmt.Sprintf("%s (%s=%s)", o.Description, o.Name, value),
+						Usage:    o.Description,
 						Value:    def,
 						Required: false,
 						Hidden:   o.Hidden,
@@ -227,10 +223,7 @@ func optionsSetToEnvVars(c *cli.Context, set *cmd.OptionsSet, prefix string) []s
 			for _, v := range o.Values {
 				ov := c.String(v.Name)
 				if ov == "true" {
-					value = v.Value
-					if value == "" {
-						value = v.Name
-					}
+					value = v.ResolveValue()
 					break
 				}
 			}

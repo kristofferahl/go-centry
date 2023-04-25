@@ -12,20 +12,25 @@ func interactive(runtime *Runtime) {
 	replArgs := []string{}
 
 	cmd, cmdArgs := promptForCommands(nil, runtime.cli.VisibleCommands(), []string{})
-	replArgs = append(replArgs, promptForOptions(runtime.cli.VisibleFlags(), []string{})...)
-	replArgs = append(replArgs, cmdArgs...)
-	replArgs = append(replArgs, promptForOptions(cmd.VisibleFlags(), []string{})...)
-	replArgs = trimEmpty(replArgs)
+	if cmd != nil {
+		replArgs = append(replArgs, promptForOptions(runtime.cli.VisibleFlags(), []string{})...)
+		replArgs = append(replArgs, cmdArgs...)
+		replArgs = append(replArgs, promptForOptions(cmd.VisibleFlags(), []string{})...)
+		replArgs = trimEmpty(replArgs)
+	}
 
 	fmt.Println()
-	exec := false
-	confirm := &survey.Confirm{
-		Message: fmt.Sprintf("%s %s\n  would you like to run the command above:", runtime.cli.Name, strings.Join(replArgs, " ")),
-	}
-	survey.AskOne(confirm, &exec)
 
-	if exec {
-		runtime.args = replArgs
+	if cmd != nil {
+		exec := false
+		confirm := &survey.Confirm{
+			Message: fmt.Sprintf("%s %s\n  would you like to run the command above:", runtime.cli.Name, strings.Join(replArgs, " ")),
+		}
+		survey.AskOne(confirm, &exec)
+
+		if exec {
+			runtime.args = replArgs
+		}
 	}
 }
 
@@ -98,6 +103,10 @@ func promptForOptions(flags []cli.Flag, in []string) []string {
 	prompt := &survey.MultiSelect{
 		Message: "select options to set:",
 		Options: values,
+		Description: func(value string, index int) string {
+			return descriptions[value]
+		},
+		PageSize: 20,
 	}
 	survey.AskOne(prompt, &selected)
 
@@ -121,12 +130,12 @@ func appendFlagValue(name string, f cli.Flag, args []string) []string {
 		if v.GroupRequired {
 			required = "[required] "
 		}
-		values := []string{}
-		for _, v := range v.Values {
-			values = append(values, v.Name)
+		values := make(map[string]string)
+		for _, val := range v.Values {
+			values[val.Name] = fmt.Sprintf("%s (%s=%s)", v.GetUsage(), v.GroupName, val.ResolveValue())
 		}
-		prompt := fmt.Sprintf("%soption \"%s\" (%s)", required, v.GroupName, v.GetUsage())
-		val := promptSelectValue(prompt, values, values[0])
+		prompt := fmt.Sprintf("%soption \"%s\"", required, v.GroupName)
+		val := promptSelectValue(prompt, values)
 		args = append(args, fmt.Sprintf("--%s", val))
 	case *cli.BoolFlag:
 		args = append(args, fmt.Sprintf("--%s", name))
@@ -144,18 +153,27 @@ func appendFlagValue(name string, f cli.Flag, args []string) []string {
 	return args
 }
 
-func promptSelectValue(text string, values []string, def string) string {
+func promptSelectValue(text string, values map[string]string) string {
+	options := make([]string, 0)
+	for k, _ := range values {
+		options = append(options, k)
+	}
+
 	for {
-		selected := ""
+		selectedIndex := -1
 		prompt := &survey.Select{
 			Message: fmt.Sprintf("select value for %s:", text),
-			Options: values,
-			Default: def,
+			Options: options,
+			Default: options[0],
+			Description: func(value string, index int) string {
+				return values[value]
+			},
+			PageSize: 20,
 		}
-		survey.AskOne(prompt, &selected)
+		survey.AskOne(prompt, &selectedIndex)
 
-		if selected != "" {
-			return selected
+		if selectedIndex >= 0 {
+			return options[selectedIndex]
 		}
 	}
 }

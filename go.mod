@@ -3,7 +3,7 @@ module github.com/kristofferahl/go-centry
 go 1.19
 
 require (
-	github.com/AlecAivazis/survey/v2 v2.3.6
+	github.com/AlecAivazis/survey/v2 v2.3.7-0.20221208154106-fa37277e6394
 	github.com/franela/goblin v0.0.0-20200105215937-c9ffbefa60db
 	github.com/ghodss/yaml v1.0.0
 	github.com/gorilla/mux v1.7.3
@@ -25,6 +25,6 @@ require (
 	github.com/russross/blackfriday/v2 v2.0.1 // indirect
 	github.com/shurcooL/sanitized_anchor_name v1.0.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/term v0.0.0-20210503060354-a79de5458b56 // indirect
-	golang.org/x/text v0.3.3 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	golang.org/x/text v0.4.0 // indirect
 )

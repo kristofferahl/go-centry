@@ -70,6 +70,13 @@ type OptionValue struct {
 	Value string `json:"value,omitempty"`
 }
 
+func (ov OptionValue) ResolveValue() string {
+	if len(ov.Value) > 0 {
+		return ov.Value
+	}
+	return ov.Name
+}
+
 // Validate returns true if the option is considered valid
 func (o *Option) Validate() error {
 	if o.Name == "" {
