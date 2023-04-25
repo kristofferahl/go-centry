@@ -406,8 +406,8 @@ func TestMain(t *testing.T) {
    --intopt value, -I value     A custom option (default: 0)
    --selectopt1                 Sets the selection to option 1 (default: false)
    --selectopt2                 Sets the selection to option 2 (default: false)
-   --opt1, --o1                 Sets the selection (selectoptv2=value1) (default: false)
-   --opt2, --o2                 Sets the selection (selectoptv2=value2) (default: false)
+   --opt1, --o1                 Sets the selection (default: false)
+   --opt2, --o2                 Sets the selection (default: false)
    --stringopt value, -S value  A custom option (default: "foobar")
    --help, -h                   Show help (default: false)
    --version, -v                Print the version (default: false)`
