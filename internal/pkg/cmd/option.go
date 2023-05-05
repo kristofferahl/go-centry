@@ -22,11 +22,14 @@ const StringOption OptionType = "string"
 // BoolOption defines a boolean value option
 const BoolOption OptionType = "bool"
 
-// IntegerOption defines a boolean select value option
+// IntegerOption defines an interger value option
 const IntegerOption OptionType = "integer"
 
-// IntOption defines a boolean select value option
+// SelectOption defines a select value option
 const SelectOption OptionType = "select"
+
+// SelectOptionV2 defines a select value option
+const SelectOptionV2 OptionType = "select/v2"
 
 // StringToOptionType returns the OptionType matching the provided string
 func StringToOptionType(s string) OptionType {
@@ -40,6 +43,8 @@ func StringToOptionType(s string) OptionType {
 		return IntegerOption
 	case "select":
 		return SelectOption
+	case "select/v2":
+		return SelectOptionV2
 	default:
 		return StringOption
 	}
@@ -55,10 +60,24 @@ type Option struct {
 	Required    bool
 	Hidden      bool
 	Internal    bool
+	Values      []OptionValue
 	Default     interface{}
 }
 
-// Validate returns true if the option is concidered valid
+type OptionValue struct {
+	Name  string `json:"name,omitempty"`
+	Short string `json:"short,omitempty"`
+	Value string `json:"value,omitempty"`
+}
+
+func (ov OptionValue) ResolveValue() string {
+	if len(ov.Value) > 0 {
+		return ov.Value
+	}
+	return ov.Name
+}
+
+// Validate returns true if the option is considered valid
 func (o *Option) Validate() error {
 	if o.Name == "" {
 		return fmt.Errorf("missing option name")
@@ -66,6 +85,12 @@ func (o *Option) Validate() error {
 
 	if o.Type == "" {
 		return fmt.Errorf("missing option type")
+	}
+
+	for _, ov := range o.Values {
+		if ov.Name == "" {
+			return fmt.Errorf("missing option value name")
+		}
 	}
 
 	return nil
@@ -95,8 +120,42 @@ func (s *OptionsSet) Add(option *Option) error {
 		return err
 	}
 
-	if _, ok := s.items[option.Name]; ok {
+	names := make([]string, 0)
+	for k, o := range s.items {
+		names = append(names, k)
+		for _, ov := range o.Values {
+			names = append(names, ov.Name)
+		}
+	}
+
+	shortNames := make([]string, 0)
+	for _, o := range s.items {
+		if len(o.Short) > 0 {
+			shortNames = append(shortNames, o.Short)
+		}
+		for _, ov := range o.Values {
+			if len(ov.Short) > 0 {
+				shortNames = append(shortNames, ov.Short)
+			}
+		}
+	}
+
+	if contains(names, option.Name) {
 		return fmt.Errorf("an option with the name \"%s\" has already been added", option.Name)
+	}
+
+	if len(option.Short) > 0 && contains(shortNames, option.Short) {
+		return fmt.Errorf("an option with the short name \"%s\" has already been added", option.Short)
+	}
+
+	for _, ov := range option.Values {
+		if contains(names, ov.Name) {
+			return fmt.Errorf("an option value with the name \"%s\" has already been added", ov.Name)
+		}
+
+		if len(ov.Short) > 0 && contains(shortNames, ov.Short) {
+			return fmt.Errorf("an option with the short name \"%s\" has already been added", ov.Short)
+		}
 	}
 
 	s.items[option.Name] = option
@@ -127,6 +186,8 @@ func convertDefaultValueToCorrectType(option *Option) error {
 	switch option.Type {
 	case SelectOption:
 		def = false
+	case SelectOptionV2:
+		def = false
 	case IntegerOption:
 		def = 0
 		switch option.Default.(type) {
@@ -150,4 +211,13 @@ func convertDefaultValueToCorrectType(option *Option) error {
 	option.Default = def
 
 	return nil
+}
+
+func contains[T comparable](s []T, e T) bool {
+	for _, v := range s {
+		if v == e {
+			return true
+		}
+	}
+	return false
 }

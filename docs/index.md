@@ -21,7 +21,9 @@
   - [Logging](#logging)
   - [Advanced](#advanced-config)
 - Internal commands
-- Help
+- [Help](#help)
+  - [Default mode](#default-mode)
+  - [Interactive mode](#interactive-mode)
 - Autocompletion
 
 ## Commands
@@ -276,6 +278,26 @@ Select options are a bit different. It is commonly used to have the user select 
 
 Let's dive into an example where we want the user to be able to select one of three AWS regions (eu-central-1, eu-west-1 and us-east-1). Here's how we would define that in our manifest.
 
+**select/v2 _(introduced in v1.4.0)_**
+
+_`// file: centry.yaml`_
+
+```yaml
+options:
+  - name: region
+    type: select/v2
+    env_name: AWS_REGION
+    description: Set's the AWS region
+    values:
+      - name: eu-west-1
+      - name: eu-cenral-1
+      - name: us-east-1
+```
+
+In addition to `name`, `select/v2` values also support setting a `short` name and providing a `value` that will be set when selected.
+
+**select _(deprecated since v1.4.0)_**
+
 _`// file: centry.yaml`_
 
 ```yaml
@@ -321,30 +343,32 @@ mycli get lambdas --us-east-1
 
 ### Option properties
 
-| Property    | Description                                         | YAML          | Type                            | Required |
-| ----------- | --------------------------------------------------- | ------------- | ------------------------------- | -------- |
-| Type        | Type of option                                      | `type`        | OptionType (string/bool/select) | true     |
-| Name        | Name of the option                                  | `name`        | string                          | true     |
-| Short       | Short name of the option                            | `short`       | string                          | false    |
-| EnvName     | Name of environment variable set for the option     | `env_name`    | string                          | false    |
-| Default     | Default value of the option                         | `default`     | string                          | false    |
-| Description | Description of the option, displayed in help output | `description` | string                          | false    |
-| Hidden      | When true, hides the option from help output        | `hidden`      | boolean                         | false    |
-| Required    | When true, marks the option as required             | `required`    | boolean                         | false    |
+| Property    | Description                                         | YAML          | Type                                 | Required |
+| ----------- | --------------------------------------------------- | ------------- | ------------------------------------ | -------- |
+| Type        | Type of option                                      | `type`        | OptionType (string/bool/select etc.) | true     |
+| Name        | Name of the option                                  | `name`        | string                               | true     |
+| Short       | Short name of the option                            | `short`       | string                               | false    |
+| EnvName     | Name of environment variable set for the option     | `env_name`    | string                               | false    |
+| Default     | Default value of the option                         | `default`     | string                               | false    |
+| Description | Description of the option, displayed in help output | `description` | string                               | false    |
+| Hidden      | When true, hides the option from help output        | `hidden`      | boolean                              | false    |
+| Required    | When true, marks the option as required             | `required`    | boolean                              | false    |
+| Values      | Used to set the valid values for `select/v2` option | `values`      | array of object{name,short,value}    | -        |
 
 ### Option annotations
 
 Option annotations are used to define options for a command. Annotations are defined using regular comments in bash (a line starting with #). They may be placed anywhere inside the script file and in any order you want. It is however recommended that you keep it close to your functions to double as documentation for the command/option.
 
-| Property    | Format                                                         |
-| ----------- | -------------------------------------------------------------- |
-| Type        | `# centry.cmd[<command>].option[<option>]/type=<value>`        |
-| Short       | `# centry.cmd[<command>].option[<option>]/short=<value>`       |
-| EnvName     | `# centry.cmd[<command>].option[<option>]/envName=<value>`     |
-| Default     | `# centry.cmd[<command>].option[<option>]/default=<value>`     |
-| Description | `# centry.cmd[<command>].option[<option>]/description=<value>` |
-| Hidden      | `# centry.cmd[<command>].option[<option>]/hidden=<value>`      |
-| Required    | `# centry.cmd[<command>].option[<option>]/required=<value>`    |
+| Property    | Format                                                                                                    |
+| ----------- | --------------------------------------------------------------------------------------------------------- |
+| Type        | `# centry.cmd[<command>].option[<option>]/type=<value>`                                                   |
+| Short       | `# centry.cmd[<command>].option[<option>]/short=<value>`                                                  |
+| EnvName     | `# centry.cmd[<command>].option[<option>]/envName=<value>`                                                |
+| Default     | `# centry.cmd[<command>].option[<option>]/default=<value>`                                                |
+| Description | `# centry.cmd[<command>].option[<option>]/description=<value>`                                            |
+| Hidden      | `# centry.cmd[<command>].option[<option>]/hidden=<value>`                                                 |
+| Required    | `# centry.cmd[<command>].option[<option>]/required=<value>`                                               |
+| Values      | `# centry.cmd[<command>].option[<option>]/values=[{"name":"<name>","short":"<short>","value":"<value>"}]` |
 
 ## Arguments
 
@@ -472,10 +496,24 @@ config:
   environmentPrefix: MY_CLI_
   hideInternalCommands: false
   hideInternalOptions: false
+  helpMode: interactive
 ```
 
-| Property             | Description                                                | Type    | Default | Required |
-| -------------------- | ---------------------------------------------------------- | ------- | ------- | -------- |
-| EnvironmentPrefix    | Prefix used when exporting environment variables in centry | string  | -       | false    |
-| HideInternalCommands | Hides internal centry commands from help output            | boolean | true    | false    |
-| HideInternalOptions  | Hides internal centry options from help output             | boolean | true    | false    |
+| Property             | Description                                                | Type                         | Default | Required |
+| -------------------- | ---------------------------------------------------------- | ---------------------------- | ------- | -------- |
+| EnvironmentPrefix    | Prefix used when exporting environment variables in centry | string                       | -       | false    |
+| HideInternalCommands | Hides internal centry commands from help output            | boolean                      | true    | false    |
+| HideInternalOptions  | Hides internal centry options from help output             | boolean                      | true    | false    |
+| HelpMode             | Mode triggered when cli is invoked without arguments       | string (default/interactive) | default | false    |
+
+## Help
+
+### Default mode
+
+The default mode prints a generated help section to stdout. It is contextual and will print available subcommands and options.
+
+### Interactive mode
+
+When the cli is invoked without arguments, the default help mode is triggered. By changing the help mode from `default` to `interactive`, centry will provide an interactive command builder that can help with exploring the cli. It allows for filtering commands and subcommands as well as prompting for option input or selection.
+
+See [advanced configuration](#advanced-config) for how change the default behavior.

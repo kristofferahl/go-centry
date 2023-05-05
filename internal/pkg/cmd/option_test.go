@@ -72,6 +72,26 @@ func TestMain(t *testing.T) {
 				g.Assert(err2 != nil).IsTrue("expected an error")
 				g.Assert(err2.Error()).Equal("an option with the name \"Option\" has already been added")
 			})
+
+			g.It("should return error when select option value name already exists as option name", func() {
+				os := NewOptionsSet("Name")
+				err1 := os.Add(&Option{Name: "Option", Type: StringOption})
+				err2 := os.Add(&Option{Name: "Foo", Type: SelectOptionV2, Values: []OptionValue{{Name: "Option"}}})
+				g.Assert(len(os.Sorted())).Equal(1)
+				g.Assert(err1).Equal(nil)
+				g.Assert(err2 != nil).IsTrue("expected an error")
+				g.Assert(err2.Error()).Equal("an option value with the name \"Option\" has already been added")
+			})
+
+			g.It("should return error when select option value name already exists as option value name", func() {
+				os := NewOptionsSet("Name")
+				err1 := os.Add(&Option{Name: "Foo", Type: SelectOptionV2, Values: []OptionValue{{Name: "Opt1"}, {Name: "Opt2"}}})
+				err2 := os.Add(&Option{Name: "Bar", Type: SelectOptionV2, Values: []OptionValue{{Name: "Opt2"}, {Name: "Opt3"}}})
+				g.Assert(len(os.Sorted())).Equal(1)
+				g.Assert(err1).Equal(nil)
+				g.Assert(err2 != nil).IsTrue("expected an error")
+				g.Assert(err2.Error()).Equal("an option value with the name \"Opt2\" has already been added")
+			})
 		})
 	})
 
@@ -102,6 +122,12 @@ func TestMain(t *testing.T) {
 			g.Assert(StringToOptionType("select")).Equal(SelectOption)
 			g.Assert(StringToOptionType("Select")).Equal(SelectOption)
 			g.Assert(StringToOptionType("SELECT")).Equal(SelectOption)
+		})
+
+		g.It("should return SelectOption v2", func() {
+			g.Assert(StringToOptionType("select/v2")).Equal(SelectOptionV2)
+			g.Assert(StringToOptionType("Select/V2")).Equal(SelectOptionV2)
+			g.Assert(StringToOptionType("SELECT/V2")).Equal(SelectOptionV2)
 		})
 	})
 }

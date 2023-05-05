@@ -2,6 +2,7 @@ package shell
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -186,6 +187,15 @@ func (s *BashScript) Functions() ([]*Function, error) {
 					if err == nil {
 						options[name].Hidden = hidden
 					}
+				case "values":
+					values := make([]cmd.OptionValue, 0)
+					if err := json.Unmarshal([]byte(a.Value), &values); err != nil {
+						s.Log.WithFields(logrus.Fields{
+							"option": name,
+							"json":   a.Value,
+						}).Warn("error parsing json values, ", err.Error())
+					}
+					options[name].Values = values
 				}
 			case config.CommandAnnotationCmdNamespace:
 				switch a.Key {
@@ -209,7 +219,12 @@ func (s *BashScript) Functions() ([]*Function, error) {
 					"type":   v.Type,
 				}).Warn(err.Error())
 			} else {
-				f.Options.Add(v)
+				if err := f.Options.Add(v); err != nil {
+					s.Log.WithFields(logrus.Fields{
+						"option": v.Name,
+						"type":   v.Type,
+					}).Warn(err.Error())
+				}
 			}
 		}
 

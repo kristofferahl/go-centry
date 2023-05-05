@@ -48,11 +48,18 @@ type Option struct {
 	Name        string            `yaml:"name,omitempty"`
 	Short       string            `yaml:"short,omitempty"`
 	EnvName     string            `yaml:"env_name,omitempty"`
+	Values      []OptionValue     `yaml:"values,omitempty"`
 	Default     string            `yaml:"default,omitempty"`
 	Required    bool              `yaml:"required,omitempty"`
 	Description string            `yaml:"description,omitempty"`
 	Annotations map[string]string `yaml:"annotations,omitempty"`
 	Hidden      bool              `yaml:"hidden,omitempty"`
+}
+
+type OptionValue struct {
+	Name  string `yaml:"name,omitempty"`
+	Short string `yaml:"short,omitempty"`
+	Value string `yaml:"value,omitempty"`
 }
 
 // Annotation returns a parsed annotation if present
@@ -69,7 +76,15 @@ type Config struct {
 	EnvironmentPrefix    string    `yaml:"environmentPrefix,omitempty"`
 	HideInternalCommands bool      `yaml:"hideInternalCommands,omitempty"`
 	HideInternalOptions  bool      `yaml:"hideInternalOptions,omitempty"`
+	HelpMode             HelpMode  `yaml:"helpMode,omitempty"`
 }
+
+type HelpMode string
+
+const (
+	HelpModeDefault     HelpMode = "default"
+	HelpModeInteractive HelpMode = "interactive"
+)
 
 // LogConfig defines the structure for log configuration section
 type LogConfig struct {

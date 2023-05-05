@@ -54,7 +54,8 @@
               "string",
               "bool",
               "integer",
-              "select"
+              "select",
+              "select/v2"
             ]
           },
           "name": {
@@ -73,6 +74,30 @@
           "description": {
             "type": "string",
             "minLength": 1
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "short": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "minLength": 1
+            }
           },
           "default": {
             "type": "string",
@@ -137,6 +162,13 @@
         },
         "hideInternalOptions": {
           "type": "boolean"
+        },
+        "helpMode": {
+          "type": "string",
+          "enum": [
+            "default",
+            "interactive"
+          ]
         }
       },
       "required": [
