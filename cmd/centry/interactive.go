@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -9,14 +10,20 @@ import (
 )
 
 func interactive(runtime *Runtime) {
-	replArgs := []string{}
+	if err := checkStdin(); err != nil {
+		runtime.context.log.GetLogger().Debugln("interactive help unavailable,", err)
+		return
+	}
+
+	rArgs := []string{}
 
 	cmd, cmdArgs := promptForCommands(nil, runtime.cli.VisibleCommands(), []string{})
 	if cmd != nil {
-		replArgs = append(replArgs, promptForOptions(runtime.cli.VisibleFlags(), []string{})...)
-		replArgs = append(replArgs, cmdArgs...)
-		replArgs = append(replArgs, promptForOptions(cmd.VisibleFlags(), []string{})...)
-		replArgs = trimEmpty(replArgs)
+		rArgs = append(rArgs, promptForOptions(runtime.cli.VisibleFlags(), []string{})...)
+		rArgs = append(rArgs, cmdArgs...)
+		rArgs = append(rArgs, promptForOptions(cmd.VisibleFlags(), []string{})...)
+		rArgs = append(rArgs, promptForArgs()...)
+		rArgs = trimEmpty(rArgs)
 	}
 
 	fmt.Println()
@@ -24,14 +31,25 @@ func interactive(runtime *Runtime) {
 	if cmd != nil {
 		exec := false
 		confirm := &survey.Confirm{
-			Message: fmt.Sprintf("%s %s\n  would you like to run the command above:", runtime.cli.Name, strings.Join(replArgs, " ")),
+			Message: fmt.Sprintf("%s %s\n  would you like to run the command above:", runtime.cli.Name, strings.Join(rArgs, " ")),
 		}
 		survey.AskOne(confirm, &exec)
 
 		if exec {
-			runtime.args = replArgs
+			runtime.args = rArgs
 		}
 	}
+}
+
+func checkStdin() error {
+	err := os.Stdin.Sync()
+	if err != nil {
+		if strings.HasSuffix(err.Error(), "bad file descriptor") {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func promptForCommands(parent *cli.Command, commands []*cli.Command, in []string) (cmd *cli.Command, args []string) {
@@ -119,6 +137,17 @@ func promptForOptions(flags []cli.Flag, in []string) []string {
 	return in
 }
 
+func promptForArgs() []string {
+	v := ""
+	prompt := &survey.Input{
+		Message: "enter [optional] arguments:",
+		Default: "",
+	}
+	survey.AskOne(prompt, &v)
+
+	return strings.Split(v, " ")
+}
+
 func appendFlagValue(name string, f cli.Flag, args []string) []string {
 	required := "[optional] "
 	if rf, ok := f.(cli.RequiredFlag); ok && rf.IsRequired() {
@@ -135,17 +164,17 @@ func appendFlagValue(name string, f cli.Flag, args []string) []string {
 			values[val.Name] = fmt.Sprintf("%s (%s=%s)", v.GetUsage(), v.GroupName, val.ResolveValue())
 		}
 		prompt := fmt.Sprintf("%soption \"%s\"", required, v.GroupName)
-		val := promptSelectValue(prompt, values)
+		val := selectValue(prompt, values)
 		args = append(args, fmt.Sprintf("--%s", val))
 	case *cli.BoolFlag:
 		args = append(args, fmt.Sprintf("--%s", name))
 	case *cli.StringFlag:
 		prompt := fmt.Sprintf("%soption \"%s\" (%s)", required, name, v.GetUsage())
-		val := promptValue(prompt, v.GetValue())
+		val := enterValue(prompt, v.GetValue())
 		args = append(args, fmt.Sprintf("--%s=%s", name, val))
 	case *cli.IntFlag:
 		prompt := fmt.Sprintf("%soption \"%s\" (%s)", required, name, v.GetUsage())
-		val := promptValue(prompt, v.GetValue())
+		val := enterValue(prompt, v.GetValue())
 		args = append(args, fmt.Sprintf("--%s=%s", name, val))
 	default:
 		panic(fmt.Errorf("unhnadled flag type, %v", f))
@@ -153,7 +182,7 @@ func appendFlagValue(name string, f cli.Flag, args []string) []string {
 	return args
 }
 
-func promptSelectValue(text string, values map[string]string) string {
+func selectValue(text string, values map[string]string) string {
 	options := make([]string, 0)
 	for k, _ := range values {
 		options = append(options, k)
@@ -178,7 +207,7 @@ func promptSelectValue(text string, values map[string]string) string {
 	}
 }
 
-func promptValue(text string, def string) string {
+func enterValue(text string, def string) string {
 	v := ""
 	prompt := &survey.Input{
 		Message: fmt.Sprintf("enter a value for %s:", text),
