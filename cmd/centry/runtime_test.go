@@ -27,7 +27,7 @@ func TestMain(t *testing.T) {
 				g.Assert(err.Error()).Eql("manifest file not found (path=./centry.yaml)")
 			})
 
-			g.It("tries to use file specified CENTRY_FILE environment variable", func() {
+			g.It("tries to use file specified by CENTRY_FILE environment variable", func() {
 				os.Setenv("CENTRY_FILE", "./centry-environment.yaml")
 				context := NewContext(CLI, io.Headless())
 				runtime, err := NewRuntime([]string{}, context)
@@ -337,16 +337,31 @@ func TestMain(t *testing.T) {
 		g.Describe("--centry-config-log-level=info", func() {
 			g.It("should change log level to info", func() {
 				expected := `changing loglevel to info (from debug)`
-				out := execWithLogging("--centry-config-log-level=info")
+				out := execCentry("--centry-config-log-level=info optiontest printenv", false, defaultManifestPath)
 				test.AssertStringContains(g, out.Stderr, expected)
+				test.AssertStringHasKeyValue(g, out.Stdout, "CENTRY_CONFIG_LOG_LEVEL", "info")
 			})
 		})
 
 		g.Describe("--centry-config-log-level=error", func() {
 			g.It("should change log level to error", func() {
 				expected := `changing loglevel to error (from debug)`
-				out := execWithLogging("--centry-config-log-level=error")
+				out := execCentry("--centry-config-log-level=error optiontest printenv", false, defaultManifestPath)
+				test.AssertStringHasKeyValue(g, out.Stdout, "CENTRY_CONFIG_LOG_LEVEL", "error")
 				test.AssertStringContains(g, out.Stderr, expected)
+			})
+		})
+	})
+
+	g.Describe("environment", func() {
+		g.Describe("centry environment variables", func() {
+			g.It("should have environment variables set", func() {
+				out := execCentry("optiontest printenv", false, defaultManifestPath)
+				test.AssertStringHasKeyValue(g, out.Stdout, "CENTRY_QUIET", "false")
+				test.AssertStringHasKeyValue(g, out.Stdout, "CENTRY_CONFIG_LOG_LEVEL", "debug")
+				test.AssertStringHasKeyValue(g, out.Stdout, "CENTRY_SCRIPT_FUNCTION", "optiontest:printenv")
+				test.AssertStringHasKeyValue(g, out.Stdout, "CENTRY_SCRIPT_PATH", "commands/option_test.sh")
+				test.AssertStringHasKeyValue(g, out.Stdout, "CENTRY_COMMAND_NAME", "optiontest")
 			})
 		})
 	})

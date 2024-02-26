@@ -63,7 +63,7 @@ func (sc *ScriptCommand) ToCLICommand() *cli.Command {
 func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
 	sc.Log.Debugf("executing command \"%v\"", sc.Function.Name)
 
-	var source string
+	var source []string
 	switch sc.Script.Language() {
 	case "bash":
 		source = generateBashSource(c, sc, args)
@@ -73,7 +73,7 @@ func (sc *ScriptCommand) Run(c *cli.Context, args []string) int {
 		return 1
 	}
 
-	err := sc.Script.Executable().Run(sc.Context.io, []string{"-c", source})
+	err := sc.Script.Executable().Run(sc.Context.io, source)
 	if err != nil {
 		exitCode := 1
 
@@ -101,13 +101,19 @@ func validateOptions(c *cli.Context, sc *ScriptCommand, cmdName string) error {
 	return nil
 }
 
-func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) string {
+func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) []string {
 	source := []string{}
 	source = append(source, "#!/usr/bin/env bash")
 
 	source = append(source, "")
 	source = append(source, "# Set working directory")
 	source = append(source, fmt.Sprintf("cd %s || exit 1", sc.Context.manifest.BasePath))
+
+	source = append(source, "")
+	source = append(source, "# Set centry metadata")
+	source = append(source, fmt.Sprintf("export %s='%s'", "CENTRY_SCRIPT_FUNCTION", sc.Function.Name))
+	source = append(source, fmt.Sprintf("export %s='%s'", "CENTRY_SCRIPT_PATH", sc.Script.RelativePath()))
+	source = append(source, fmt.Sprintf("export %s='%s'", "CENTRY_COMMAND_NAME", sc.Command.Name))
 
 	source = append(source, "")
 	source = append(source, "# Set environment variables from global options")
@@ -149,5 +155,8 @@ func generateBashSource(c *cli.Context, sc *ScriptCommand, args []string) string
 	source = append(source, "# Executing command")
 	source = append(source, fmt.Sprintf("%s %s", sc.Function.Name, strings.Join(args, " ")))
 
-	return strings.Join(source, "\n")
+	return []string{
+		"-c",
+		strings.Join(source, "\n"),
+	}
 }
